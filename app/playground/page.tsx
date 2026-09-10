@@ -28,7 +28,7 @@ export default function Playground() {
         </div>
 
         {/* Tab Navigation (Pill style) */}
-        {/* <div className="flex flex-wrap gap-2 mb-8 bg-slate-200/50 p-2 rounded-xl inline-flex">
+        <div className="flex flex-wrap gap-2 mb-8 bg-slate-200/50 p-2 rounded-xl inline-flex">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -121,7 +121,7 @@ export default function Playground() {
             )}
 
           </div>
-        </div> */}
+        </div>
       </div>
     </main>
   );
