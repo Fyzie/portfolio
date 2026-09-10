@@ -20,14 +20,15 @@ export default function Playground() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">AI Playground</h1>
-          <p className="text-lg text-slate-600 max-w-3xl">
-            Interactive demos showcasing my engineering capabilities. Select a domain below to test live models and data pipelines.
-          </p>
+          {/* <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">AI Playground</h1> */}
+          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">On Maintenance :)</h1>
+          {/* <p className="text-lg text-slate-600 max-w-3xl">
+            Interactive demos. Select a domain below to test live models and data pipelines.
+          </p> */}
         </div>
 
         {/* Tab Navigation (Pill style) */}
-        <div className="flex flex-wrap gap-2 mb-8 bg-slate-200/50 p-2 rounded-xl inline-flex">
+        {/* <div className="flex flex-wrap gap-2 mb-8 bg-slate-200/50 p-2 rounded-xl inline-flex">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -120,7 +121,7 @@ export default function Playground() {
             )}
 
           </div>
-        </div>
+        </div> */}
       </div>
     </main>
   );
