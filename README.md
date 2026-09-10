@@ -45,3 +45,8 @@ git remote add origin https://github.com/Fyzie/portfolio.git
 git branch -M main
 git push -u origin main  
 ```
+
+## Pull
+```
+git pull origin main --allow-unrelated-histories
+```
