@@ -47,7 +47,15 @@ export default function ChatWidget() {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/chat', {
+      // const res = await fetch('http://localhost:8000/chat', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ message: trimmed }),
+      // });
+      
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+
+      const res = await fetch(`${backendUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: trimmed }),

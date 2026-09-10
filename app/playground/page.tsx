@@ -20,13 +20,13 @@ export default function Playground() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">AI Playground</h1>
-          <p className="text-lg text-slate-600 max-w-3xl">
-            Interactive demos showcasing my engineering capabilities. Select a domain below to test live models and data pipelines.
-          </p>
+          {/* <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">AI Playground</h1> */}
+          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">On Maintenance :)</h1>
+          {/* <p className="text-lg text-slate-600 max-w-3xl">
+            Interactive demos. Select a domain below to test live models and data pipelines.
+          </p> */}
         </div>
-
-        {/* Tab Navigation (Pill style) */}
+{/* 
         <div className="flex flex-wrap gap-2 mb-8 bg-slate-200/50 p-2 rounded-xl inline-flex">
           {tabs.map((tab) => (
             <button
@@ -44,10 +44,8 @@ export default function Playground() {
           ))}
         </div>
 
-        {/* Playground Content Area */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
           
-          {/* Header Bar inside the terminal/demo area */}
           <div className="bg-slate-100 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
             <div className="font-bold text-slate-700 flex items-center gap-2">
               <Settings size={18} className="text-slate-400" />
@@ -60,7 +58,6 @@ export default function Playground() {
             </div>
           </div>
 
-          {/* Dynamic Content Rendering */}
           <div className="p-8 flex-1 flex flex-col">
             
             {activeTab === 'cv' && (
@@ -120,7 +117,8 @@ export default function Playground() {
             )}
 
           </div>
-        </div>
+        </div> 
+*/}
       </div>
     </main>
   );

@@ -1,10 +1,12 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 import qdrant_client
 from qdrant_client import AsyncQdrantClient
+import smtplib
+from email.message import EmailMessage
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -89,3 +91,37 @@ def health_check():
 async def chat_endpoint(request: ChatRequest):
     response = await chat_engine.achat(request.message)
     return {"reply": str(response)}
+
+class ContactForm(BaseModel):
+    name: str
+    email: EmailStr
+    phone: str | None = None
+    message: str
+
+@app.post("/api/contact")
+async def send_contact_email(form: ContactForm):
+    sender_email = os.getenv("GMAIL_USER")       # Your Gmail address
+    sender_password = os.getenv("GMAIL_APP_PASS") # Your Gmail App Password
+
+    if not sender_email or not sender_password:
+        raise HTTPException(status_code=500, detail="Email service not configured on server.")
+ 
+    msg = EmailMessage()
+    msg.set_content(
+        f"Name: {form.name}\n"
+        f"Email: {form.email}\n"
+        f"Phone: {form.phone or 'Not provided'}\n\n"
+        f"Message:\n{form.message}"
+    )
+    msg["Subject"] = f"New Portfolio Message from {form.name}"
+    msg["From"] = sender_email
+    msg["To"] = "hafizimalik1998@gmail.com"
+
+    try:
+        # Connect to Gmail's SMTP server securely
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        return {"status": "success", "message": "Email sent successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
