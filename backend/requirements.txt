@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+python-dotenv
+qdrant-client
+llama-index
+llama-index-vector-stores-qdrant
+llama-index-llms-google-genai
+llama-index-embeddings-google-genai
+google-genai
