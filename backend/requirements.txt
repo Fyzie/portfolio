@@ -10,3 +10,4 @@ llama-index-vector-stores-qdrant==0.10.1
 llama-index-llms-google-genai==0.9.4
 llama-index-embeddings-google-genai==0.5.0
 google-genai==1.75.0
+resend
