@@ -18,10 +18,10 @@ load_dotenv()
 
 app = FastAPI(title="Portfolio AI Assistant Backend")
 
-# Allow Next.js frontend to communicate with this backend
+# Allow Next.js frontend to communicate with  backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust to specific domains in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -133,8 +133,8 @@ async def send_contact_email(form: ContactForm):
 """
 @app.post("/api/contact")
 async def send_contact_email(form: ContactForm):
-    sender_email = os.getenv("GMAIL_USER")       # Your Gmail address
-    sender_password = os.getenv("GMAIL_APP_PASS") # Your Gmail App Password
+    sender_email = os.getenv("GMAIL_USER")
+    sender_password = os.getenv("GMAIL_APP_PASS")
 
     if not sender_email or not sender_password:
         raise HTTPException(status_code=500, detail="Email service not configured on server.")
