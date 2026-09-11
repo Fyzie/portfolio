@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw } from 'lucide-react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 interface ChartPoint {
@@ -27,7 +27,7 @@ export default function Playground() {
     { id: 'rag', label: 'RAG Systems', icon: <Database size={18} /> },
   ];
 
-// Load shared database history on component mount
+  // Load shared database history on component mount
   const fetchHistory = async () => {
     try {
       setErrorMessage('');
@@ -40,21 +40,19 @@ export default function Playground() {
       if (logs.length > 0) {
         const formatted: ChartPoint[] = [];
         
-        // Map past logs into actual data points
         logs.slice(-5).forEach((log: any, idx: number) => {
           formatted.push({
             step: `Run ${idx + 1}`,
-            actual: Number(log.yield_forecast[0]), // Using first point of each log as historical sequence
+            actual: Number(log.yield_forecast[0]),
           });
         });
 
-        // Append the latest 5-step forecast onto the end of the history
         const latest = logs[0];
         if (latest && latest.yield_forecast) {
           latest.yield_forecast.forEach((val: number, i: number) => {
             formatted.push({
               step: `Forecast +${i + 1}`,
-              actual: i === 0 ? Number(val) : undefined, // Connect the lines at the current point
+              actual: i === 0 ? Number(val) : undefined,
               forecast: Number(val),
             });
           });
@@ -68,20 +66,39 @@ export default function Playground() {
     }
   };
 
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
   const handleForecast = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsForecasting(true);
     setErrorMessage('');
+
+    const temp = parseFloat(inputs.temp);
+    const pressure = parseFloat(inputs.pressure);
+    const speed = parseFloat(inputs.speed);
+
+    // Industrial data validation triggers
+    if (temp < 50 || temp > 350) {
+      setErrorMessage("⚠️ Warning: Temperature must be realistic (50°C - 350°C).");
+      return;
+    }
+    if (pressure < 0.5 || pressure > 25.0) {
+      setErrorMessage("⚠️ Warning: Pressure must be between 0.5 and 25.0 bar.");
+      return;
+    }
+    if (speed < 100 || speed > 5000) {
+      setErrorMessage("⚠️ Warning: Machine speed must be between 100 and 5000 RPM.");
+      return;
+    }
+
+    setIsForecasting(true);
 
     try {
       const res = await fetch(`${backendUrl}/api/forecast`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          temp: parseFloat(inputs.temp),
-          pressure: parseFloat(inputs.pressure),
-          speed: parseFloat(inputs.speed),
-        }),
+        body: JSON.stringify({ temp, pressure, speed }),
       });
 
       if (!res.ok) throw new Error(`Inference failed: ${res.statusText}`);
@@ -89,11 +106,10 @@ export default function Playground() {
       const result = await res.json();
       const forecastPoints: number[] = result.forecast;
 
-      // Keep some past context points from current data if available, then append the new forecast
       const existingActuals = chartData.filter(d => d.actual !== undefined && d.forecast === undefined);
       
       const newChartPoints: ChartPoint[] = [
-        ...existingActuals.slice(-3), // Keep last 3 actuals for continuity
+        ...existingActuals.slice(-3),
         { step: 'Current', actual: forecastPoints[0], forecast: forecastPoints[0] },
         { step: 'T+1', forecast: forecastPoints[1] },
         { step: 'T+2', forecast: forecastPoints[2] },
@@ -112,7 +128,6 @@ export default function Playground() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-8 md:p-15 font-sans">
-      
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
@@ -175,11 +190,16 @@ export default function Playground() {
                   
                   <form onSubmit={handleForecast} className="flex flex-col gap-4 text-sm">
                     <div>
-                      <label className="block text-slate-600 font-medium mb-1">Temperature (°C)</label>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-slate-600 font-medium">Temperature (°C)</label>
+                        <span className="text-xs text-slate-400">Range: 50 - 350</span>
+                      </div>
                       <input 
                         type="number" 
                         step="0.1"
                         required
+                        min="50"
+                        max="350"
                         value={inputs.temp}
                         onChange={(e) => setInputs({ ...inputs, temp: e.target.value })}
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
@@ -187,11 +207,16 @@ export default function Playground() {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-600 font-medium mb-1">Pressure (bar)</label>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-slate-600 font-medium">Pressure (bar)</label>
+                        <span className="text-xs text-slate-400">Range: 0.5 - 25</span>
+                      </div>
                       <input 
                         type="number"
                         step="0.1"
                         required
+                        min="0.5"
+                        max="25"
                         value={inputs.pressure}
                         onChange={(e) => setInputs({ ...inputs, pressure: e.target.value })} 
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
@@ -199,10 +224,15 @@ export default function Playground() {
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-600 font-medium mb-1">Machine Speed (RPM)</label>
+                      <div className="flex justify-between mb-1">
+                        <label className="text-slate-600 font-medium">Machine Speed (RPM)</label>
+                        <span className="text-xs text-slate-400">Range: 100 - 5000</span>
+                      </div>
                       <input 
                         type="number" 
                         required
+                        min="100"
+                        max="5000"
                         value={inputs.speed}
                         onChange={(e) => setInputs({ ...inputs, speed: e.target.value })}
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
@@ -219,7 +249,10 @@ export default function Playground() {
                     </button>
 
                     {errorMessage && (
-                      <p className="text-xs text-red-500 text-center mt-2">{errorMessage}</p>
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-xs text-red-600 mt-2">
+                        <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                        <span>{errorMessage}</span>
+                      </div>
                     )}
                   </form>
                 </div>
@@ -229,7 +262,7 @@ export default function Playground() {
                   <div className="mb-4 text-left">
                     <h4 className="font-semibold text-slate-800">Production Yield Forecast (%)</h4>
                     <p className="text-xs text-slate-500">
-                      Predicting subsequent trajectory based on Random Forest regressor.
+                      Predicting subsequent trajectory based on Random Forest regressor & continuous visitor logs.
                     </p>
                   </div>
 
