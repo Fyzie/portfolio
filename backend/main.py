@@ -166,11 +166,23 @@ async def send_contact_email(form: ContactForm):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 """
+
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(supabase_url, supabase_key)
+supabase: Client = None
+if supabase_url and supabase_key:
+    supabase = create_client(supabase_url, supabase_key)
+else:
+    print("Warning: Supabase credentials not found.")
 
-model = joblib.load('manufacturing_model.pkl')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "manufacturing_model.pkl")
+
+if os.path.exists(model_path):
+    model = joblib.load(model_path)
+    print("Manufacturing model loaded successfully!")
+else:
+    print(f"Error: Model not found at {model_path}")
 
 class ForecastRequest(BaseModel):
     temp: float
