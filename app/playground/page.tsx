@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
+
+interface ChartPoint {
+  step: string;
+  actual?: number;
+  forecast?: number;
+}
 
 export default function Playground() {
   const [activeTab, setActiveTab] = useState('analytics');
   
-  // Dummy state for our future forecasting inputs
-  const [inputs, setInputs] = useState({ temp: '', pressure: '', speed: '' });
+  const [inputs, setInputs] = useState({ temp: '180', pressure: '4.5', speed: '1200' });
   const [isForecasting, setIsForecasting] = useState(false);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
   const tabs = [
     { id: 'analytics', label: 'Data Analytics', icon: <BarChart3 size={18} /> },
@@ -17,11 +27,88 @@ export default function Playground() {
     { id: 'rag', label: 'RAG Systems', icon: <Database size={18} /> },
   ];
 
-  const handleForecast = (e: React.FormEvent) => {
+  // Load shared database history on component mount
+  const fetchHistory = async () => {
+    try {
+      setErrorMessage('');
+      const res = await fetch(`${backendUrl}/api/forecast-history`);
+      if (!res.ok) throw new Error("Failed to fetch history");
+      
+      const result = await res.json();
+      const logs = result.data || [];
+
+      if (logs.length > 0) {
+        // Build graph data from historical entries
+        const formatted: ChartPoint[] = [];
+        
+        // Take the latest log entries and show the initial progression
+        logs.slice(-5).forEach((log: any, idx: number) => {
+          formatted.push({
+            step: `Past ${idx + 1}`,
+            actual: Number(log.yield_forecast[0]),
+          });
+        });
+
+        // Add the latest forecast points into the view
+        const latest = logs[0];
+        if (latest && latest.yield_forecast) {
+          latest.yield_forecast.forEach((val: number, i: number) => {
+            formatted.push({
+              step: `T+${i + 1}`,
+              forecast: Number(val),
+            });
+          });
+        }
+
+        setChartData(formatted);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage("Could not load initial history from database.");
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const handleForecast = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsForecasting(true);
-    // Simulate backend delay
-    setTimeout(() => setIsForecasting(false), 1500);
+    setErrorMessage('');
+
+    try {
+      const res = await fetch(`${backendUrl}/api/forecast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          temp: parseFloat(inputs.temp),
+          pressure: parseFloat(inputs.pressure),
+          speed: parseFloat(inputs.speed),
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Inference failed: ${res.statusText}`);
+
+      const result = await res.json();
+      const forecastPoints: number[] = result.forecast;
+
+      // Update the chart with current baseline connecting to the 5 forecasted steps
+      const newChartPoints: ChartPoint[] = [
+        { step: 'Current', actual: forecastPoints[0], forecast: forecastPoints[0] },
+        { step: 'T+1', forecast: forecastPoints[1] },
+        { step: 'T+2', forecast: forecastPoints[2] },
+        { step: 'T+3', forecast: forecastPoints[3] },
+        { step: 'T+4', forecast: forecastPoints[4] },
+      ];
+
+      setChartData(newChartPoints);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || 'Error running model inference');
+    } finally {
+      setIsForecasting(false);
+    }
   };
 
   return (
@@ -73,9 +160,18 @@ export default function Playground() {
               <div className="flex-1 flex flex-col md:flex-row gap-8 animate-in fade-in duration-500">
                 {/* Controls Sidebar */}
                 <div className="w-full md:w-1/3 bg-slate-50 border border-slate-200 rounded-xl p-6 h-fit">
-                  <div className="flex items-center gap-2 mb-6 text-slate-800">
-                    <Activity size={20} className="text-orange-500" />
-                    <h3 className="font-bold text-lg">Manufacturing Forecast</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2 text-slate-800">
+                      <Activity size={20} className="text-orange-500" />
+                      <h3 className="font-bold text-lg">Machine Parameters</h3>
+                    </div>
+                    <button
+                      onClick={fetchHistory}
+                      title="Sync with database"
+                      className="text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      <RefreshCw size={16} />
+                    </button>
                   </div>
                   
                   <form onSubmit={handleForecast} className="flex flex-col gap-4 text-sm">
@@ -83,9 +179,10 @@ export default function Playground() {
                       <label className="block text-slate-600 font-medium mb-1">Temperature (°C)</label>
                       <input 
                         type="number" 
+                        step="0.1"
                         required
                         value={inputs.temp}
-                        onChange={(e) => setInputs({...inputs, temp: e.target.value})}
+                        onChange={(e) => setInputs({ ...inputs, temp: e.target.value })}
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
                         placeholder="e.g. 180" 
                       />
@@ -94,9 +191,10 @@ export default function Playground() {
                       <label className="block text-slate-600 font-medium mb-1">Pressure (bar)</label>
                       <input 
                         type="number"
+                        step="0.1"
                         required
                         value={inputs.pressure}
-                        onChange={(e) => setInputs({...inputs, pressure: e.target.value})} 
+                        onChange={(e) => setInputs({ ...inputs, pressure: e.target.value })} 
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
                         placeholder="e.g. 4.5" 
                       />
@@ -107,7 +205,7 @@ export default function Playground() {
                         type="number" 
                         required
                         value={inputs.speed}
-                        onChange={(e) => setInputs({...inputs, speed: e.target.value})}
+                        onChange={(e) => setInputs({ ...inputs, speed: e.target.value })}
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
                         placeholder="e.g. 1200" 
                       />
@@ -120,26 +218,58 @@ export default function Playground() {
                     >
                       {isForecasting ? 'Running Model...' : 'Generate 5-Point Forecast'}
                     </button>
+
+                    {errorMessage && (
+                      <p className="text-xs text-red-500 text-center mt-2">{errorMessage}</p>
+                    )}
                   </form>
                 </div>
 
-                {/* Chart Area */}
-                <div className="flex-1 border border-slate-200 rounded-xl bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-                  {isForecasting ? (
-                    <div className="animate-pulse flex flex-col items-center">
-                      <BarChart3 size={48} className="text-orange-400 mb-4" />
-                      <p className="text-slate-500 font-medium">Predicting future trends...</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="w-full h-full min-h-[300px] border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-400">
-                        [ Recharts Line Chart will render here ]
+                {/* Live Forecasting Chart Area */}
+                <div className="flex-1 border border-slate-200 rounded-xl bg-slate-50 flex flex-col p-6">
+                  <div className="mb-4 text-left">
+                    <h4 className="font-semibold text-slate-800">Production Yield Forecast (%)</h4>
+                    <p className="text-xs text-slate-500">
+                      Predicting subsequent trajectory based on Random Forest regressor & continuous visitor logs.
+                    </p>
+                  </div>
+
+                  <div className="w-full h-[320px]">
+                    {chartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: -10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="step" stroke="#64748b" fontSize={12} />
+                          <YAxis domain={['auto', 'auto']} stroke="#64748b" fontSize={12} />
+                          <Tooltip 
+                            contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', color: '#fff', border: 'none' }} 
+                          />
+                          <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="actual" 
+                            stroke="#3b82f6" 
+                            strokeWidth={2} 
+                            name="Past Production Yield" 
+                            dot={{ r: 4 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="forecast" 
+                            stroke="#f97316" 
+                            strokeWidth={2} 
+                            strokeDasharray="5 5" 
+                            name="Predicted Next 5 Steps" 
+                            dot={{ r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                        Loading database entries...
                       </div>
-                      <p className="text-slate-500 mt-4 text-sm max-w-sm">
-                        Enter manufacturing parameters to predict the next 5 production yield points based on historical data.
-                      </p>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             )}
