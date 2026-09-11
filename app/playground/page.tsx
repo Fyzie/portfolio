@@ -27,7 +27,7 @@ export default function Playground() {
     { id: 'rag', label: 'RAG Systems', icon: <Database size={18} /> },
   ];
 
-  // Load shared database history on component mount
+// Load shared database history on component mount
   const fetchHistory = async () => {
     try {
       setErrorMessage('');
@@ -38,23 +38,23 @@ export default function Playground() {
       const logs = result.data || [];
 
       if (logs.length > 0) {
-        // Build graph data from historical entries
         const formatted: ChartPoint[] = [];
         
-        // Take the latest log entries and show the initial progression
+        // Map past logs into actual data points
         logs.slice(-5).forEach((log: any, idx: number) => {
           formatted.push({
-            step: `Past ${idx + 1}`,
-            actual: Number(log.yield_forecast[0]),
+            step: `Run ${idx + 1}`,
+            actual: Number(log.yield_forecast[0]), // Using first point of each log as historical sequence
           });
         });
 
-        // Add the latest forecast points into the view
+        // Append the latest 5-step forecast onto the end of the history
         const latest = logs[0];
         if (latest && latest.yield_forecast) {
           latest.yield_forecast.forEach((val: number, i: number) => {
             formatted.push({
-              step: `T+${i + 1}`,
+              step: `Forecast +${i + 1}`,
+              actual: i === 0 ? Number(val) : undefined, // Connect the lines at the current point
               forecast: Number(val),
             });
           });
@@ -67,10 +67,6 @@ export default function Playground() {
       setErrorMessage("Could not load initial history from database.");
     }
   };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
 
   const handleForecast = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,8 +89,11 @@ export default function Playground() {
       const result = await res.json();
       const forecastPoints: number[] = result.forecast;
 
-      // Update the chart with current baseline connecting to the 5 forecasted steps
+      // Keep some past context points from current data if available, then append the new forecast
+      const existingActuals = chartData.filter(d => d.actual !== undefined && d.forecast === undefined);
+      
       const newChartPoints: ChartPoint[] = [
+        ...existingActuals.slice(-3), // Keep last 3 actuals for continuity
         { step: 'Current', actual: forecastPoints[0], forecast: forecastPoints[0] },
         { step: 'T+1', forecast: forecastPoints[1] },
         { step: 'T+2', forecast: forecastPoints[2] },
@@ -230,7 +229,7 @@ export default function Playground() {
                   <div className="mb-4 text-left">
                     <h4 className="font-semibold text-slate-800">Production Yield Forecast (%)</h4>
                     <p className="text-xs text-slate-500">
-                      Predicting subsequent trajectory based on Random Forest regressor & continuous visitor logs.
+                      Predicting subsequent trajectory based on Random Forest regressor.
                     </p>
                   </div>
 
