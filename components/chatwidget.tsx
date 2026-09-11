@@ -8,22 +8,41 @@ interface Message {
   content: string;
 }
 
+const loadingMessages = [
+  "Searching knowledge base...",
+  "Please wait...",
+  "I'm on free tier here :)...",
+];
+
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm Hafizi's AI assistant. Ask me anything about his experience, projects, or skill set.",
+      content: "Hi! I'm Hafizi's AI assistant, Fyzie. Ask me anything about his experience, projects, or skill set.",
     },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to the newest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Rotate loading text every 2.5 seconds when loading is active
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      setLoadingMsgIndex(0);
+      interval = setInterval(() => {
+        setLoadingMsgIndex((prev) => (prev + 1) % loadingMessages.length);
+      }, 2500);
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   // Function to reset chat history
   const handleClearChat = () => {
@@ -47,12 +66,6 @@ export default function ChatWidget() {
     setLoading(true);
 
     try {
-      // const res = await fetch('http://localhost:8000/chat', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ message: trimmed }),
-      // });
-      
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
       const res = await fetch(`${backendUrl}/chat`, {
@@ -90,7 +103,7 @@ export default function ChatWidget() {
           {/* Header */}
           <div className="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
             <div>
-              <h3 className="font-bold text-sm">AI Assistant</h3>
+              <h3 className="font-bold text-sm">Fyzie</h3>
               <p className="text-xs text-slate-400">Powered by LlamaIndex + Qdrant</p>
             </div>
             <div className="flex items-center gap-2">
@@ -128,9 +141,9 @@ export default function ChatWidget() {
             ))}
 
             {loading && (
-              <div className="bg-white text-slate-500 border border-slate-200 shadow-sm self-start rounded-xl rounded-bl-none p-3 flex items-center gap-2 text-xs">
-                <Loader2 size={14} className="animate-spin text-blue-600" />
-                Searching knowledge base...
+              <div className="bg-white text-slate-500 border border-slate-200 shadow-sm self-start rounded-xl rounded-bl-none p-3 flex items-center gap-2 text-xs transition-all duration-300">
+                <Loader2 size={14} className="animate-spin text-blue-600 shrink-0" />
+                <span>{loadingMessages[loadingMsgIndex]}</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -158,14 +171,21 @@ export default function ChatWidget() {
         </div>
       )}
 
-      {/* Toggle Button */}
+      {/* Toggle Button with "Chat with Fyzie" label hidden when open */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 ml-auto ${
-          isOpen ? 'bg-slate-800 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+        className={`flex items-center gap-3 px-4 h-14 rounded-full shadow-lg transition-all hover:scale-105 ml-auto ${
+          isOpen ? 'bg-slate-800 text-white w-14 justify-center px-0' : 'bg-blue-600 text-white hover:bg-blue-700'
         }`}
       >
-        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+        {isOpen ? (
+          <X size={24} />
+        ) : (
+          <>
+            <MessageSquare size={22} className="shrink-0" />
+            <span className="font-medium text-sm whitespace-nowrap">Chat with Fyzie</span>
+          </>
+        )}
       </button>
     </div>
   );

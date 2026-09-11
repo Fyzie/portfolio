@@ -1,13 +1,20 @@
 import os
+import resend
+import smtplib
+import qdrant_client
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-import qdrant_client
 from qdrant_client import AsyncQdrantClient
-import smtplib
 from email.message import EmailMessage
-import resend
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from supabase import create_client, Client
+import joblib
+import numpy as np
+import os
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -129,7 +136,7 @@ async def send_contact_email(form: ContactForm):
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
 
-# SMRPLIB
+# EMAIL BY SMRPLIB
 """
 @app.post("/api/contact")
 async def send_contact_email(form: ContactForm):
@@ -159,3 +166,38 @@ async def send_contact_email(form: ContactForm):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 """
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_KEY")
+supabase: Client = create_client(supabase_url, supabase_key)
+
+model = joblib.load('manufacturing_model.pkl')
+
+class ForecastRequest(BaseModel):
+    temp: float
+    pressure: float
+    speed: float
+
+@app.post("/api/forecast")
+async def generate_forecast(data: ForecastRequest):
+    try:
+        # Run inference (Predict the 5 points)
+        inputs = np.array([[data.temp, data.pressure, data.speed]])
+        prediction = model.predict(inputs)[0].tolist() # Convert numpy array to list
+        
+        # Save to Supabase (other visitors can see it)
+        db_response = supabase.table("manufacturing_logs").insert({
+            "temperature": data.temp,
+            "pressure": data.pressure,
+            "speed": data.speed,
+            "yield_forecast": prediction
+        }).execute()
+        
+        return {"status": "success", "forecast": prediction, "db_record": db_response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/forecast-history")
+async def get_history():
+    # Fetch the last 20 entries for the frontend graph
+    response = supabase.table("manufacturing_logs").select("*").order("created_at", desc=True).limit(20).execute()
+    return {"data": response.data}
