@@ -13,7 +13,8 @@ interface ChartPoint {
 export default function Playground() {
   const [activeTab, setActiveTab] = useState('analytics');
   
-  const [inputs, setInputs] = useState({ temp: '180', pressure: '4.5', speed: '1200' });
+  // Default state for aluminum extrusion parameters
+  const [inputs, setInputs] = useState({ temp: '475', pressure: '25.0', speed: '12.0' });
   const [isForecasting, setIsForecasting] = useState(false);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
@@ -78,17 +79,17 @@ export default function Playground() {
     const pressure = parseFloat(inputs.pressure);
     const speed = parseFloat(inputs.speed);
 
-    // Industrial data validation triggers
-    if (temp < 50 || temp > 350) {
-      setErrorMessage("⚠️ Warning: Temperature must be realistic (50°C - 350°C).");
+    // Aluminum extrusion telemetry validation bounds
+    if (temp < 400 || temp > 550) {
+      setErrorMessage("⚠️ Warning: Billet temperature must be between 400°C and 550°C for aluminum.");
       return;
     }
-    if (pressure < 0.5 || pressure > 25.0) {
-      setErrorMessage("⚠️ Warning: Pressure must be between 0.5 and 25.0 bar.");
+    if (pressure < 5.0 || pressure > 45.0) {
+      setErrorMessage("⚠️ Warning: Ram pressure must be between 5.0 and 45.0 MPa.");
       return;
     }
-    if (speed < 100 || speed > 5000) {
-      setErrorMessage("⚠️ Warning: Machine speed must be between 100 and 5000 RPM.");
+    if (speed < 2.0 || speed > 30.0) {
+      setErrorMessage("⚠️ Warning: Extrusion speed must be between 2.0 and 30.0 mm/s.");
       return;
     }
 
@@ -128,6 +129,7 @@ export default function Playground() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-8 md:p-15 font-sans">
+      
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-10">
@@ -177,7 +179,7 @@ export default function Playground() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2 text-slate-800">
                       <Activity size={20} className="text-orange-500" />
-                      <h3 className="font-bold text-lg">Machine Parameters</h3>
+                      <h3 className="font-bold text-lg">Aluminum Extrusion Parameters</h3>
                     </div>
                     <button
                       onClick={fetchHistory}
@@ -191,52 +193,53 @@ export default function Playground() {
                   <form onSubmit={handleForecast} className="flex flex-col gap-4 text-sm">
                     <div>
                       <div className="flex justify-between mb-1">
-                        <label className="text-slate-600 font-medium">Temperature (°C)</label>
-                        <span className="text-xs text-slate-400">Range: 50 - 350</span>
+                        <label className="text-slate-600 font-medium">Billet Temp (°C)</label>
+                        <span className="text-xs text-slate-400">Range: 400 - 550</span>
                       </div>
                       <input 
                         type="number" 
-                        step="0.1"
+                        step="0.5"
                         required
-                        min="50"
-                        max="350"
+                        min="400"
+                        max="550"
                         value={inputs.temp}
                         onChange={(e) => setInputs({ ...inputs, temp: e.target.value })}
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
-                        placeholder="e.g. 180" 
+                        placeholder="e.g. 475" 
                       />
                     </div>
                     <div>
                       <div className="flex justify-between mb-1">
-                        <label className="text-slate-600 font-medium">Pressure (bar)</label>
-                        <span className="text-xs text-slate-400">Range: 0.5 - 25</span>
+                        <label className="text-slate-600 font-medium">Ram Pressure (MPa)</label>
+                        <span className="text-xs text-slate-400">Range: 5 - 45</span>
                       </div>
                       <input 
                         type="number"
                         step="0.1"
                         required
-                        min="0.5"
-                        max="25"
+                        min="5"
+                        max="45"
                         value={inputs.pressure}
                         onChange={(e) => setInputs({ ...inputs, pressure: e.target.value })} 
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
-                        placeholder="e.g. 4.5" 
+                        placeholder="e.g. 25.0" 
                       />
                     </div>
                     <div>
                       <div className="flex justify-between mb-1">
-                        <label className="text-slate-600 font-medium">Machine Speed (RPM)</label>
-                        <span className="text-xs text-slate-400">Range: 100 - 5000</span>
+                        <label className="text-slate-600 font-medium">Extrusion Speed (mm/s)</label>
+                        <span className="text-xs text-slate-400">Range: 2 - 30</span>
                       </div>
                       <input 
                         type="number" 
+                        step="0.1"
                         required
-                        min="100"
-                        max="5000"
+                        min="2"
+                        max="30"
                         value={inputs.speed}
                         onChange={(e) => setInputs({ ...inputs, speed: e.target.value })}
                         className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" 
-                        placeholder="e.g. 1200" 
+                        placeholder="e.g. 12.0" 
                       />
                     </div>
                     
@@ -260,7 +263,7 @@ export default function Playground() {
                 {/* Live Forecasting Chart Area */}
                 <div className="flex-1 border border-slate-200 rounded-xl bg-slate-50 flex flex-col p-6">
                   <div className="mb-4 text-left">
-                    <h4 className="font-semibold text-slate-800">Production Yield Forecast (%)</h4>
+                    <h4 className="font-semibold text-slate-800">Extrusion Quality & Yield Forecast (%)</h4>
                     <p className="text-xs text-slate-500">
                       Predicting subsequent trajectory based on Random Forest regressor & continuous visitor logs.
                     </p>
