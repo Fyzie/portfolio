@@ -321,7 +321,7 @@ export default function Playground() {
                           <label className="text-slate-600 font-medium">Extrusion Speed (mm/s)</label>
                           <input type="number" step="0.1" required min="2" max="30" value={forecastInputs.speed} onChange={(e) => setForecastInputs({ ...forecastInputs, speed: e.target.value })} className="mt-1 w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" />
                         </div>
-                        <button type="submit" disabled={isProcessing} className="mt-4 w-full bg-slate-800 text-white font-medium py-3 rounded-lg hover:bg-slate-900 transition-colors disabled:opacity-50">
+                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
                           {isProcessing ? 'Running Model...' : 'Generate Forecast'}
                         </button>
                       </form>
@@ -424,7 +424,7 @@ export default function Playground() {
                           <input type="number" step="0.5" required value={regInputs.no_of_workers} onChange={(e) => setRegInputs({ ...regInputs, no_of_workers: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
                         </div>
 
-                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-emerald-600 text-white font-medium py-3 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50">
+                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
                           {isProcessing ? 'Calculating...' : 'Predict Productivity'}
                         </button>
                       </form>
