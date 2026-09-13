@@ -81,9 +81,9 @@ export default function Playground() {
         const latest = logs[0];
         if (latest && latest.outputs?.probabilities) {
           setChartData([
-            { name: 'Class 0 (Normal)', probability: Number((latest.outputs.probabilities[0] * 100).toFixed(1)) },
-            { name: 'Class 1 (Fault A)', probability: Number((latest.outputs.probabilities[1] * 100).toFixed(1)) },
-            { name: 'Class 2 (Fault B)', probability: Number((latest.outputs.probabilities[2] * 100).toFixed(1)) },
+            { name: 'Class 0 (No Fault)', probability: Number((latest.outputs.probabilities[0] * 100).toFixed(1)) },
+            { name: 'Class 1 (Bearing Fault)', probability: Number((latest.outputs.probabilities[1] * 100).toFixed(1)) },
+            { name: 'Class 2 (Overheating)', probability: Number((latest.outputs.probabilities[2] * 100).toFixed(1)) },
           ]);
         }
       } else if (analyticsType === 'regression' && logs.length > 0) {
