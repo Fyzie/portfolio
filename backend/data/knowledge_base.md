@@ -16,7 +16,7 @@ AI and Mechatronics Engineer with 3+ years of experience specializing in manufac
 - Example products that have been experienced and inspected: LEDs, capacitors, lead frame, plastic bottles and caps, ceramics, copper and chrome rollers, seatbelt, rubber and steel gaskets, formers, pellets, power cables, glasses, printed packaging, textile pins
 
 ## RESEARCH MANAGEMENT CENTER (RMC) IIUM
-### Graduate Research Assistant, Dec 2021 – Sep 2023
+### Graduate Research Assistant, Dec 2021 - Sep 2023
 - Contributed to the complete life cycle of grant projects, from writing proposals, conceptual design, implementation to integration, and reporting.
 - Prepared multimedia materials, including infographics, presentation slides, and demonstration videos, for project presentations, workshops, and academic programs.
 ### Projects:
@@ -25,14 +25,14 @@ AI and Mechatronics Engineer with 3+ years of experience specializing in manufac
 - Smart IoT energy optimization and localization monitoring for e-bike sharing
 
 ## INGENIOUS INTERNATIONAL SDN BHD (M)
-### INTERN
+### Intern, Aug 2020 – Oct 2020
 - Assisted in preparing bill of quantities and test reports for specific electrical and cable fittings using AutoCAD and Rivet (MRT Chan Sow Lin Station, Office Towers at TNB HQ Campus)
 - Participated in site inspection focused on electrical wiring connections (Malaysia Steel Works (KL) Bhd)
 
 # EDUCATION
 ## Master of Science in Mechatronics Engineering (Research Mode) - Artificial Intelligence
 International Islamic University Malaysia (IIUM), Oct 2021 - Dec 2023
-### Major Publications:
+### Major Publications Related to My Master:
 - A review of open-source image analysis tools for mammalian cell culture: algorithms, features, and 
 implementations.
 - Deploying patch-based segmentation pipeline for fibroblast cell images at varying magnifications.
@@ -107,3 +107,85 @@ Other than key projects can refer to my github: github.com/Fyzie encompassing va
 # ADDITIONAL INFORMATION			         
 - Availability: 2 months’ notice
 - Driver’s license: Class D, B2
+
+# UNIVERSITY EXTRACURRICULAR MAJOR ACTIVITIES 
+## Aug 2018 – Sep 2021 Students’ Industry Training Club
+- Secretary 2021
+- Committee Member, Global Cleanup Congress 2022, IIUM 
+- Assistant Head of MultiMedia 2020
+- Program Manager, Illustrator Workshop, IIUM 
+- Media, Scienceviro Jr Robotic Workshop, IIUM 
+## Jan 2019 – Dec 2019 AKHI Mentoring Club 
+- Publication and Promotion, Opening and Closing Ceremony for LoFest’19, II
+
+# UNIVERSITY EXTRACURRICULAR MINOR ACTIVITIES/ PROGRAMMES 
+1. Site Visit to Vinda Group SEA — 15-Dec-2017
+Category: University
+Role: Participant
+2. Students' Industry Training Club Annual Grand Dinner — 20-Feb-2018
+Category: University
+Role: Main Committee
+3. Kickstart Your Campus Life — 05-Sep-2018
+Category: Society/Department
+Role: Committee
+4. Pembina Induction — 12-Sep-2018
+Category: Society/Department
+Role: Participant
+5. Adobe Photoshop Workshop (Beginner Level) — 23-Sep-2018
+Category: Society/Department
+Role: Program Manager
+6. SITC Mass Gathering — 28-Sep-2018
+Category: University
+Role: Participant
+7. SRC Election 2018 — 15-Nov-2018
+Category: University
+Role: Participant
+10. Students Industry Training Club Scienceviro JCM Camp 2018 — 17-Nov-2018
+Category: Society/Department
+Role: Main Committee
+11. AKHI Club Get Together Session — 04-Mar-2019
+Category: Society/Department
+Role: Participant
+12. AIU Mentoring Camp 1 — 09-Mar-2019
+Category: Society/Department
+Role: Committee
+13. Mahabbah Visit — 12-Mar-2019
+Category: Society/Department
+Role: Participant
+14. Briefing Perkeso on Short Video Competition — 29-Mar-2019
+Category: University
+Role: Participant
+15. Python Workshop — 07-Apr-2019
+Category: Society/Department
+Role: Participant
+16. Site Visit at Kumpulan Media Karangkraf Sdn Bhd — 11-Apr-2019
+Category: University
+Role: Main Committee
+17. Malaysian Is an Islamic Nation: Rhetoric or Reality? — 18-Apr-2019
+Category: Society/Department
+Role: Participant
+
+# HOBBY
+Badminton, Travel
+
+# ALL PUBLICATIONS 
+## Main Author 
+1. 14 January 2026 Advancing coral reef monitoring: a deep learning perspective on automated segmentation and classification
+Publisher: Springer Nature (Discover Applied Sciences)
+2. 5 Sept 2023 Deploying Patch-Based Segmentation Pipeline for Fibroblast Cell Images at 
+Varying Magnifications 
+Publisher: IEEE Access 
+3. 16 May 2023 A Review of Open-Source Image Analysis Tools for Mammalian Cell Culture: 
+Algorithms, Features, And Implementations 
+Publisher: PeerJ Computer Science 
+## Co Author 
+1. 2 Aug 2023 An Automated Approach for Fibroblast Cell Confluency Characterisation and 
+Sample Handling Using AIoT For Bio-Research and Bio-Manufacturing 
+Publisher: Taylor & Francis Online 
+2. 3 June 2023 Urban And Long-Range Driving Cycle for Electric Vehicle 
+Publisher: Perintis eJournal 
+3. 18 Dec 2022 Low-Cost Modular Battery Monitoring System for Small Scale Testing 
+Publisher: Perintis eJournal 
+4. 10 Dec 2022 Geo-Fencing Location Tracking System Using IoT and LoRa LPWAN for COVID-19 
+Mandatory Self-Quarantine Monitoring 
+Publisher: Perintis eJournal 

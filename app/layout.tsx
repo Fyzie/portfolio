@@ -37,6 +37,7 @@ export default function RootLayout({
             <div className="flex gap-6 font-medium text-sm text-slate-600">
               <Link href="/" className="hover:text-blue-600 transition-colors">About Me</Link>
               <Link href="/projects" className="hover:text-blue-600 transition-colors">Projects</Link>
+              <Link href="/awards" className="hover:text-blue-600 transition-colors">Awards</Link>
               {/* <Link href="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>? */}
               <Link href="/playground" className="hover:text-blue-600 transition-colors">Playground</Link>
               <Link href="/contact" className="hover:text-blue-600 transition-colors">Contact Me</Link>

@@ -84,9 +84,9 @@ export default function Project() {
 
   // Example Image Arrays - Add your extra images here
   const lensImages = ["/lens_image.png"];
-  const cellImages = ["/cell_image.png", "/cell_image_2.png", "/cell_image_3.png","/cell_certificate_1.jpeg", "/cell_certificate_2.jpeg"];
-  const trackerImages = ["/tracker.png", "/geo_certificate.jpeg"]; 
-  const dcImages = ["/dc.png", "/dc_certificate.jpeg"];
+  const cellImages = ["/cell_image.png", "/cell_image_2.png", "/cell_image_3.png"];
+  const trackerImages = ["/tracker.png"]; 
+  const dcImages = ["/dc.png"];
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-8 md:p-15 font-sans">

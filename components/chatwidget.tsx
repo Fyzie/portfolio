@@ -87,7 +87,7 @@ export default function ChatWidget() {
         ...prev,
         {
           role: 'assistant',
-          content: 'Sorry, I had trouble connecting to the backend server. Maybe out of tokens :)',
+          content: 'Sorry, I had trouble connecting to the backend server. Maybe out of tokens. Please come back later.',
         },
       ]);
     } finally {

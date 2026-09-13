@@ -31,8 +31,8 @@ def main():
         api_key=GOOGLE_API_KEY
     )
 
-    print("2. Reading documents from ./data/ directory...")
-    documents = SimpleDirectoryReader("./data").load_data()
+    print("2. Reading documents from data/ directory...")
+    documents = SimpleDirectoryReader("./portfolio/backend/data").load_data()
     print(f"   -> Found and loaded {len(documents)} document fragments.")
 
     print("3. Connecting to Qdrant Cloud...")

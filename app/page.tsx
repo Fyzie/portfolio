@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ExternalLink, Copy, X, ChevronDown, ChevronUp } from 'lucide-react'; // icons
 
 // Chevron use for arrow icon for collapsible effect for More...
@@ -26,6 +27,10 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [showMorePubs, setShowMorePubs] = useState(false);
   const [showMoreEducation, setShowMoreEducation] = useState(false);
+  
+  // States for certificate modal viewer
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedTitle, setSelectedTitle] = useState<string>('');
 
   const ieeeLink = "https://ieeexplore.ieee.org/document/10239394";
 
@@ -33,6 +38,11 @@ export default function Home() {
     navigator.clipboard.writeText(ieeeLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000); // Reset "Copied" word
+  };
+
+  const handleCloseModal = () => {
+    setSelectedImage(null);
+    setSelectedTitle('');
   };
 
   return (
@@ -407,47 +417,50 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Cert 1: Azure AI-102 */}
-          <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex justify-between items-start mb-1 gap-4">
-              <Link
+          <Link
               href="https://learn.microsoft.com/en-us/users/hafizimalik-4920/credentials/fa9a011f5ecf0c39?ref=https%3A%2F%2Fwww.linkedin.com%2F"
               target="_blank"
               rel="noopener noreferrer"
-              className="group"
+              className="group h-full flex flex-col"
               >
-              <h3 className="text-lg font-bold text-slate-900 leading-tight">Azure AI Engineer Associate (AI-102)</h3>
-              </Link>
-              <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
+            <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+              <div className="flex justify-between items-start mb-1 gap-4">
+
+                <h3 className="text-lg font-bold text-slate-900 leading-tight">Azure AI Engineer Associate (AI-102)</h3>
+                <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
+              </div>
+              <p className="text-slate-700 font-medium mb-4">Microsoft</p>
+              <div className="mt-auto border-t border-slate-100 pt-3">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  <span className="font-bold text-slate-800">Focus Areas:</span> API-Based AI Integration and Cloud AI Workflows
+                </p>
+              </div>
             </div>
-            <p className="text-slate-700 font-medium mb-4">Microsoft</p>
-            <div className="mt-auto border-t border-slate-100 pt-3">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <span className="font-bold text-slate-800">Focus Areas:</span> API-Based AI Integration and Cloud AI Workflows
-              </p>
-            </div>
-          </div>
+          </Link>
 
           {/* Cert 2: Azure AI-900 */}
-          <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col">
-            <div className="flex justify-between items-start mb-1 gap-4">
-              <Link
+          <Link
               href="https://learn.microsoft.com/en-us/users/hafizimalik-4920/credentials/3fb7b32295dc8d1b?ref=https%3A%2F%2Fwww.linkedin.com%2F"
               target="_blank"
               rel="noopener noreferrer"
-              className="group"
+              className="group h-full flex flex-col"
               >
-              <h3 className="text-lg font-bold text-slate-900 leading-tight">Azure AI Fundamentals (AI-900)</h3>
-              </Link>
-              
-              <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
+            <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+              <div className="flex justify-between items-start mb-1 gap-4">
+
+                <h3 className="text-lg font-bold text-slate-900 leading-tight">Azure AI Fundamentals (AI-900)</h3>
+                
+                <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
+              </div>
+              <p className="text-slate-700 font-medium">Microsoft</p>
+              <div className="mt-auto border-t border-slate-100 pt-3">
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  <span className="font-bold text-slate-800">Focus Areas:</span> Conceptual Knowledge of AI Solutions
+                </p>
+              </div>
             </div>
-            <p className="text-slate-700 font-medium">Microsoft</p>
-            <div className="mt-auto border-t border-slate-100 pt-3">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <span className="font-bold text-slate-800">Focus Areas:</span> Conceptual Knowledge of AI Solutions
-              </p>
-            </div>
-          </div>
+          </Link>
+
 
           {/* Cert 3: Peneraju Teknologi */}
           <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col">
@@ -463,22 +476,81 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Cert 4: Deep Learning */}
-          <div className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col">
+          {/* Cert 4: Deep Learning*/}
+          <div 
+            onClick={() => {
+              setSelectedImage('/cute_certificate.jpg'); // Replace with your actual certificate image path
+              setSelectedTitle('Deep Learning in Intelligent Video Analytics and Computer Vision');
+            }}
+            className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col cursor-pointer group"
+          >
             <div className="flex justify-between items-start mb-1 gap-4">
-              <h3 className="text-lg font-bold text-slate-900 leading-tight">Deep Learning in Intelligent Video Analytics and Computer Vision</h3>
+              {/* <h3 className="text-lg font-bold text-slate-900 leading-tight group-hover:text-blue-600 transition-colors"> */}
+              <h3 className="text-lg font-bold text-slate-900 leading-tight">
+                Deep Learning in Intelligent Video Analytics and Computer Vision
+              </h3>
               <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2023</span>
             </div>
             <p className="text-slate-700 font-medium mb-4">CUTe IIUM</p>
-            <div className="mt-auto border-t border-slate-100 pt-3">
+            <div className="mt-auto border-t border-slate-100 pt-3 flex items-center justify-between">
               <p className="text-sm text-slate-600 leading-relaxed">
                 <span className="font-bold text-slate-800">Focus Areas:</span> PyTorch and NVIDIA Jetson
               </p>
+              <span className="text-xs font-semibold text-slate-500 group-hover:underline">View Certificate &rarr;</span>
             </div>
           </div>
 
         </div>
       </section>
+
+      {/* Certificate Image Modal Viewer */}
+      {selectedImage && (
+        <div 
+          onClick={handleCloseModal}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative flex flex-col max-h-[90vh]"
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800 pr-8 line-clamp-1">
+                {selectedTitle}
+              </h3>
+              <button
+                onClick={handleCloseModal}
+                className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body (Certificate Image Container) */}
+            <div className="relative my-4 flex-grow flex items-center justify-center min-h-[300px] bg-slate-100 rounded-xl overflow-hidden">
+              <div className="relative w-full h-[400px]">
+                <Image
+                  src={selectedImage}
+                  alt={selectedTitle}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 700px"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
     </main>
   );
