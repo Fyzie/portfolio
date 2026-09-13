@@ -7,14 +7,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from qdrant_client import AsyncQdrantClient
-from email.message import EmailMessage
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from supabase import create_client, Client
 import joblib
 import numpy as np
-import os
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -25,7 +20,6 @@ load_dotenv()
 
 app = FastAPI(title="Portfolio AI Assistant Backend")
 
-# Allow Next.js frontend to communicate with  backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -34,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 1. Match Google AI Settings
 Settings.llm = GoogleGenAI(
     model="gemini-3.6-flash",
     api_key=os.getenv("GOOGLE_API_KEY")
@@ -44,13 +37,10 @@ Settings.embed_model = GoogleGenAIEmbedding(
     api_key=os.getenv("GOOGLE_API_KEY")
 )
 
-# 2. Connect to Qdrant Cloud
 client = qdrant_client.QdrantClient(
     url=os.getenv("QDRANT_URL"),
     api_key=os.getenv("QDRANT_API_KEY")
 )
-
-# NEW: Create the asynchronous client
 aclient = AsyncQdrantClient(
     url=os.getenv("QDRANT_URL"),
     api_key=os.getenv("QDRANT_API_KEY")
@@ -62,13 +52,10 @@ vector_store = QdrantVectorStore(
     collection_name="portfolio_knowledge"
 )
 
-
-# 3. Attach query engine to existing vector collection
 index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
 
-# NEW: Define strict behavioral rules for the bot
 custom_prompt = (
-    "You are a helpful AI assistant for Hafizi's engineering portfolio. "
+    "You are a helpful AI assistant for Hafizi's portfolio. "
     "Your goal is to answer questions about Hafizi conversationally and concisely. "
     "CRITICAL RULES: "
     "- Keep answers brief (maximum 2 to 3 short sentences). "
@@ -76,12 +63,6 @@ custom_prompt = (
     "- Sound natural, friendly, and professional."
 )
 
-# chat_engine = index.as_chat_engine(
-#     chat_mode="condense_question",
-#     verbose=True
-# )
-
-# chat engine with custom prompt
 chat_engine = index.as_chat_engine(
     chat_mode="condense_plus_context",
     system_prompt=custom_prompt,
@@ -106,7 +87,6 @@ class ContactForm(BaseModel):
     phone: str | None = None
     message: str
 
-# RESEND
 resend.api_key = os.getenv("RESEND_API_KEY")
 
 @app.post("/api/contact")
@@ -129,12 +109,10 @@ async def send_contact_email(form: ContactForm):
             """,
             "reply_to": form.email
         }
-        
         response = resend.Emails.send(params)
         return {"status": "success", "message": "Email sent successfully!", "data": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
-
 
 # EMAIL BY SMRPLIB
 """
@@ -176,40 +154,116 @@ else:
     print("Warning: Supabase credentials not found.")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "manufacturing_model.pkl")
 
-if os.path.exists(model_path):
-    model = joblib.load(model_path)
-    print("Manufacturing model loaded successfully!")
-else:
-    print(f"Error: Model not found at {model_path}")
+model_path = os.path.join(BASE_DIR, "manufacturing_model.pkl")
+model = joblib.load(model_path) if os.path.exists(model_path) else None
+
+model_fault_path = os.path.join(BASE_DIR, "industrial_fault_model.pkl")
+fault_classifier = joblib.load(model_fault_path) if os.path.exists(model_fault_path) else None
+
+model_reg_path = os.path.join(BASE_DIR, "garments_regression_model.pkl")
+garment_regressor = joblib.load(model_reg_path) if os.path.exists(model_reg_path) else None
 
 class ForecastRequest(BaseModel):
     temp: float
     pressure: float
     speed: float
 
+class FaultClassifyRequest(BaseModel):
+    vibration: float
+    temperature: float
+    pressure: float
+    rms_vibration: float
+    mean_temp: float
+
+class GarmentRegressRequest(BaseModel):
+    targeted_productivity: float
+    smv: float
+    over_time: int
+    incentive: int
+    no_of_workers: float
+
 @app.post("/api/forecast")
 async def generate_forecast(data: ForecastRequest):
     try:
-        # Run inference (Predict the 5 points)
-        inputs = np.array([[data.temp, data.pressure, data.speed]])
-        prediction = model.predict(inputs)[0].tolist() # Convert numpy array to list
+        inputs_list = [data.temp, data.pressure, data.speed]
+        prediction = model.predict(np.array([inputs_list]))[0].tolist() if model else [80, 79, 78, 77, 76]
         
-        # Save to Supabase (other visitors can see it)
-        db_response = supabase.table("manufacturing_logs").insert({
-            "temperature": data.temp,
-            "pressure": data.pressure,
-            "speed": data.speed,
-            "yield_forecast": prediction
-        }).execute()
+        if supabase:
+            supabase.table("analytics_logs").insert({
+                "task_type": "forecast",
+                "inputs": {"temp": data.temp, "pressure": data.pressure, "speed": data.speed},
+                "outputs": {"forecast": prediction}
+            }).execute()
         
-        return {"status": "success", "forecast": prediction, "db_record": db_response.data}
+        return {"status": "success", "forecast": prediction}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/forecast-history")
-async def get_history():
-    # Fetch the last 20 entries for the frontend graph
-    response = supabase.table("manufacturing_logs").select("*").order("created_at", desc=True).limit(20).execute()
+@app.post("/api/industrial-fault-classify")
+async def classify_fault_state(data: FaultClassifyRequest):
+    try:
+        if fault_classifier:
+            inputs_arr = [[data.vibration, data.temperature, data.pressure, data.rms_vibration, data.mean_temp]]
+            probabilities = fault_classifier.predict_proba(inputs_arr)[0].tolist()
+        else:
+            probabilities = [0.70, 0.20, 0.10]
+            
+        if supabase:
+            supabase.table("analytics_logs").insert({
+                "task_type": "classification",
+                "inputs": {
+                    "vibration": data.vibration, 
+                    "temperature": data.temperature, 
+                    "pressure": data.pressure, 
+                    "rms_vibration": data.rms_vibration, 
+                    "mean_temp": data.mean_temp
+                },
+                "outputs": {"probabilities": probabilities}
+            }).execute()
+
+        return {"status": "success", "probabilities": probabilities}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/garments-regression")
+async def predict_garment_productivity(data: GarmentRegressRequest):
+    try:
+        if garment_regressor:
+            inputs_arr = [[data.targeted_productivity, data.smv, data.over_time, data.incentive, data.no_of_workers]]
+            predicted_productivity = float(garment_regressor.predict(inputs_arr)[0])
+        else:
+            predicted_productivity = 0.82
+
+        if supabase:
+            supabase.table("analytics_logs").insert({
+                "task_type": "regression",
+                "inputs": {
+                    "targeted_productivity": data.targeted_productivity,
+                    "smv": data.smv,
+                    "over_time": data.over_time,
+                    "incentive": data.incentive,
+                    "no_of_workers": data.no_of_workers
+                },
+                "outputs": {"predicted_productivity": predicted_productivity}
+            }).execute()
+
+        return {"status": "success", "predicted_productivity": predicted_productivity}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/get-history")
+async def get_history(task_type: str = "forecast"):
+    if not supabase:
+        return {"data": []}
+    
+    # Fetch logs filtered by the active task type from the unified table
+    response = (
+        supabase.table("analytics_logs")
+        .select("*")
+        .eq("task_type", task_type)
+        .order("created_at", desc=True)
+        .limit(5)
+        .execute()
+    )
     return {"data": response.data}

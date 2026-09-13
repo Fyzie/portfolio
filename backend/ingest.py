@@ -8,9 +8,9 @@ from llama_index.core import (
     Settings, 
     StorageContext
 )
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 
-# NEW IMPORTS: Using the updated Google GenAI SDK integration
 from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 
@@ -32,7 +32,7 @@ def main():
     )
 
     print("2. Reading documents from data/ directory...")
-    documents = SimpleDirectoryReader("./portfolio/backend/data").load_data()
+    documents = SimpleDirectoryReader("./data").load_data()
     print(f"   -> Found and loaded {len(documents)} document fragments.")
 
     print("3. Connecting to Qdrant Cloud...")
@@ -47,9 +47,14 @@ def main():
     )
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-    print("4. Generating embeddings and uploading to Qdrant. This may take a moment...")
-    index = VectorStoreIndex.from_documents(
-        documents,
+    print("4. Chunking documents and generating embeddings...")
+    # Explicitly split the markdown into smaller chunks so line-items are indexed accurately
+    splitter = SentenceSplitter(chunk_size=512, chunk_overlap=50)
+    nodes = splitter.get_nodes_from_documents(documents)
+
+    print(f"   -> Created {len(nodes)} chunks. Uploading to Qdrant...")
+    index = VectorStoreIndex(
+        nodes,
         storage_context=storage_context,
         show_progress=True
     )
