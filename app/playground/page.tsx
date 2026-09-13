@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu } from 'lucide-react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 interface ChartPoint {
@@ -65,17 +65,25 @@ export default function Playground() {
 
       if (logs.length > 0 && analyticsType === 'forecast') {
         const formatted: ChartPoint[] = [];
-        logs.slice(-5).forEach((log: any, idx: number) => {
+        
+        // Populate past runs first
+        logs.slice(0, 3).reverse().forEach((log: any, idx: number) => {
           formatted.push({ step: `Run ${idx + 1}`, actual: Number(log.outputs.forecast[0]) });
         });
+
+        // Add a clear separation or current baseline point
         const latest = logs[0];
         if (latest && latest.outputs?.forecast) {
+          formatted.push({ step: 'Current', actual: Number(latest.outputs.forecast[0]), forecast: Number(latest.outputs.forecast[0]) });
+          
+          // Future steps starting right after current
           latest.outputs.forecast.forEach((val: number, i: number) => {
-            formatted.push({
-              step: `Forecast +${i + 1}`,
-              actual: i === 0 ? Number(val) : undefined,
-              forecast: Number(val),
-            });
+            if (i > 0) {
+              formatted.push({
+                step: `Forecast +${i}`,
+                forecast: Number(val),
+              });
+            }
           });
         }
         setChartData(formatted);
@@ -83,9 +91,9 @@ export default function Playground() {
         const latest = logs[0];
         if (latest && latest.outputs?.probabilities) {
           setChartData([
-            { name: 'Class 0 (Normal)', probability: Number((latest.outputs.probabilities[0] * 100).toFixed(1)) },
-            { name: 'Class 1 (Fault A)', probability: Number((latest.outputs.probabilities[1] * 100).toFixed(1)) },
-            { name: 'Class 2 (Fault B)', probability: Number((latest.outputs.probabilities[2] * 100).toFixed(1)) },
+            { name: 'Class 0 (No Fault)', probability: Number((latest.outputs.probabilities[0] * 100).toFixed(1)) },
+            { name: 'Class 1 (Bearing Fault)', probability: Number((latest.outputs.probabilities[1] * 100).toFixed(1)) },
+            { name: 'Class 2 (Overheating)', probability: Number((latest.outputs.probabilities[2] * 100).toFixed(1)) },
           ]);
         }
       } else if (analyticsType === 'regression' && logs.length > 0) {
@@ -130,14 +138,13 @@ export default function Playground() {
       const result = await res.json();
       const forecastPoints: number[] = result.forecast;
 
-      const existingActuals = chartData.filter(d => d.actual !== undefined && d.forecast === undefined);
+      // Structure new run explicitly in the future horizon
       const newChartPoints: ChartPoint[] = [
-        ...existingActuals.slice(-3),
         { step: 'Current', actual: forecastPoints[0], forecast: forecastPoints[0] },
-        { step: 'T+1', forecast: forecastPoints[1] },
-        { step: 'T+2', forecast: forecastPoints[2] },
-        { step: 'T+3', forecast: forecastPoints[3] },
-        { step: 'T+4', forecast: forecastPoints[4] },
+        { step: 'Forecast +1', forecast: forecastPoints[1] },
+        { step: 'Forecast +2', forecast: forecastPoints[2] },
+        { step: 'Forecast +3', forecast: forecastPoints[3] },
+        { step: 'Forecast +4', forecast: forecastPoints[4] },
       ];
       setChartData(newChartPoints);
       await fetchHistory();
@@ -314,7 +321,7 @@ export default function Playground() {
                           <label className="text-slate-600 font-medium">Extrusion Speed (mm/s)</label>
                           <input type="number" step="0.1" required min="2" max="30" value={forecastInputs.speed} onChange={(e) => setForecastInputs({ ...forecastInputs, speed: e.target.value })} className="mt-1 w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-orange-500" />
                         </div>
-                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                        <button type="submit" disabled={isProcessing} className="mt-4 w-full bg-slate-800 text-white font-medium py-3 rounded-lg hover:bg-slate-900 transition-colors disabled:opacity-50">
                           {isProcessing ? 'Running Model...' : 'Generate Forecast'}
                         </button>
                       </form>
@@ -349,30 +356,75 @@ export default function Playground() {
                       </form>
                     )}
 
-                    {/* GARMENT WORKER PRODUCTIVITY REGRESSION FORM */}
+                    {/* GARMENT WORKER PRODUCTIVITY REGRESSION FORM WITH INFO TOOLTIPS */}
                     {analyticsType === 'regression' && (
                       <form onSubmit={handleGarmentRegress} className="flex flex-col gap-3 text-sm">
-                        <div>
-                          <label className="text-slate-600 font-medium text-xs">Targeted Productivity (0 - 1)</label>
-                          <input type="number" step="0.01" min="0" max="1" required value={regInputs.targeted_productivity} onChange={(e) => setRegInputs({ ...regInputs, targeted_productivity: e.target.value })} className="mt-1 w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-slate-600 font-medium text-xs">Targeted Productivity (0 - 1)</label>
+                            <div className="relative group cursor-pointer">
+                              <Info size={14} className="text-slate-400 hover:text-blue-600" />
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
+                                Targeted productivity set by the Authority for each team for each day.
+                              </div>
+                            </div>
+                          </div>
+                          <input type="number" step="0.01" min="0" max="1" required value={regInputs.targeted_productivity} onChange={(e) => setRegInputs({ ...regInputs, targeted_productivity: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
                         </div>
-                        <div>
-                          <label className="text-slate-600 font-medium text-xs">SMV (Standard Minute Value)</label>
-                          <input type="number" step="0.01" required value={regInputs.smv} onChange={(e) => setRegInputs({ ...regInputs, smv: e.target.value })} className="mt-1 w-full p-2 rounded-lg border border-slate-200 outline-none" />
+
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-slate-600 font-medium text-xs">SMV (Standard Minute Value)</label>
+                            <div className="relative group cursor-pointer">
+                              <Info size={14} className="text-slate-400 hover:text-blue-600" />
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
+                                Standard Minute Value, it is the allocated time for a task.
+                              </div>
+                            </div>
+                          </div>
+                          <input type="number" step="0.01" required value={regInputs.smv} onChange={(e) => setRegInputs({ ...regInputs, smv: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
                         </div>
-                        <div>
-                          <label className="text-slate-600 font-medium text-xs">Over Time (Minutes)</label>
-                          <input type="number" step="1" required value={regInputs.over_time} onChange={(e) => setRegInputs({ ...regInputs, over_time: e.target.value })} className="mt-1 w-full p-2 rounded-lg border border-slate-200 outline-none" />
+
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-slate-600 font-medium text-xs">Over Time (Minutes)</label>
+                            <div className="relative group cursor-pointer">
+                              <Info size={14} className="text-slate-400 hover:text-blue-600" />
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
+                                Represents the amount of overtime by each team in minutes.
+                              </div>
+                            </div>
+                          </div>
+                          <input type="number" step="1" required value={regInputs.over_time} onChange={(e) => setRegInputs({ ...regInputs, over_time: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
                         </div>
-                        <div>
-                          <label className="text-slate-600 font-medium text-xs">Incentive</label>
-                          <input type="number" step="1" required value={regInputs.incentive} onChange={(e) => setRegInputs({ ...regInputs, incentive: e.target.value })} className="mt-1 w-full p-2 rounded-lg border border-slate-200 outline-none" />
+
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-slate-600 font-medium text-xs">Incentive (BDT)</label>
+                            <div className="relative group cursor-pointer">
+                              <Info size={14} className="text-slate-400 hover:text-blue-600" />
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
+                                Represents the amount of financial incentive (in BDT) that motivates action.
+                              </div>
+                            </div>
+                          </div>
+                          <input type="number" step="1" required value={regInputs.incentive} onChange={(e) => setRegInputs({ ...regInputs, incentive: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
                         </div>
-                        <div>
-                          <label className="text-slate-600 font-medium text-xs">Number of Workers</label>
-                          <input type="number" step="0.5" required value={regInputs.no_of_workers} onChange={(e) => setRegInputs({ ...regInputs, no_of_workers: e.target.value })} className="mt-1 w-full p-2 rounded-lg border border-slate-200 outline-none" />
+
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5">
+                            <label className="text-slate-600 font-medium text-xs">Number of Workers</label>
+                            <div className="relative group cursor-pointer">
+                              <Info size={14} className="text-slate-400 hover:text-blue-600" />
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
+                                Number of workers in each team.
+                              </div>
+                            </div>
+                          </div>
+                          <input type="number" step="0.5" required value={regInputs.no_of_workers} onChange={(e) => setRegInputs({ ...regInputs, no_of_workers: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
                         </div>
-                          <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+
+                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-emerald-600 text-white font-medium py-3 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50">
                           {isProcessing ? 'Calculating...' : 'Predict Productivity'}
                         </button>
                       </form>
@@ -407,8 +459,8 @@ export default function Playground() {
                               <YAxis domain={['auto', 'auto']} stroke="#64748b" fontSize={12} />
                               <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', color: '#fff', border: 'none' }} />
                               <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                              <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} name="Past Production" dot={{ r: 4 }} />
-                              <Line type="monotone" dataKey="forecast" stroke="#f97316" strokeWidth={2} strokeDasharray="5 5" name="Predicted Next 5 Steps" dot={{ r: 4 }} />
+                              <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} name="Current Baseline" dot={{ r: 4 }} />
+                              <Line type="monotone" dataKey="forecast" stroke="#f97316" strokeWidth={2} strokeDasharray="5 5" name="Future Forecast (T+1 to T+4)" dot={{ r: 4 }} />
                             </LineChart>
                           ) : (
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
