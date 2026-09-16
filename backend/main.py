@@ -224,7 +224,6 @@ async def predict_garment_productivity(data: GarmentRegressRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/api/cv-detect")
 async def cv_detect(file: UploadFile = File(...)):
     try:
@@ -242,8 +241,10 @@ async def cv_detect(file: UploadFile = File(...)):
             api_key=hf_token,
         )
 
-        # Pass bytes safely or use PIL Image
-        raw_preds = client.object_detection(contents, model="facebook/detr-resnet-50")
+        # Pass the file content along with a filename/content type hint, 
+        # or reset the file pointer and pass file.file
+        file.file.seek(0)
+        raw_preds = client.object_detection(file.file, model="facebook/detr-resnet-50")
         
         detections = []
         for item in raw_preds:
