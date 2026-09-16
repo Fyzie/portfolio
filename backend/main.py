@@ -11,7 +11,7 @@ from supabase import create_client, Client
 import joblib
 import numpy as np
 import cv2
-from ultralytics import YOLO
+import httpx
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -232,32 +232,40 @@ async def cv_detect(file: UploadFile = File(...)):
         if img is None:
             raise HTTPException(status_code=400, detail="Invalid image file.")
         
-        # Lazy-load YOLO model inside the endpoint to save startup RAM
-        from ultralytics import YOLO
-        yolo_model = YOLO("yolov8n.pt")
-
         h, w, _ = img.shape
-        results = yolo_model(img)
+
+        # Call Hugging Face Serverless Inference API (DETR ResNet-50 object detection)
+        hf_token = os.getenv("HUGGINGFACE_API_KEY")
+        headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api-inference.huggingface.co/models/facebook/detr-resnet-50",
+                headers=headers,
+                content=contents,
+                timeout=30.0
+            )
+            
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail="Hugging Face inference service error.")
+            
+        raw_preds = response.json()
         detections = []
         
-        for r in results:
-            for box in r.boxes:
-                coords = box.xyxy[0].tolist()
-                conf = float(box.conf[0])
-                cls_id = int(box.cls[0])
-                label = yolo_model.names[cls_id]
-                
-                xmin, ymin, xmax, ymax = coords
-                center_x = float((xmin + xmax) / 2.0)
-                center_y = float((ymin + ymax) / 2.0)
-                
-                detections.append({
-                    "label": label,
-                    "confidence": round(conf, 4),
-                    "box": [round(xmin, 2), round(ymin, 2), round(xmax, 2), round(ymax, 2)],
-                    "center_x": round(center_x, 2),
-                    "center_y": round(center_y, 2),
-                })
+        for item in raw_preds:
+            box = item.get("box", {})
+            xmin = box.get("xmin", 0)
+            ymin = box.get("ymin", 0)
+            xmax = box.get("xmax", 0)
+            ymax = box.get("ymax", 0)
+            
+            detections.append({
+                "label": item.get("label", "object"),
+                "confidence": round(float(item.get("score", 0.0)), 4),
+                "box": [round(xmin, 2), round(ymin, 2), round(xmax, 2), round(ymax, 2)],
+                "center_x": round(float((xmin + xmax) / 2.0), 2),
+                "center_y": round(float((ymin + ymax) / 2.0), 2),
+            })
                 
         return {"status": "success", "detections": detections, "image_width": w, "image_height": h}
     except Exception as e:

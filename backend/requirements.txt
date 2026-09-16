@@ -16,4 +16,4 @@ scikit-learn
 joblib
 gradio
 opencv-python-headless
-ultralytics
+httpx
