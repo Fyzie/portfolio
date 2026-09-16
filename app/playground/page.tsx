@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info } from 'lucide-react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 
 interface ChartPoint {
@@ -11,6 +11,14 @@ interface ChartPoint {
   name?: string;
   probability?: number;
   value?: number;
+}
+
+interface Detection {
+  label: string;
+  confidence: number;
+  box: [number, number, number, number]; // [xmin, ymin, xmax, ymax]
+  center_x: number;
+  center_y: number;
 }
 
 export default function Playground() {
@@ -42,6 +50,13 @@ export default function Playground() {
   // Chart & DB States
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
+
+  // Computer Vision States
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
+  const [detections, setDetections] = useState<Detection[]>([]);
+  const [selectedDetection, setSelectedDetection] = useState<Detection | null>(null);
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -81,9 +96,9 @@ export default function Playground() {
         const latest = logs[0];
         if (latest && latest.outputs?.probabilities) {
           setChartData([
-            { name: 'Class 0 (No Fault)', probability: Number((latest.outputs.probabilities[0] * 100).toFixed(1)) },
-            { name: 'Class 1 (Bearing Fault)', probability: Number((latest.outputs.probabilities[1] * 100).toFixed(1)) },
-            { name: 'Class 2 (Overheating)', probability: Number((latest.outputs.probabilities[2] * 100).toFixed(1)) },
+            { name: 'Class 0 (Normal)', probability: Number((latest.outputs.probabilities[0] * 100).toFixed(1)) },
+            { name: 'Class 1 (Fault A)', probability: Number((latest.outputs.probabilities[1] * 100).toFixed(1)) },
+            { name: 'Class 2 (Fault B)', probability: Number((latest.outputs.probabilities[2] * 100).toFixed(1)) },
           ]);
         }
       } else if (analyticsType === 'regression' && logs.length > 0) {
@@ -104,8 +119,52 @@ export default function Playground() {
   };
 
   useEffect(() => {
-    fetchHistory();
-  }, [analyticsType]);
+    if (activeTab === 'analytics') {
+      fetchHistory();
+    }
+  }, [analyticsType, activeTab]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setDetections([]);
+      setSelectedDetection(null);
+      const url = URL.createObjectURL(file);
+      setSelectedImage(url);
+
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      };
+    }
+  };
+
+  const handleRunCV = async () => {
+    if (!imageFile) return;
+    setIsProcessing(true);
+    setErrorMessage('');
+    setSelectedDetection(null);
+
+    const formData = new FormData();
+    formData.append("file", imageFile);
+
+    try {
+      const res = await fetch(`${backendUrl}/api/cv-detect`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Computer vision inference failed.");
+      const data = await res.json();
+      setDetections(data.detections || []);
+      setImageDimensions({ width: data.image_width, height: data.image_height });
+    } catch (err: any) {
+      setErrorMessage(err.message || "Error running YOLO inference.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleForecast = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +174,6 @@ export default function Playground() {
     const pressure = parseFloat(forecastInputs.pressure);
     const speed = parseFloat(forecastInputs.speed);
 
-    // Boundary Validations
     if (temp < 400 || temp > 550) return setErrorMessage("⚠️ Billet temperature must be between 400°C and 550°C.");
     if (pressure < 5.0 || pressure > 45.0) return setErrorMessage("⚠️ Ram pressure must be between 5.0 and 45.0 MPa.");
     if (speed < 2.0 || speed > 30.0) return setErrorMessage("⚠️ Extrusion speed must be between 2.0 and 30.0 mm/s.");
@@ -157,7 +215,6 @@ export default function Playground() {
     const rms_vibration = parseFloat(classInputs.rms_vibration);
     const mean_temp = parseFloat(classInputs.mean_temp);
 
-    // Boundary Validations matching dataset limits
     if (vibration < 0.1 || vibration > 1.0) return setErrorMessage("⚠️ Vibration must be between 0.1 and 1.0 mm/s.");
     if (temperature < 50.0 || temperature > 130.0) return setErrorMessage("⚠️ Temperature must be between 50.0°C and 130.0°C.");
     if (pressure < 7.0 || pressure > 10.0) return setErrorMessage("⚠️ Pressure must be between 7.0 and 10.0 bar.");
@@ -197,7 +254,6 @@ export default function Playground() {
     const incentive = parseInt(regInputs.incentive);
     const no_of_workers = parseFloat(regInputs.no_of_workers);
 
-    // Boundary Validations
     if (targeted_productivity < 0.05 || targeted_productivity > 0.9) return setErrorMessage("⚠️ Targeted productivity must be between 0.05 and 0.90.");
     if (smv < 2.0 || smv > 60.0) return setErrorMessage("⚠️ SMV must be between 2.0 and 60.0 minutes.");
     if (over_time < 0 || over_time > 30000) return setErrorMessage("⚠️ Over time must be between 0 and 30,000 minutes.");
@@ -281,6 +337,9 @@ export default function Playground() {
                       <Cpu size={20} className="text-blue-500" />
                       Select Machine Learning Task
                     </h3>
+                    <p className='text-xs text-slate-500 mt-1'>
+                      Each is intended to demonstrate what the output of the respective task looks like, rather than to assess the accuracy of the outputs.
+                    </p>
                   </div>
                   <select 
                     value={analyticsType} 
@@ -528,7 +587,7 @@ export default function Playground() {
                   </div>
                 </div>
 
-                {/* Dynamic Recent Visitor Logs Table showing Input Columns & Current Output */}
+                {/* Dynamic Recent Visitor Logs Table */}
                 <div className="border border-slate-200 rounded-xl bg-slate-50 p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
@@ -629,16 +688,172 @@ export default function Playground() {
               </div>
             )}
             
-            {/* OTHER TABS */}
+            {/* COMPUTER VISION TAB */}
             {activeTab === 'cv' && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
-                <div className="flex flex-col items-center justify-center p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
-                  <Wrench size={48} className="text-slate-400 mb-4" />
-                  <h3 className="text-2xl font-bold text-slate-700 mb-2">Work in Progress</h3>
-                  <p className="text-slate-500">I am currently building out this computer vision module. Check back soon!</p>
+              <div className="flex-1 flex flex-col gap-8 animate-in fade-in duration-500">
+                <div className="flex flex-col md:flex-row items-center justify-between bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                      <Eye size={20} className="text-blue-500" />
+                      Computer Vision Object Detection
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Upload an image to run bounding box object detection. Click any box overlay to inspect details.
+                    </p>
+                  </div>
+                  <label className="mt-4 md:mt-0 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg cursor-pointer transition-colors flex items-center gap-2">
+                    <Upload size={16} />
+                    <span>Upload Image</span>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  </label>
                 </div>
+
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Image Display & Bounding Box Overlays */}
+                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-900 flex flex-col items-center justify-center p-6 relative min-h-[420px] overflow-hidden">
+                    {selectedImage ? (
+                      <div className="relative inline-block max-w-full max-h-[450px]">
+                        <img 
+                          id="cv-uploaded-img"
+                          src={selectedImage} 
+                          alt="Uploaded CV Preview" 
+                          className="max-h-[450px] w-auto object-contain rounded-lg"
+                        />
+                        {/* Bounding Box Overlays */}
+                        {imageDimensions.width > 0 && detections.map((det, idx) => {
+                          const [xmin, ymin, xmax, ymax] = det.box;
+                          const leftPct = (xmin / imageDimensions.width) * 100;
+                          const topPct = (ymin / imageDimensions.height) * 100;
+                          const widthPct = ((xmax - xmin) / imageDimensions.width) * 100;
+                          const heightPct = ((ymax - ymin) / imageDimensions.height) * 100;
+
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() => setSelectedDetection(det)}
+                              style={{
+                                left: `${leftPct}%`,
+                                top: `${topPct}%`,
+                                width: `${widthPct}%`,
+                                height: `${heightPct}%`,
+                              }}
+                              className="absolute border-2 border-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/40 cursor-pointer transition-all group flex items-start p-1"
+                            >
+                              <span className="bg-emerald-600 text-white text-[10px] px-1 rounded font-mono shadow">
+                                {det.label} ({Math.round(det.confidence * 100)}%)
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-400 text-center p-8">
+                        <Upload size={48} className="mb-3 text-slate-600" />
+                        <p className="text-sm font-medium">No image uploaded yet.</p>
+                        <p className="text-xs text-slate-500 mt-1">Click "Upload Image" above to test object detection.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sidebar Results / Summary */}
+                  <div className="w-full md:w-1/3 bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <Activity size={18} className="text-emerald-500" />
+                        Detection Summary
+                      </h4>
+                      <p className="text-xs text-slate-500 mb-4">
+                        {detections.length > 0 ? `Found ${detections.length} object(s) in image.` : 'Run detection to inspect bounding boxes.'}
+                      </p>
+
+                      {selectedImage && (
+                        <button
+                          onClick={handleRunCV}
+                          disabled={isProcessing}
+                          className="w-full mb-6 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {isProcessing ? 'Running YOLOv8...' : 'Run YOLO Detection'}
+                        </button>
+                      )}
+
+                      <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto">
+                        {detections.map((det, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => setSelectedDetection(det)}
+                            className="p-3 bg-white border border-slate-200 rounded-lg cursor-pointer hover:border-emerald-500 transition-all flex items-center justify-between text-xs"
+                          >
+                            <div>
+                              <span className="font-bold text-slate-800 uppercase">{det.label}</span>
+                              <p className="text-slate-400 text-[10px]">Conf: {(det.confidence * 100).toFixed(1)}%</p>
+                            </div>
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded">
+                              View Box
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {errorMessage && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-xs text-red-600 mt-4">
+                        <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                        <span>{errorMessage}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* POPUP MODAL FOR DETAILED CROP INFO */}
+                {selectedDetection && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                          <Eye size={20} className="text-blue-600" />
+                          Detection Details
+                        </h3>
+                        <button 
+                          onClick={() => setSelectedDetection(null)}
+                          className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col gap-3 text-sm text-slate-600">
+                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                          <span className="font-medium text-slate-500">Object Label:</span>
+                          <span className="font-bold text-slate-900 uppercase">{selectedDetection.label}</span>
+                        </div>
+                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                          <span className="font-medium text-slate-500">Confidence Score:</span>
+                          <span className="font-bold text-emerald-600 font-mono">{(selectedDetection.confidence * 100).toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                          <span className="font-medium text-slate-500">Center Location (X, Y):</span>
+                          <span className="font-mono text-slate-800">({selectedDetection.center_x}, {selectedDetection.center_y}) px</span>
+                        </div>
+                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                          <span className="font-medium text-slate-500">Bounding Box [xmin, ymin, xmax, ymax]:</span>
+                          <span className="font-mono text-xs text-slate-800">
+                            [{selectedDetection.box.join(', ')}]
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedDetection(null)}
+                        className="mt-6 w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Close Details
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
+
             {activeTab === 'nlp' && (
               <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
                 <div className="flex flex-col items-center justify-center p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">

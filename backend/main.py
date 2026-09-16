@@ -3,13 +3,15 @@ import resend
 import smtplib
 import qdrant_client
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from qdrant_client import AsyncQdrantClient
 from supabase import create_client, Client
 import joblib
 import numpy as np
+import cv2
+from ultralytics import YOLO
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -114,37 +116,6 @@ async def send_contact_email(form: ContactForm):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
 
-# EMAIL BY SMRPLIB
-"""
-@app.post("/api/contact")
-async def send_contact_email(form: ContactForm):
-    sender_email = os.getenv("GMAIL_USER")
-    sender_password = os.getenv("GMAIL_APP_PASS")
-
-    if not sender_email or not sender_password:
-        raise HTTPException(status_code=500, detail="Email service not configured on server.")
- 
-    msg = EmailMessage()
-    msg.set_content(
-        f"Name: {form.name}\n"
-        f"Email: {form.email}\n"
-        f"Phone: {form.phone or 'Not provided'}\n\n"
-        f"Message:\n{form.message}"
-    )
-    msg["Subject"] = f"New Portfolio Message from {form.name}"
-    msg["From"] = sender_email
-    msg["To"] = "hafizimalik1998@gmail.com"
-
-    try:
-        # Connect to Gmail's SMTP server securely
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-        return {"status": "success", "message": "Email sent successfully!"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
-"""
-
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 supabase: Client = None
@@ -163,6 +134,9 @@ fault_classifier = joblib.load(model_fault_path) if os.path.exists(model_fault_p
 
 model_reg_path = os.path.join(BASE_DIR, "garments_regression_model.pkl")
 garment_regressor = joblib.load(model_reg_path) if os.path.exists(model_reg_path) else None
+
+# Load Lightest Open-Source YOLO Model (YOLOv8n)
+yolo_model = YOLO("yolov8n.pt")
 
 class ForecastRequest(BaseModel):
     temp: float
@@ -252,12 +226,47 @@ async def predict_garment_productivity(data: GarmentRegressRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/cv-detect")
+async def cv_detect(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if img is None:
+            raise HTTPException(status_code=400, detail="Invalid image file.")
+        
+        h, w, _ = img.shape
+        results = yolo_model(img)
+        detections = []
+        
+        for r in results:
+            for box in r.boxes:
+                coords = box.xyxy[0].tolist()  # [xmin, ymin, xmax, ymax]
+                conf = float(box.conf[0])
+                cls_id = int(box.cls[0])
+                label = yolo_model.names[cls_id]
+                
+                xmin, ymin, xmax, ymax = coords
+                center_x = float((xmin + xmax) / 2.0)
+                center_y = float((ymin + ymax) / 2.0)
+                
+                detections.append({
+                    "label": label,
+                    "confidence": round(conf, 4),
+                    "box": [round(xmin, 2), round(ymin, 2), round(xmax, 2), round(ymax, 2)],
+                    "center_x": round(center_x, 2),
+                    "center_y": round(center_y, 2),
+                })
+                
+        return {"status": "success", "detections": detections, "image_width": w, "image_height": h}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/get-history")
 async def get_history(task_type: str = "forecast"):
     if not supabase:
         return {"data": []}
     
-    # Fetch logs filtered by the active task type from the unified table
     response = (
         supabase.table("analytics_logs")
         .select("*")
@@ -267,3 +276,34 @@ async def get_history(task_type: str = "forecast"):
         .execute()
     )
     return {"data": response.data}
+
+# EMAIL BY SMRPLIB
+"""
+@app.post("/api/contact")
+async def send_contact_email(form: ContactForm):
+    sender_email = os.getenv("GMAIL_USER")
+    sender_password = os.getenv("GMAIL_APP_PASS")
+
+    if not sender_email or not sender_password:
+        raise HTTPException(status_code=500, detail="Email service not configured on server.")
+ 
+    msg = EmailMessage()
+    msg.set_content(
+        f"Name: {form.name}\n"
+        f"Email: {form.email}\n"
+        f"Phone: {form.phone or 'Not provided'}\n\n"
+        f"Message:\n{form.message}"
+    )
+    msg["Subject"] = f"New Portfolio Message from {form.name}"
+    msg["From"] = sender_email
+    msg["To"] = "hafizimalik1998@gmail.com"
+
+    try:
+        # Connect to Gmail's SMTP server securely
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        return {"status": "success", "message": "Email sent successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {str(e)}")
+"""
