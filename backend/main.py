@@ -135,9 +135,6 @@ fault_classifier = joblib.load(model_fault_path) if os.path.exists(model_fault_p
 model_reg_path = os.path.join(BASE_DIR, "garments_regression_model.pkl")
 garment_regressor = joblib.load(model_reg_path) if os.path.exists(model_reg_path) else None
 
-# Load Lightest Open-Source YOLO Model (YOLOv8n)
-yolo_model = YOLO("yolov8n.pt")
-
 class ForecastRequest(BaseModel):
     temp: float
     pressure: float
@@ -235,13 +232,17 @@ async def cv_detect(file: UploadFile = File(...)):
         if img is None:
             raise HTTPException(status_code=400, detail="Invalid image file.")
         
+        # Lazy-load YOLO model inside the endpoint to save startup RAM
+        from ultralytics import YOLO
+        yolo_model = YOLO("yolov8n.pt")
+
         h, w, _ = img.shape
         results = yolo_model(img)
         detections = []
         
         for r in results:
             for box in r.boxes:
-                coords = box.xyxy[0].tolist()  # [xmin, ymin, xmax, ymax]
+                coords = box.xyxy[0].tolist()
                 conf = float(box.conf[0])
                 cls_id = int(box.cls[0])
                 label = yolo_model.names[cls_id]
