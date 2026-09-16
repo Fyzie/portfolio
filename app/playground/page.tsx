@@ -155,7 +155,13 @@ export default function Playground() {
         method: 'POST',
         body: formData,
       });
-      if (!res.ok) throw new Error("Computer vision inference failed.");
+
+      if (!res.ok) {
+        // Parse the error detail sent from FastAPI
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || `Server error: ${res.statusText}`);
+      }
+
       const data = await res.json();
       setDetections(data.detections || []);
       setImageDimensions({ width: data.image_width, height: data.image_height });

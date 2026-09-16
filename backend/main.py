@@ -237,13 +237,12 @@ async def cv_detect(file: UploadFile = File(...)):
         h, w, _ = img.shape
         hf_token = os.getenv("HUGGINGFACE_API_KEY")
 
-        # Initialize the official Hugging Face Inference Client
         client = InferenceClient(
             provider="hf-inference",
             api_key=hf_token,
         )
 
-        # Call object detection using the client SDK
+        # Pass bytes safely or use PIL Image
         raw_preds = client.object_detection(contents, model="facebook/detr-resnet-50")
         
         detections = []
@@ -264,6 +263,7 @@ async def cv_detect(file: UploadFile = File(...)):
                 
         return {"status": "success", "detections": detections, "image_width": w, "image_height": h}
     except Exception as e:
+        print(f"CV DETECT ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/get-history")
