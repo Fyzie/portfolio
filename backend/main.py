@@ -236,16 +236,43 @@ async def cv_detect(file: UploadFile = File(...)):
         h, w, _ = img.shape
         hf_token = os.getenv("HUGGINGFACE_API_KEY")
 
-        client = InferenceClient(
-            provider="hf-inference",
-            api_key=hf_token,
-        )
-
-        # Pass the file content along with a filename/content type hint, 
-        # or reset the file pointer and pass file.file
-        file.file.seek(0)
-        raw_preds = client.object_detection(file.file, model="facebook/detr-resnet-50")
+        # Get the uploaded file's content type (fallback to image/jpeg if missing)
+        content_type = file.content_type or "image/jpeg"
         
+        headers = {
+            "Authorization": f"Bearer {hf_token}",
+            "Content-Type": content_type
+        } if hf_token else {"Content-Type": content_type}
+        
+        async with httpx.AsyncClient() as httpx_client:
+            response = await httpx_client.post(
+                "https://router.huggingface.co/hf-inference/models/facebook/detr-resnet-50",
+                headers=headers,
+                content=contents,
+                timeout=60.0
+            )
+            
+        # Handle model cold start (Model loading)
+        if response.status_code == 503:
+            try:
+                err_json = response.json()
+                est_time = err_json.get("estimated_time", 15)
+                raise HTTPException(
+                    status_code=503, 
+                    detail=f"Model is waking up from sleep. Please wait ~{int(est_time)}s and try again!"
+                )
+            except HTTPException as he:
+                raise he
+            except:
+                raise HTTPException(status_code=503, detail="Model is loading, please try again in a few seconds.")
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Hugging Face error: {response.text}")
+            
+        raw_preds = response.json()
+        if isinstance(raw_preds, dict) and "error" in raw_preds:
+            raise HTTPException(status_code=500, detail=raw_preds["error"])
+
         detections = []
         for item in raw_preds:
             box = item.get("box", {})
@@ -263,6 +290,8 @@ async def cv_detect(file: UploadFile = File(...)):
             })
                 
         return {"status": "success", "detections": detections, "image_width": w, "image_height": h}
+    except HTTPException as he:
+        raise he
     except Exception as e:
         print(f"CV DETECT ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
