@@ -371,12 +371,12 @@ export default function Playground() {
                 
                 {/* Task Selector Dropdown */}
                 <div className="flex flex-col md:flex-row items-center justify-between bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
-                  <div className="mb-4 md:mb-0">
+                  <div>
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                       <Cpu size={20} className="text-blue-500" />
                       Select Machine Learning Task
                     </h3>
-                    <p className='text-xs text-slate-500 mt-1'>
+                    <p className='text-xs text-slate-500 mt-1 mb-2 md:mb-0 max-w-xl'>
                       Each is intended to demonstrate what the output of the respective task looks like, rather than to assess the accuracy of the outputs.
                     </p>
                   </div>
