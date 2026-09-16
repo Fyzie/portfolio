@@ -772,7 +772,7 @@ export default function Playground() {
                           disabled={isProcessing}
                           className="w-full mb-6 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50"
                         >
-                          {isProcessing ? 'Running YOLOv8...' : 'Run YOLO Detection'}
+                          {isProcessing ? 'Running...' : 'Run Detection'}
                         </button>
                       )}
 
