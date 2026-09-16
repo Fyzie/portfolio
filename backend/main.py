@@ -234,24 +234,24 @@ async def cv_detect(file: UploadFile = File(...)):
         
         h, w, _ = img.shape
 
-        # Call Hugging Face Serverless Inference API (DETR ResNet-50 object detection)
-        hf_token = os.getenv("HUGGINGFACE_API_KEY")
-        headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
-        
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://api-inference.huggingface.co/models/facebook/detr-resnet-50",
-                headers=headers,
                 content=contents,
-                timeout=30.0
+                timeout=60.0
             )
             
         if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="Hugging Face inference service error.")
+            print(f"HF Error Response: {response.text}")
+            raise HTTPException(status_code=500, detail=f"Hugging Face error: {response.text}")
             
         raw_preds = response.json()
         detections = []
         
+        # Sometimes HF returns a dict with an error message instead of a list during cold starts
+        if isinstance(raw_preds, dict) and "error" in raw_preds:
+            raise HTTPException(status_code=500, detail=raw_preds["error"])
+
         for item in raw_preds:
             box = item.get("box", {})
             xmin = box.get("xmin", 0)

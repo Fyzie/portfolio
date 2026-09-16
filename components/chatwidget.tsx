@@ -103,7 +103,7 @@ export default function ChatWidget() {
           {/* Header */}
           <div className="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
             <div>
-              <h3 className="font-bold text-sm">Fyzie</h3>
+              <h3 className="font-bold text-sm">AI Assistant</h3>
               <p className="text-xs text-slate-400">Powered by LlamaIndex + Qdrant</p>
             </div>
             <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ export default function ChatWidget() {
         ) : (
           <>
             <MessageSquare size={22} className="shrink-0" />
-            <span className="font-medium text-sm whitespace-nowrap">Chat with Fyzie</span>
+            <span className="font-medium text-sm whitespace-nowrap">Chat with Fyzie AI</span>
           </>
         )}
       </button>
