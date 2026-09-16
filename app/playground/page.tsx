@@ -57,6 +57,7 @@ export default function Playground() {
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [detections, setDetections] = useState<Detection[]>([]);
   const [selectedDetection, setSelectedDetection] = useState<Detection | null>(null);
+  const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -124,6 +125,39 @@ export default function Playground() {
     }
   }, [analyticsType, activeTab]);
 
+  // Generate cropped sub-image for modal preview
+  useEffect(() => {
+    if (!selectedDetection || !selectedImage || imageDimensions.width === 0) {
+      setCroppedImageUrl(null);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = selectedImage;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const [xmin, ymin, xmax, ymax] = selectedDetection.box;
+      
+      const x = Math.max(0, xmin);
+      const y = Math.max(0, ymin);
+      const w = Math.min(img.naturalWidth - x, xmax - xmin);
+      const h = Math.min(img.naturalHeight - y, ymax - ymin);
+
+      if (w <= 0 || h <= 0) {
+        setCroppedImageUrl(null);
+        return;
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, x, y, w, h, 0, 0, w, h);
+        setCroppedImageUrl(canvas.toDataURL());
+      }
+    };
+  }, [selectedDetection, selectedImage, imageDimensions]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -157,7 +191,6 @@ export default function Playground() {
       });
 
       if (!res.ok) {
-        // Parse the error detail sent from FastAPI
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.detail || `Server error: ${res.statusText}`);
       }
@@ -716,16 +749,16 @@ export default function Playground() {
 
                 <div className="flex flex-col md:flex-row gap-8">
                   {/* Image Display & Bounding Box Overlays */}
-                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-900 flex flex-col items-center justify-center p-6 relative min-h-[420px] overflow-hidden">
+                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-900 flex flex-col items-center justify-center p-6 relative min-h-[460px] overflow-hidden">
                     {selectedImage ? (
-                      <div className="relative inline-block max-w-full max-h-[450px]">
+                      <div className="relative inline-block w-full h-full flex items-center justify-center">
                         <img 
                           id="cv-uploaded-img"
                           src={selectedImage} 
                           alt="Uploaded CV Preview" 
-                          className="max-h-[450px] w-auto object-contain rounded-lg"
+                          className="max-h-[440px] w-full object-contain rounded-lg"
                         />
-                        {/* Bounding Box Overlays */}
+                        {/* Bounding Box Overlays (Labels & Conf text removed per instructions) */}
                         {imageDimensions.width > 0 && detections.map((det, idx) => {
                           const [xmin, ymin, xmax, ymax] = det.box;
                           const leftPct = (xmin / imageDimensions.width) * 100;
@@ -743,12 +776,8 @@ export default function Playground() {
                                 width: `${widthPct}%`,
                                 height: `${heightPct}%`,
                               }}
-                              className="absolute border-2 border-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/40 cursor-pointer transition-all group flex items-start p-1"
-                            >
-                              <span className="bg-emerald-600 text-white text-[10px] px-1 rounded font-mono shadow">
-                                {det.label} ({Math.round(det.confidence * 100)}%)
-                              </span>
-                            </div>
+                              className="absolute border-2 border-emerald-400 bg-emerald-500/20 hover:bg-emerald-500/40 cursor-pointer transition-all rounded"
+                            />
                           );
                         })}
                       </div>
@@ -827,20 +856,31 @@ export default function Playground() {
                         </button>
                       </div>
 
-                      <div className="flex flex-col gap-3 text-sm text-slate-600">
-                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                      {/* Cropped Image Preview */}
+                      {croppedImageUrl && (
+                        <div className="mb-4 bg-slate-900 rounded-xl p-3 flex items-center justify-center max-h-[160px] overflow-hidden">
+                          <img 
+                            src={croppedImageUrl} 
+                            alt="Cropped object preview" 
+                            className="max-h-[140px] w-auto object-contain rounded border border-slate-700" 
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2.5 text-sm text-slate-600">
+                        <div className="flex justify-between bg-slate-50 p-2.5 rounded-lg">
                           <span className="font-medium text-slate-500">Object Label:</span>
                           <span className="font-bold text-slate-900 uppercase">{selectedDetection.label}</span>
                         </div>
-                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                        <div className="flex justify-between bg-slate-50 p-2.5 rounded-lg">
                           <span className="font-medium text-slate-500">Confidence Score:</span>
                           <span className="font-bold text-emerald-600 font-mono">{(selectedDetection.confidence * 100).toFixed(2)}%</span>
                         </div>
-                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                        <div className="flex justify-between bg-slate-50 p-2.5 rounded-lg">
                           <span className="font-medium text-slate-500">Center Location (X, Y):</span>
                           <span className="font-mono text-slate-800">({selectedDetection.center_x}, {selectedDetection.center_y}) px</span>
                         </div>
-                        <div className="flex justify-between bg-slate-50 p-3 rounded-lg">
+                        <div className="flex justify-between bg-slate-50 p-2.5 rounded-lg">
                           <span className="font-medium text-slate-500">Bounding Box [xmin, ymin, xmax, ymax]:</span>
                           <span className="font-mono text-xs text-slate-800">
                             [{selectedDetection.box.join(', ')}]
