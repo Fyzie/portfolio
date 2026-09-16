@@ -1,18 +1,17 @@
 import os
-import resend
-import smtplib
-import qdrant_client
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
-from qdrant_client import AsyncQdrantClient
-from supabase import create_client, Client
-import joblib
-import numpy as np
 import cv2
 import httpx
-from huggingface_hub import InferenceClient
+import joblib
+import resend
+import smtplib
+import numpy as np
+import qdrant_client
+from dotenv import load_dotenv
+from pydantic import BaseModel, EmailStr
+from supabase import create_client, Client
+from qdrant_client import AsyncQdrantClient
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, UploadFile, File
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -79,10 +78,68 @@ class ChatRequest(BaseModel):
 def health_check():
     return {"status": "ok"}
 
+# @app.post("/chat")
+# async def chat_endpoint(request: ChatRequest):
+#     response = await chat_engine.achat(request.message)
+#     return {"reply": str(response)}
+
+FALLBACK_MODELS = [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.7-flash",
+    "gemini-3.8-flash",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash"
+]
+
+async def chat_with_fallback(chat_request_message):
+    last_exception = None
+    
+    for model_name in FALLBACK_MODELS:
+        try:
+            # Re-initialize or update LlamaIndex settings/LLM dynamically for this request
+            Settings.llm = GoogleGenAI(
+                model=model_name,
+                api_key=os.getenv("GOOGLE_API_KEY")
+            )
+            
+            temp_chat_engine = index.as_chat_engine(
+                chat_mode="condense_plus_context",
+                system_prompt=custom_prompt,
+                verbose=True
+            )
+            
+            response = await temp_chat_engine.achat(chat_request_message)
+            return {"reply": str(response), "model_used": model_name}
+            
+        except Exception as e:
+            err_str = str(e)
+            # Check for rate limit error
+            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"Model {model_name} hit rate limit. Trying next fallback model...")
+                last_exception = e
+                continue
+            else:
+                # If different error than rate limit
+                raise e
+                
+    # If all models in the list exhausted daily quota
+    raise HTTPException(
+        status_code=429, 
+        detail="All available Gemini free-tier model quotas have been exhausted for today."
+    )
+
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
-    response = await chat_engine.achat(request.message)
-    return {"reply": str(response)}
+    try:
+        result = await chat_with_fallback(request.message)
+        return result
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 class ContactForm(BaseModel):
     name: str
