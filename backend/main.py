@@ -12,6 +12,7 @@ import joblib
 import numpy as np
 import cv2
 import httpx
+from huggingface_hub import InferenceClient
 
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.vector_stores.qdrant import QdrantVectorStore
@@ -223,6 +224,7 @@ async def predict_garment_productivity(data: GarmentRegressRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/api/cv-detect")
 async def cv_detect(file: UploadFile = File(...)):
     try:
@@ -233,40 +235,17 @@ async def cv_detect(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Invalid image file.")
         
         h, w, _ = img.shape
-
         hf_token = os.getenv("HUGGINGFACE_API_KEY")
-        headers = {"Authorization": f"Bearer {hf_token}"} if hf_token else {}
+
+        # Initialize the official Hugging Face Inference Client
+        client = InferenceClient(
+            provider="hf-inference",
+            api_key=hf_token,
+        )
+
+        # Call object detection using the client SDK
+        raw_preds = client.object_detection(contents, model="facebook/detr-resnet-50")
         
-        # Using the updated Hugging Face router endpoint
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                "https://router.huggingface.co/hf-inference/models/facebook/detr-resnet-50",
-                headers=headers,
-                content=contents,
-                timeout=60.0
-            )
-            
-        # Handle model cold start (Model loading)
-        if response.status_code == 503:
-            try:
-                err_json = response.json()
-                est_time = err_json.get("estimated_time", 15)
-                raise HTTPException(
-                    status_code=503, 
-                    detail=f"Model is waking up from sleep. Please wait ~{int(est_time)}s and try again!"
-                )
-            except HTTPException as he:
-                raise he
-            except:
-                raise HTTPException(status_code=503, detail="Model is loading, please try again in a few seconds.")
-
-        if response.status_code != 200:
-            raise HTTPException(status_code=500, detail=f"Hugging Face error: {response.text}")
-            
-        raw_preds = response.json()
-        if isinstance(raw_preds, dict) and "error" in raw_preds:
-            raise HTTPException(status_code=500, detail=raw_preds["error"])
-
         detections = []
         for item in raw_preds:
             box = item.get("box", {})
@@ -284,8 +263,6 @@ async def cv_detect(file: UploadFile = File(...)):
             })
                 
         return {"status": "success", "detections": detections, "image_width": w, "image_height": h}
-    except HTTPException as he:
-        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
