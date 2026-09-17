@@ -9,7 +9,7 @@ import { ExternalLink, Copy, X, ChevronDown, ChevronUp } from 'lucide-react'; //
 
 const skillCategories = [
   { category: "Programming", skills: ["Python", "C++", "SQL"] },
-  { category: "AI & MLOps", skills: ["PyTorch", "TensorFlow", "MLflow"] },
+  { category: "AI & MLOps", skills: ["PyTorch", "TensorFlow", "HuggingFace", "MLflow"] },
   { category: "Machine Vision", skills: ["Area Scan", "Line Scan", "Visible Light", "SWIR Imaging"] },
   { category: "Industrial Cameras", skills: ["Basler", "Allied Vision", "Baumer"] },
   { category: "NLP", skills: ["LangChain", "LlamaIndex", "Qdrant"] },

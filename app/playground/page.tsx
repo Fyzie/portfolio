@@ -619,7 +619,8 @@ export default function Playground() {
                         </ResponsiveContainer>
                       ) : (
                         <div className="h-full flex items-center justify-center text-slate-400 text-sm">
-                          {analyticsType === 'forecast' ? 'Loading database entries...' : 'Enter parameters and click predict to view graph.'}
+                          Loading database entries...
+                          {/* {analyticsType === 'forecast' ? 'Loading database entries...' : 'Enter parameters and click predict to view graph.'} */}
                         </div>
                       )}
                     </div>

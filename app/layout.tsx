@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Link from 'next/link';
 import ChatWidget from '@/components/chatwidget';
+import NotificationBanner from '@/components/notificationbanner'; // Import the banner
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,6 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-slate-50 text-slate-900`}>
         
+        {/* CLIENT BANNER COMPONENT */}
+        <NotificationBanner />
+
         {/* HORIZONTAL NAVIGATION BAR */}
         <nav className="w-full bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
           <div className="max-w-5xl mx-auto px-8 h-16 flex items-center justify-between">
@@ -38,7 +42,6 @@ export default function RootLayout({
               <Link href="/" className="hover:text-blue-600 transition-colors">About Me</Link>
               <Link href="/projects" className="hover:text-blue-600 transition-colors">Projects</Link>
               <Link href="/awards" className="hover:text-blue-600 transition-colors">Awards</Link>
-              {/* <Link href="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>? */}
               <Link href="/playground" className="hover:text-blue-600 transition-colors">Playground</Link>
               <Link href="/contact" className="hover:text-blue-600 transition-colors">Contact Me</Link>
             </div>
