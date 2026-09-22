@@ -83,10 +83,11 @@ export default function Award() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-16 font-sans">
+    <main className="min-h-screen bg-slate-50 text-slate-900 px-4 py-8 sm:px-6 md:p-16 font-sans overflow-x-hidden">
       <div className="max-w-4xl mx-auto">
+        
         {/* Page Title */}
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-center mb-12 text-slate-800">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-center mb-8 sm:mb-12 text-slate-800">
           Awards & Honours
         </h1>
 
@@ -96,27 +97,27 @@ export default function Award() {
             <div
               key={index}
               onClick={() => handleOpenModal(award.imageSrc, award.title)}
-              className="group flex items-center justify-between bg-white border border-slate-200 rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
+              className="group flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-200 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer gap-3 sm:gap-0"
             >
               {/* Left Column: Date */}
-              <div className="w-28 md:w-32 flex-shrink-0">
+              <div className="w-full sm:w-28 md:w-32 flex-shrink-0">
                 <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 font-semibold text-xs md:text-sm rounded-full">
                   {award.date}
                 </span>
               </div>
 
               {/* Middle Column: Details */}
-              <div className="flex-grow px-4">
-                <h2 className="text-base md:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+              <div className="flex-grow sm:px-4">
+                <h2 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">
                   {award.title}
                 </h2>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-xs sm:text-sm text-slate-600 mt-1">
                   {award.organization}
                 </p>
               </div>
 
-              {/* Right Column: Arrow Icon */}
-              <div className="flex-shrink-0 pl-2 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all">
+              {/* Right Column: Arrow Icon (Hidden on small mobile view for extra space, or aligned) */}
+              <div className="hidden sm:flex flex-shrink-0 pl-2 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all">
                 <ChevronRight className="w-6 h-6" />
               </div>
             </div>
@@ -132,11 +133,11 @@ export default function Award() {
         >
           <div 
             onClick={(e) => e.stopPropagation()} 
-            className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative flex flex-col max-h-[90vh]"
+            className="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl relative flex flex-col max-h-[90vh]"
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800 pr-8 line-clamp-1">
+            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 pr-8 line-clamp-1">
                 {selectedTitle}
               </h3>
               <button
@@ -148,9 +149,8 @@ export default function Award() {
             </div>
 
             {/* Modal Body (Certificate Image Container) */}
-            <div className="relative my-4 flex-grow flex items-center justify-center min-h-[300px] bg-slate-100 rounded-xl overflow-hidden">
-              {/* Note: Place your certificate images inside your public/certificates directory */}
-              <div className="relative w-full h-[400px]">
+            <div className="relative my-4 flex-grow flex items-center justify-center min-h-[250px] sm:min-h-[300px] bg-slate-100 rounded-xl overflow-hidden">
+              <div className="relative w-full h-[300px] sm:h-[400px]">
                 <Image
                   src={selectedImage}
                   alt={selectedTitle}

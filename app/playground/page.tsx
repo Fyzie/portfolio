@@ -125,7 +125,6 @@ export default function Playground() {
     }
   }, [analyticsType, activeTab]);
 
-  // Generate cropped sub-image for modal preview
   useEffect(() => {
     if (!selectedDetection || !selectedImage || imageDimensions.width === 0) {
       setCroppedImageUrl(null);
@@ -325,21 +324,22 @@ export default function Playground() {
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b'];
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 p-8 md:p-15 font-sans">
+    <main className="min-h-screen bg-slate-50 text-slate-900 px-4 py-8 sm:px-8 md:p-15 font-sans overflow-x-hidden">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-10">
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">AI Playground</h1>
-          <p className="text-lg text-slate-600 max-w-3xl">
+        <div className="mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold mb-3 sm:mb-4 tracking-tight">AI Playground</h1>
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 max-w-3xl">
             Interactive demos. Select a domain below to test live models and data pipelines.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-8 bg-slate-200/50 p-2 rounded-xl inline-flex">
+        {/* Responsive Tab Selector */}
+        <div className="flex flex-wrap gap-2 mb-6 sm:mb-8 bg-slate-200/50 p-1.5 sm:p-2 rounded-xl">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+              className={`flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
@@ -351,39 +351,39 @@ export default function Playground() {
           ))}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
-          <div className="bg-slate-100 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-            <div className="font-bold text-slate-700 flex items-center gap-2">
-              <Settings size={18} className="text-slate-400" />
-              Demo Environment: {tabs.find(t => t.id === activeTab)?.label}
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[500px] sm:min-h-[600px]">
+          <div className="bg-slate-100 border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <div className="font-bold text-slate-700 flex items-center gap-2 text-xs sm:text-sm truncate pr-2">
+              <Settings size={18} className="text-slate-400 shrink-0" />
+              <span className="truncate">Demo Environment: {tabs.find(t => t.id === activeTab)?.label}</span>
             </div>
-            <div className="flex gap-2">
-              <span className="w-3 h-3 rounded-full bg-red-400"></span>
-              <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
-              <span className="w-3 h-3 rounded-full bg-green-400"></span>
+            <div className="flex gap-1.5 sm:gap-2 shrink-0">
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400"></span>
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-400"></span>
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400"></span>
             </div>
           </div>
 
-          <div className="p-8 flex-1 flex flex-col">
+          <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col">
             
             {activeTab === 'analytics' && (
-              <div className="flex-1 flex flex-col gap-8 animate-in fade-in duration-500">
+              <div className="flex-1 flex flex-col gap-6 sm:gap-8 animate-in fade-in duration-500">
                 
                 {/* Task Selector Dropdown */}
-                <div className="flex flex-col md:flex-row items-center justify-between bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm gap-4">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                      <Cpu size={20} className="text-blue-500" />
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                      <Cpu size={20} className="text-blue-500 shrink-0" />
                       Select Machine Learning Task
                     </h3>
-                    <p className='text-xs text-slate-500 mt-1 mb-2 md:mb-0 max-w-xl'>
+                    <p className='text-xs text-slate-500 mt-1 max-w-xl'>
                       Each is intended to demonstrate what the output of the respective task looks like, rather than to assess the accuracy of the outputs.
                     </p>
                   </div>
                   <select 
                     value={analyticsType} 
                     onChange={(e) => setAnalyticsType(e.target.value)}
-                    className="w-full md:w-auto px-4 py-3 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium cursor-pointer"
+                    className="w-full md:w-auto px-4 py-2.5 sm:py-3 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium text-xs sm:text-sm cursor-pointer"
                   >
                     <option value="classification">Classification (Industrial Fault Detection)</option>
                     <option value="regression">Regression (Garment Worker Productivity)</option>
@@ -391,13 +391,13 @@ export default function Playground() {
                   </select>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
                   {/* Controls Sidebar */}
-                  <div className="w-full md:w-1/3 bg-slate-50 border border-slate-200 rounded-xl p-6 h-fit">
+                  <div className="w-full lg:w-1/3 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-6 h-fit">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2 text-slate-800">
-                        <Activity size={20} className="text-orange-500" />
-                        <h3 className="font-bold text-lg">
+                        <Activity size={20} className="text-orange-500 shrink-0" />
+                        <h3 className="font-bold text-base sm:text-lg">
                           {analyticsType === 'forecast' && 'Extrusion Parameters'}
                           {analyticsType === 'classification' && 'Sensor Telemetry'}
                           {analyticsType === 'regression' && 'Garment Production Metrics'}
@@ -413,26 +413,26 @@ export default function Playground() {
                       <form onSubmit={handleForecast} className="flex flex-col gap-4 text-sm">
                         <div>
                           <div className="flex justify-between mb-1">
-                            <label className="text-slate-600 font-medium">Billet Temp (°C)</label>
+                            <label className="text-slate-600 font-medium text-xs sm:text-sm">Billet Temp (°C)</label>
                             <span className="text-xs text-slate-400">400 - 550</span>
                           </div>
-                          <input type="number" step="0.5" required min="400" max="550" value={forecastInputs.temp} onChange={(e) => setForecastInputs({ ...forecastInputs, temp: e.target.value })} className="w-full p-2.5 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.5" required min="400" max="550" value={forecastInputs.temp} onChange={(e) => setForecastInputs({ ...forecastInputs, temp: e.target.value })} className="w-full p-2.5 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
                         <div>
                           <div className="flex justify-between mb-1">
-                            <label className="text-slate-600 font-medium">Ram Pressure (MPa)</label>
+                            <label className="text-slate-600 font-medium text-xs sm:text-sm">Ram Pressure (MPa)</label>
                             <span className="text-xs text-slate-400">5 - 45</span>
                           </div>
-                          <input type="number" step="0.1" required min="5" max="45" value={forecastInputs.pressure} onChange={(e) => setForecastInputs({ ...forecastInputs, pressure: e.target.value })} className="w-full p-2.5 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.1" required min="5" max="45" value={forecastInputs.pressure} onChange={(e) => setForecastInputs({ ...forecastInputs, pressure: e.target.value })} className="w-full p-2.5 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
                         <div>
                           <div className="flex justify-between mb-1">
-                            <label className="text-slate-600 font-medium">Extrusion Speed (mm/s)</label>
+                            <label className="text-slate-600 font-medium text-xs sm:text-sm">Extrusion Speed (mm/s)</label>
                             <span className="text-xs text-slate-400">2 - 30</span>
                           </div>
-                          <input type="number" step="0.1" required min="2" max="30" value={forecastInputs.speed} onChange={(e) => setForecastInputs({ ...forecastInputs, speed: e.target.value })} className="w-full p-2.5 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.1" required min="2" max="30" value={forecastInputs.speed} onChange={(e) => setForecastInputs({ ...forecastInputs, speed: e.target.value })} className="w-full p-2.5 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
-                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm">
                           {isProcessing ? 'Running Model...' : 'Generate Forecast'}
                         </button>
                       </form>
@@ -446,37 +446,37 @@ export default function Playground() {
                             <label className="text-slate-600 font-medium text-xs">Vibration (mm/s)</label>
                             <span className="text-[10px] text-slate-400">0.1 - 1.0</span>
                           </div>
-                          <input type="number" step="0.01" required min="0.1" max="1.0" value={classInputs.vibration} onChange={(e) => setClassInputs({ ...classInputs, vibration: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.01" required min="0.1" max="1.0" value={classInputs.vibration} onChange={(e) => setClassInputs({ ...classInputs, vibration: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
                         <div>
                           <div className="flex justify-between mb-1">
                             <label className="text-slate-600 font-medium text-xs">Temperature (°C)</label>
                             <span className="text-[10px] text-slate-400">50 - 130</span>
                           </div>
-                          <input type="number" step="0.1" required min="50" max="130" value={classInputs.temperature} onChange={(e) => setClassInputs({ ...classInputs, temperature: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.1" required min="50" max="130" value={classInputs.temperature} onChange={(e) => setClassInputs({ ...classInputs, temperature: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
                         <div>
                           <div className="flex justify-between mb-1">
                             <label className="text-slate-600 font-medium text-xs">Pressure (bar)</label>
                             <span className="text-[10px] text-slate-400">7 - 10</span>
                           </div>
-                          <input type="number" step="0.01" required min="7" max="10" value={classInputs.pressure} onChange={(e) => setClassInputs({ ...classInputs, pressure: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.01" required min="7" max="10" value={classInputs.pressure} onChange={(e) => setClassInputs({ ...classInputs, pressure: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
                         <div>
                           <div className="flex justify-between mb-1">
                             <label className="text-slate-600 font-medium text-xs">RMS Vibration</label>
                             <span className="text-[10px] text-slate-400">0.5 - 0.7</span>
                           </div>
-                          <input type="number" step="0.001" required min="0.5" max="0.7" value={classInputs.rms_vibration} onChange={(e) => setClassInputs({ ...classInputs, rms_vibration: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.001" required min="0.5" max="0.7" value={classInputs.rms_vibration} onChange={(e) => setClassInputs({ ...classInputs, rms_vibration: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
                         <div>
                           <div className="flex justify-between mb-1">
                             <label className="text-slate-600 font-medium text-xs">Mean Temp (°C)</label>
                             <span className="text-[10px] text-slate-400">80 - 100</span>
                           </div>
-                          <input type="number" step="0.1" required min="80" max="100" value={classInputs.mean_temp} onChange={(e) => setClassInputs({ ...classInputs, mean_temp: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.1" required min="80" max="100" value={classInputs.mean_temp} onChange={(e) => setClassInputs({ ...classInputs, mean_temp: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
-                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm">
                           {isProcessing ? 'Analyzing...' : 'Classify Fault State'}
                         </button>
                       </form>
@@ -487,85 +487,45 @@ export default function Playground() {
                       <form onSubmit={handleGarmentRegress} className="flex flex-col gap-3 text-sm">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <label className="text-slate-600 font-medium text-xs">Targeted Productivity</label>
-                              <div className="relative group cursor-pointer">
-                                <Info size={13} className="text-slate-400 hover:text-blue-600" />
-                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
-                                  Targeted productivity set by Authority (0.05 - 0.90).
-                                </div>
-                              </div>
-                            </div>
+                            <label className="text-slate-600 font-medium text-xs">Targeted Productivity</label>
                             <span className="text-[10px] text-slate-400">0.05 - 0.90</span>
                           </div>
-                          <input type="number" step="0.01" min="0.05" max="0.90" required value={regInputs.targeted_productivity} onChange={(e) => setRegInputs({ ...regInputs, targeted_productivity: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.01" min="0.05" max="0.90" required value={regInputs.targeted_productivity} onChange={(e) => setRegInputs({ ...regInputs, targeted_productivity: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <label className="text-slate-600 font-medium text-xs">SMV</label>
-                              <div className="relative group cursor-pointer">
-                                <Info size={13} className="text-slate-400 hover:text-blue-600" />
-                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
-                                  Standard Minute Value, allocated time for a task (2 - 60).
-                                </div>
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-slate-400">2 - 60 min</span>
+                            <label className="text-slate-600 font-medium text-xs">SMV (min)</label>
+                            <span className="text-[10px] text-slate-400">2 - 60</span>
                           </div>
-                          <input type="number" step="0.01" min="2" max="60" required value={regInputs.smv} onChange={(e) => setRegInputs({ ...regInputs, smv: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.01" min="2" max="60" required value={regInputs.smv} onChange={(e) => setRegInputs({ ...regInputs, smv: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <label className="text-slate-600 font-medium text-xs">Over Time</label>
-                              <div className="relative group cursor-pointer">
-                                <Info size={13} className="text-slate-400 hover:text-blue-600" />
-                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
-                                  Amount of overtime by team in minutes (0 - 30000).
-                                </div>
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-slate-400">0 - 30k min</span>
+                            <label className="text-slate-600 font-medium text-xs">Over Time (min)</label>
+                            <span className="text-[10px] text-slate-400">0 - 30k</span>
                           </div>
-                          <input type="number" step="1" min="0" max="30000" required value={regInputs.over_time} onChange={(e) => setRegInputs({ ...regInputs, over_time: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="1" min="0" max="30000" required value={regInputs.over_time} onChange={(e) => setRegInputs({ ...regInputs, over_time: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <label className="text-slate-600 font-medium text-xs">Incentive (BDT)</label>
-                              <div className="relative group cursor-pointer">
-                                <Info size={13} className="text-slate-400 hover:text-blue-600" />
-                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
-                                  Financial incentive in BDT (0 - 5000).
-                                </div>
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-slate-400">0 - 5000 BDT</span>
+                            <label className="text-slate-600 font-medium text-xs">Incentive (BDT)</label>
+                            <span className="text-[10px] text-slate-400">0 - 5000</span>
                           </div>
-                          <input type="number" step="1" min="0" max="5000" required value={regInputs.incentive} onChange={(e) => setRegInputs({ ...regInputs, incentive: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="1" min="0" max="5000" required value={regInputs.incentive} onChange={(e) => setRegInputs({ ...regInputs, incentive: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
 
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <label className="text-slate-600 font-medium text-xs">Number of Workers</label>
-                              <div className="relative group cursor-pointer">
-                                <Info size={13} className="text-slate-400 hover:text-blue-600" />
-                                <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-[11px] rounded shadow-lg z-20 text-center">
-                                  Number of workers in each team (2 - 100).
-                                </div>
-                              </div>
-                            </div>
+                            <label className="text-slate-600 font-medium text-xs">Number of Workers</label>
                             <span className="text-[10px] text-slate-400">2 - 100</span>
                           </div>
-                          <input type="number" step="0.5" min="2" max="100" required value={regInputs.no_of_workers} onChange={(e) => setRegInputs({ ...regInputs, no_of_workers: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none" />
+                          <input type="number" step="0.5" min="2" max="100" required value={regInputs.no_of_workers} onChange={(e) => setRegInputs({ ...regInputs, no_of_workers: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
 
-                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
+                        <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm">
                           {isProcessing ? 'Calculating...' : 'Predict Productivity'}
                         </button>
                       </form>
@@ -580,9 +540,9 @@ export default function Playground() {
                   </div>
 
                   {/* Chart Area */}
-                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-50 flex flex-col p-6">
+                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-50 flex flex-col p-4 sm:p-6">
                     <div className="mb-4 text-left">
-                      <h4 className="font-semibold text-slate-800">
+                      <h4 className="font-semibold text-slate-800 text-sm sm:text-base">
                         {analyticsType === 'forecast' && "Yield Forecast Trajectory"}
                         {analyticsType === 'classification' && "Fault Class Probability Distribution (%)"}
                         {analyticsType === 'regression' && "Worker Productivity Score (0 to 1)"}
@@ -590,26 +550,26 @@ export default function Playground() {
                       <p className="text-xs text-slate-500">Live model output visualization.</p>
                     </div>
 
-                    <div className="w-full h-[320px]">
+                    <div className="w-full h-[280px] sm:h-[320px]">
                       {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           {analyticsType === 'forecast' ? (
-                            <LineChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: -10 }}>
+                            <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                              <XAxis dataKey="step" stroke="#64748b" fontSize={12} />
-                              <YAxis domain={['auto', 'auto']} stroke="#64748b" fontSize={12} />
-                              <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', color: '#fff', border: 'none' }} />
-                              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                              <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} name="Current Baseline" dot={{ r: 4 }} />
-                              <Line type="monotone" dataKey="forecast" stroke="#f97316" strokeWidth={2} strokeDasharray="5 5" name="Future Forecast (T+1 to T+4)" dot={{ r: 4 }} />
+                              <XAxis dataKey="step" stroke="#64748b" fontSize={11} />
+                              <YAxis domain={['auto', 'auto']} stroke="#64748b" fontSize={11} />
+                              <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', color: '#fff', border: 'none', fontSize: '12px' }} />
+                              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                              <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} name="Current Baseline" dot={{ r: 3 }} />
+                              <Line type="monotone" dataKey="forecast" stroke="#f97316" strokeWidth={2} strokeDasharray="5 5" name="Future Forecast (T+1 to T+4)" dot={{ r: 3 }} />
                             </LineChart>
                           ) : (
-                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                              <XAxis dataKey="name" stroke="#64748b" fontSize={13} />
-                              <YAxis stroke="#64748b" fontSize={12} domain={analyticsType === 'classification' ? [0, 100] : [0, 1]} tickFormatter={(val) => analyticsType === 'classification' ? `${val}%` : val.toFixed(2)} />
-                              <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', color: '#fff', border: 'none' }} />
-                              <Bar dataKey={analyticsType === 'classification' ? "probability" : "value"} radius={[4, 4, 0, 0]} maxBarSize={60}>
+                              <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
+                              <YAxis stroke="#64748b" fontSize={11} domain={analyticsType === 'classification' ? [0, 100] : [0, 1]} tickFormatter={(val) => analyticsType === 'classification' ? `${val}%` : val.toFixed(2)} />
+                              <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} contentStyle={{ backgroundColor: '#1e293b', borderRadius: '8px', color: '#fff', border: 'none', fontSize: '12px' }} />
+                              <Bar dataKey={analyticsType === 'classification' ? "probability" : "value"} radius={[4, 4, 0, 0]} maxBarSize={50}>
                                 {chartData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
@@ -618,9 +578,8 @@ export default function Playground() {
                           )}
                         </ResponsiveContainer>
                       ) : (
-                        <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                        <div className="h-full flex items-center justify-center text-slate-400 text-xs sm:text-sm">
                           Loading database entries...
-                          {/* {analyticsType === 'forecast' ? 'Loading database entries...' : 'Enter parameters and click predict to view graph.'} */}
                         </div>
                       )}
                     </div>
@@ -628,10 +587,10 @@ export default function Playground() {
                 </div>
 
                 {/* Dynamic Recent Visitor Logs Table */}
-                <div className="border border-slate-200 rounded-xl bg-slate-50 p-6">
-                  <div className="mb-4 flex items-center justify-between">
+                <div className="border border-slate-200 rounded-xl bg-slate-50 p-4 sm:p-6 overflow-hidden">
+                  <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                     <div>
-                      <h4 className="font-semibold text-slate-800">Recent Submissions ({analyticsType.toUpperCase()})</h4>
+                      <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Recent Submissions ({analyticsType.toUpperCase()})</h4>
                       <p className="text-xs text-slate-500">Live feed showing exact parameter input columns and model outputs tested by visitors.</p>
                     </div>
                     <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2.5 py-1 rounded-full shrink-0">
@@ -639,37 +598,37 @@ export default function Playground() {
                     </span>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
+                  <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+                    <table className="w-full text-left text-xs sm:text-sm min-w-[600px]">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
-                          <th className="py-3 px-4 font-semibold">Time</th>
+                        <tr className="border-b border-slate-200 text-slate-500 text-[10px] sm:text-xs uppercase tracking-wider">
+                          <th className="py-3 px-3 font-semibold">Time</th>
                           {analyticsType === 'forecast' && (
                             <>
-                              <th className="py-3 px-4 font-semibold">Billet Temp (°C)</th>
-                              <th className="py-3 px-4 font-semibold">Ram Pressure (MPa)</th>
-                              <th className="py-3 px-4 font-semibold">Speed (mm/s)</th>
-                              <th className="py-3 px-4 font-semibold">Current Yield Output</th>
+                              <th className="py-3 px-3 font-semibold">Billet Temp (°C)</th>
+                              <th className="py-3 px-3 font-semibold">Ram Pressure (MPa)</th>
+                              <th className="py-3 px-3 font-semibold">Speed (mm/s)</th>
+                              <th className="py-3 px-3 font-semibold">Current Yield Output</th>
                             </>
                           )}
                           {analyticsType === 'classification' && (
                             <>
-                              <th className="py-3 px-4 font-semibold">Vibration</th>
-                              <th className="py-3 px-4 font-semibold">Temp (°C)</th>
-                              <th className="py-3 px-4 font-semibold">Pressure</th>
-                              <th className="py-3 px-4 font-semibold">RMS Vib.</th>
-                              <th className="py-3 px-4 font-semibold">Mean Temp</th>
-                              <th className="py-3 px-4 font-semibold">Predicted Fault Result</th>
+                              <th className="py-3 px-3 font-semibold">Vibration</th>
+                              <th className="py-3 px-3 font-semibold">Temp (°C)</th>
+                              <th className="py-3 px-3 font-semibold">Pressure</th>
+                              <th className="py-3 px-3 font-semibold">RMS Vib.</th>
+                              <th className="py-3 px-3 font-semibold">Mean Temp</th>
+                              <th className="py-3 px-3 font-semibold">Predicted Fault Result</th>
                             </>
                           )}
                           {analyticsType === 'regression' && (
                             <>
-                              <th className="py-3 px-4 font-semibold">Target Prod.</th>
-                              <th className="py-3 px-4 font-semibold">SMV</th>
-                              <th className="py-3 px-4 font-semibold">Over Time</th>
-                              <th className="py-3 px-4 font-semibold">Incentive</th>
-                              <th className="py-3 px-4 font-semibold">Workers</th>
-                              <th className="py-3 px-4 font-semibold">Predicted Actual</th>
+                              <th className="py-3 px-3 font-semibold">Target Prod.</th>
+                              <th className="py-3 px-3 font-semibold">SMV</th>
+                              <th className="py-3 px-3 font-semibold">Over Time</th>
+                              <th className="py-3 px-3 font-semibold">Incentive</th>
+                              <th className="py-3 px-3 font-semibold">Workers</th>
+                              <th className="py-3 px-3 font-semibold">Predicted Actual</th>
                             </>
                           )}
                         </tr>
@@ -678,46 +637,46 @@ export default function Playground() {
                         {recentLogs.length > 0 ? (
                           recentLogs.map((log, idx) => (
                             <tr key={idx} className="hover:bg-slate-100/60 transition-colors">
-                              <td className="py-3 px-4 text-slate-500 text-xs font-mono">
+                              <td className="py-3 px-3 text-slate-500 text-[11px] font-mono">
                                 {log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Just now'}
                               </td>
                               {analyticsType === 'forecast' && (
                                 <>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.temp}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.pressure}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.speed}</td>
-                                  <td className="py-3 px-4 font-semibold text-blue-600 font-mono">
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.temp}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.pressure}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.speed}</td>
+                                  <td className="py-3 px-3 font-semibold text-blue-600 font-mono">
                                     {log.outputs?.forecast ? Number(log.outputs.forecast[0]).toFixed(1) + '%' : '-'}
                                   </td>
                                 </>
                               )}
                               {analyticsType === 'classification' && (
                                 <>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.vibration}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.temperature}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.pressure}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.rms_vibration}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.mean_temp}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800 text-xs font-mono">
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.vibration}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.temperature}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.pressure}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.rms_vibration}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.mean_temp}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800 text-[11px] font-mono">
                                     {log.outputs?.probabilities ? log.outputs.probabilities.map((p: number, i: number) => `C${i}: ${(p * 100).toFixed(1)}%`).join(' | ') : '-'}
                                   </td>
                                 </>
                               )}
                               {analyticsType === 'regression' && (
                                 <>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.targeted_productivity}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.smv}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.over_time}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.incentive}</td>
-                                  <td className="py-3 px-4 font-medium text-slate-800">{log.inputs?.no_of_workers}</td>
-                                  <td className="py-3 px-4 font-semibold text-emerald-600">{log.outputs?.predicted_productivity?.toFixed(3)}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.targeted_productivity}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.smv}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.over_time}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.incentive}</td>
+                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.no_of_workers}</td>
+                                  <td className="py-3 px-3 font-semibold text-emerald-600">{log.outputs?.predicted_productivity?.toFixed(3)}</td>
                                 </>
                               )}
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={7} className="py-6 text-center text-slate-400 text-sm">No visitor submissions found for this task yet.</td>
+                            <td colSpan={7} className="py-6 text-center text-slate-400 text-xs sm:text-sm">No visitor submissions found for this task yet.</td>
                           </tr>
                         )}
                       </tbody>
@@ -730,36 +689,35 @@ export default function Playground() {
             
             {/* COMPUTER VISION TAB */}
             {activeTab === 'cv' && (
-              <div className="flex-1 flex flex-col gap-8 animate-in fade-in duration-500">
-                <div className="flex flex-col md:flex-row items-center justify-between bg-slate-50 p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div className="flex-1 flex flex-col gap-6 sm:gap-8 animate-in fade-in duration-500">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm gap-4">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                      <Eye size={20} className="text-blue-500" />
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                      <Eye size={20} className="text-blue-500 shrink-0" />
                       Computer Vision Object Detection
                     </h3>
                     <p className="text-xs text-slate-500 mt-1">
                       Upload an image to run bounding box object detection. Click any box overlay to inspect details.
                     </p>
                   </div>
-                  <label className="mt-4 md:mt-0 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg cursor-pointer transition-colors flex items-center gap-2">
+                  <label className="w-full md:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs sm:text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-center gap-2 shrink-0">
                     <Upload size={16} />
                     <span>Upload Image</span>
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                   </label>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
                   {/* Image Display & Bounding Box Overlays */}
-                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-900 flex flex-col items-center justify-center p-6 relative min-h-[460px] overflow-hidden">
+                  <div className="flex-1 border border-slate-200 rounded-xl bg-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 relative min-h-[350px] sm:min-h-[460px] overflow-hidden">
                     {selectedImage ? (
                       <div className="relative inline-block w-full h-full flex items-center justify-center">
                         <img 
                           id="cv-uploaded-img"
                           src={selectedImage} 
                           alt="Uploaded CV Preview" 
-                          className="max-h-[440px] w-full object-contain rounded-lg"
+                          className="max-h-[350px] sm:max-h-[440px] w-full object-contain rounded-lg"
                         />
-                        {/* Bounding Box Overlays (Labels & Conf text removed per instructions) */}
                         {imageDimensions.width > 0 && detections.map((det, idx) => {
                           const [xmin, ymin, xmax, ymax] = det.box;
                           const leftPct = (xmin / imageDimensions.width) * 100;
@@ -783,19 +741,19 @@ export default function Playground() {
                         })}
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center justify-center text-slate-400 text-center p-8">
-                        <Upload size={48} className="mb-3 text-slate-600" />
-                        <p className="text-sm font-medium">No image uploaded yet.</p>
+                      <div className="flex flex-col items-center justify-center text-slate-400 text-center p-6 sm:p-8">
+                        <Upload size={40} className="mb-3 text-slate-600" />
+                        <p className="text-xs sm:text-sm font-medium">No image uploaded yet.</p>
                         <p className="text-xs text-slate-500 mt-1">Click "Upload Image" above to test object detection.</p>
                       </div>
                     )}
                   </div>
 
                   {/* Sidebar Results / Summary */}
-                  <div className="w-full md:w-1/3 bg-slate-50 border border-slate-200 rounded-xl p-6 flex flex-col justify-between">
+                  <div className="w-full lg:w-1/3 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-6 flex flex-col justify-between">
                     <div>
-                      <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                        <Activity size={18} className="text-emerald-500" />
+                      <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2 text-sm sm:text-base">
+                        <Activity size={18} className="text-emerald-500 shrink-0" />
                         Detection Summary
                       </h4>
                       <p className="text-xs text-slate-500 mb-4">
@@ -806,13 +764,13 @@ export default function Playground() {
                         <button
                           onClick={handleRunCV}
                           disabled={isProcessing}
-                          className="w-full mb-6 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50"
+                          className="w-full mb-6 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 rounded-lg transition-colors disabled:opacity-50 text-xs sm:text-sm"
                         >
                           {isProcessing ? 'Running...' : 'Run Detection'}
                         </button>
                       )}
 
-                      <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto">
+                      <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto">
                         {detections.map((det, idx) => (
                           <div 
                             key={idx} 
@@ -843,10 +801,10 @@ export default function Playground() {
                 {/* POPUP MODAL FOR DETAILED CROP INFO */}
                 {selectedDetection && (
                   <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
                       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                        <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                          <Eye size={20} className="text-blue-600" />
+                        <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                          <Eye size={20} className="text-blue-600 shrink-0" />
                           Detection Details
                         </h3>
                         <button 
@@ -859,17 +817,17 @@ export default function Playground() {
 
                       {/* Cropped Image Preview */}
                       {croppedImageUrl && (
-                        <div className="mb-4 bg-slate-900 rounded-xl p-3 flex items-center justify-center max-h-[160px] overflow-hidden">
+                        <div className="mb-4 bg-slate-900 rounded-xl p-3 flex items-center justify-center max-h-[150px] overflow-hidden">
                           <img 
                             src={croppedImageUrl} 
                             alt="Cropped object preview" 
-                            className="max-h-[140px] w-auto object-contain rounded border border-slate-700" 
+                            className="max-h-[130px] w-auto object-contain rounded border border-slate-700" 
                           />
                         </div>
                       )}
 
-                      <div className="flex flex-col gap-2.5 text-sm text-slate-600">
-                        <div className="flex justify-between bg-slate-50 p-2.5 rounded-lg">
+                      <div className="flex flex-col gap-2 text-xs sm:text-sm text-slate-600">
+                        <div className="flex justify-between bg-slate-50 p-2 sm:p-2.5 rounded-lg">
                           <span className="font-medium text-slate-500">Object Label:</span>
                           <span className="font-bold text-slate-900 uppercase">{selectedDetection.label}</span>
                         </div>
@@ -883,7 +841,7 @@ export default function Playground() {
                         </div>
                         <div className="flex justify-between bg-slate-50 p-2.5 rounded-lg">
                           <span className="font-medium text-slate-500">Bounding Box [xmin, ymin, xmax, ymax]:</span>
-                          <span className="font-mono text-xs text-slate-800">
+                          <span className="font-mono text-[11px] text-slate-800">
                             [{selectedDetection.box.join(', ')}]
                           </span>
                         </div>
@@ -891,7 +849,7 @@ export default function Playground() {
 
                       <button
                         onClick={() => setSelectedDetection(null)}
-                        className="mt-6 w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg transition-colors"
+                        className="mt-5 sm:mt-6 w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg transition-colors text-xs sm:text-sm"
                       >
                         Close Details
                       </button>
@@ -903,17 +861,17 @@ export default function Playground() {
 
             {activeTab === 'nlp' && (
               <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
-                <div className="flex flex-col items-center justify-center p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
-                  <Wrench size={48} className="text-slate-400 mb-4" />
-                  <h3 className="text-2xl font-bold text-slate-700 mb-2">Work in Progress</h3>
+                <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
+                  <Wrench size={40} className="text-slate-400 mb-3" />
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-700 mb-1">Work in Progress</h3>
                 </div>
               </div>
             )}
             {activeTab === 'rag' && (
               <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
-                <div className="flex flex-col items-center justify-center p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
-                  <Wrench size={48} className="text-slate-400 mb-4" />
-                  <h3 className="text-2xl font-bold text-slate-700 mb-2">Work in Progress</h3>
+                <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
+                  <Wrench size={40} className="text-slate-400 mb-3" />
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-700 mb-1">Work in Progress</h3>
                 </div>
               </div>
             )}
