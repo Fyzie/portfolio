@@ -35,6 +35,11 @@ export default function RootLayout({
         <ChatWidget />
 
       </body>
+
+      {/* GLOBAL FOOTER */}
+      {/* <footer className="w-full bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <p>This portfolio is a personal showcase. Contact form data is used solely for professional communication.</p>
+      </footer> */}
     </html>
   );
 }

@@ -73,7 +73,14 @@ export default function Contact() {
               <Phone size={20} className="text-blue-600 shrink-0" />
               <span>Phone/WhatsApp:</span>
             </div>
-            <p>+60 10-817 5109</p>
+            <a 
+                href="https://wa.me/60108175109" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="hover:text-blue-600 transition-colors"
+              >
+                +60 10-817 5109
+              </a>
           </div>
 
           <div className="flex flex-col items-center gap-1">
@@ -135,7 +142,7 @@ export default function Contact() {
                 />
                 <input 
                   type="tel" 
-                  placeholder="Your Phone" 
+                  placeholder="Your Phone (Optional)" 
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full p-3.5 sm:p-4 bg-slate-800 text-white placeholder-slate-400 text-sm sm:text-base rounded-md outline-none focus:ring-2 focus:ring-blue-500 border-none"
@@ -163,6 +170,10 @@ export default function Contact() {
               >
                 {status === 'loading' ? 'Sending...' : 'Send Message'}
               </button>
+
+              <p className="text-xs text-slate-400 mt-2 text-center">
+                Contact form data is used solely for professional communication.
+              </p>
 
               {status === 'success' && <p className="text-emerald-600 font-medium text-sm sm:text-base">Message sent successfully! I will get back to you soon.</p>}
               {status === 'error' && <p className="text-red-600 font-medium text-sm sm:text-base">Failed to send message. Please try emailing me directly.</p>}
