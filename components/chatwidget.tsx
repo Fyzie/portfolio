@@ -11,7 +11,8 @@ interface Message {
 const loadingMessages = [
   "Searching knowledge base...",
   "Please wait...",
-  "I'm on free tier here :)...",
+  "Just a little bit more...",
+  // "I'm on free tier here :)...",
 ];
 
 export default function ChatWidget() {
@@ -32,14 +33,14 @@ export default function ChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Rotate loading text every 2.5 seconds when loading is active
+  // Rotate loading text every 5 seconds when loading is active
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (loading) {
       setLoadingMsgIndex(0);
       interval = setInterval(() => {
         setLoadingMsgIndex((prev) => (prev + 1) % loadingMessages.length);
-      }, 2500);
+      }, 5000);
     }
     return () => clearInterval(interval);
   }, [loading]);
@@ -183,7 +184,7 @@ export default function ChatWidget() {
         ) : (
           <>
             <MessageSquare size={22} className="shrink-0" />
-            <span className="font-medium text-sm whitespace-nowrap">Chat with Fyzie AI</span>
+            <span className="font-medium text-sm whitespace-nowrap">Chat with AI</span>
           </>
         )}
       </button>
