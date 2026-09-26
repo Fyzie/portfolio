@@ -33,8 +33,6 @@ export default function Playground() {
     vibration: '0.5',
     temperature: '65.0',
     pressure: '7.8',
-    rms_vibration: '0.6',
-    mean_temp: '90.5'
   });
   const [regInputs, setRegInputs] = useState({
     targeted_productivity: '0.80',
@@ -250,21 +248,17 @@ export default function Playground() {
     const vibration = parseFloat(classInputs.vibration);
     const temperature = parseFloat(classInputs.temperature);
     const pressure = parseFloat(classInputs.pressure);
-    const rms_vibration = parseFloat(classInputs.rms_vibration);
-    const mean_temp = parseFloat(classInputs.mean_temp);
 
     if (vibration < 0.1 || vibration > 1.0) return setErrorMessage("⚠️ Vibration must be between 0.1 and 1.0 mm/s.");
     if (temperature < 50.0 || temperature > 130.0) return setErrorMessage("⚠️ Temperature must be between 50.0°C and 130.0°C.");
     if (pressure < 7.0 || pressure > 10.0) return setErrorMessage("⚠️ Pressure must be between 7.0 and 10.0 bar.");
-    if (rms_vibration < 0.5 || rms_vibration > 0.7) return setErrorMessage("⚠️ RMS Vibration must be between 0.5 and 0.7.");
-    if (mean_temp < 80.0 || mean_temp > 100.0) return setErrorMessage("⚠️ Mean Temp must be between 80.0°C and 100.0°C.");
 
     setIsProcessing(true);
     try {
       const res = await fetch(`${backendUrl}/api/industrial-fault-classify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vibration, temperature, pressure, rms_vibration, mean_temp }),
+        body: JSON.stringify({ vibration, temperature, pressure }),
       });
       if (!res.ok) throw new Error(`Inference failed: ${res.statusText}`);
       const result = await res.json();
@@ -462,20 +456,6 @@ export default function Playground() {
                           </div>
                           <input type="number" step="0.01" required min="7" max="10" value={classInputs.pressure} onChange={(e) => setClassInputs({ ...classInputs, pressure: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
                         </div>
-                        <div>
-                          <div className="flex justify-between mb-1">
-                            <label className="text-slate-600 font-medium text-xs">RMS Vibration</label>
-                            <span className="text-[10px] text-slate-400">0.5 - 0.7</span>
-                          </div>
-                          <input type="number" step="0.001" required min="0.5" max="0.7" value={classInputs.rms_vibration} onChange={(e) => setClassInputs({ ...classInputs, rms_vibration: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
-                        </div>
-                        <div>
-                          <div className="flex justify-between mb-1">
-                            <label className="text-slate-600 font-medium text-xs">Mean Temp (°C)</label>
-                            <span className="text-[10px] text-slate-400">80 - 100</span>
-                          </div>
-                          <input type="number" step="0.1" required min="80" max="100" value={classInputs.mean_temp} onChange={(e) => setClassInputs({ ...classInputs, mean_temp: e.target.value })} className="w-full p-2 rounded-lg border border-slate-200 outline-none text-sm" />
-                        </div>
                         <button type="submit" disabled={isProcessing} className="mt-2 w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm">
                           {isProcessing ? 'Analyzing...' : 'Classify Fault State'}
                         </button>
@@ -616,8 +596,6 @@ export default function Playground() {
                               <th className="py-3 px-3 font-semibold">Vibration</th>
                               <th className="py-3 px-3 font-semibold">Temp (°C)</th>
                               <th className="py-3 px-3 font-semibold">Pressure</th>
-                              <th className="py-3 px-3 font-semibold">RMS Vib.</th>
-                              <th className="py-3 px-3 font-semibold">Mean Temp</th>
                               <th className="py-3 px-3 font-semibold">Predicted Fault Result</th>
                             </>
                           )}
@@ -655,8 +633,6 @@ export default function Playground() {
                                   <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.vibration}</td>
                                   <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.temperature}</td>
                                   <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.pressure}</td>
-                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.rms_vibration}</td>
-                                  <td className="py-3 px-3 font-medium text-slate-800">{log.inputs?.mean_temp}</td>
                                   <td className="py-3 px-3 font-medium text-slate-800 text-[11px] font-mono">
                                     {log.outputs?.probabilities ? log.outputs.probabilities.map((p: number, i: number) => `C${i}: ${(p * 100).toFixed(1)}%`).join(' | ') : '-'}
                                   </td>

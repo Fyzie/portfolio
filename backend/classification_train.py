@@ -6,11 +6,13 @@ from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("D:/Github/portfolio datasets/industrial_fault_detection_data_1000.csv")
 
-feature_cols = ['Vibration (mm/s)', 'Temperature (°C)', 'Pressure (bar)', 'RMS Vibration', 'Mean Temp']
+feature_cols = ['Vibration (mm/s)', 'Temperature (°C)', 'Pressure (bar)']
 X = df[feature_cols]
 y = df['Fault Label'].astype(int)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(y.value_counts())
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 clf = RandomForestClassifier(n_estimators=100, random_state=42)
 clf.fit(X_train, y_train)

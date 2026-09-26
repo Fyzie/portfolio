@@ -214,8 +214,6 @@ class FaultClassifyRequest(BaseModel):
     vibration: float
     temperature: float
     pressure: float
-    rms_vibration: float
-    mean_temp: float
 
 class GarmentRegressRequest(BaseModel):
     targeted_productivity: float
@@ -245,7 +243,7 @@ async def generate_forecast(data: ForecastRequest):
 async def classify_fault_state(data: FaultClassifyRequest):
     try:
         if fault_classifier:
-            inputs_arr = [[data.vibration, data.temperature, data.pressure, data.rms_vibration, data.mean_temp]]
+            inputs_arr = [[data.vibration, data.temperature, data.pressure]]
             probabilities = fault_classifier.predict_proba(inputs_arr)[0].tolist()
         else:
             probabilities = [0.70, 0.20, 0.10]
@@ -257,8 +255,6 @@ async def classify_fault_state(data: FaultClassifyRequest):
                     "vibration": data.vibration, 
                     "temperature": data.temperature, 
                     "pressure": data.pressure, 
-                    "rms_vibration": data.rms_vibration, 
-                    "mean_temp": data.mean_temp
                 },
                 "outputs": {"probabilities": probabilities}
             }).execute()
