@@ -9,7 +9,7 @@ import qdrant_client
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
 from supabase import create_client, Client
-from qdrant_client import AsyncQdrantClient
+from qdrant_client import QdrantClient, AsyncQdrantClient
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, UploadFile, File
 
@@ -30,6 +30,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+@app.get("/")
+def read_root():
+    return {"status": "Backend is running"}
+
 Settings.llm = GoogleGenAI(
     model="gemini-3.6-flash",
     api_key=os.getenv("GOOGLE_API_KEY")
@@ -39,7 +47,7 @@ Settings.embed_model = GoogleGenAIEmbedding(
     api_key=os.getenv("GOOGLE_API_KEY")
 )
 
-client = qdrant_client.QdrantClient(
+client = QdrantClient(
     url=os.getenv("QDRANT_URL"),
     api_key=os.getenv("QDRANT_API_KEY")
 )
@@ -74,9 +82,7 @@ chat_engine = index.as_chat_engine(
 class ChatRequest(BaseModel):
     message: str
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+
 
 # @app.post("/chat")
 # async def chat_endpoint(request: ChatRequest):

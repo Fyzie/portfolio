@@ -8,7 +8,7 @@ export default function NotificationBanner() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowBanner(false);
-    }, 90000); // 90 seconds
+    }, 120000); // 120 seconds
 
     return () => clearTimeout(timer);
   }, []);
