@@ -209,30 +209,42 @@ async def chat_endpoint(request: ChatRequest):
         reply_text = result["reply"]
         source_nodes = result["source_nodes"]
         
-        # Check if the knowledge base had NO relevant context for this question
-        is_missing_from_kb = len(source_nodes) == 0
+        # --- DEBUG TRACKING PRINTS ---
+        print(f"\n--- DEBUG CHAT ---")
+        print(f"User Query: {user_message}")
+        print(f"Number of Source Nodes Found: {len(source_nodes)}")
+        for i, node in enumerate(source_nodes):
+            print(f"Node {i} Text Preview: {node.text[:100]}...")
+        print(f"AI Reply: {reply_text}")
+        print(f"--------------------\n")
+        # -----------------------------
+
+        # Better approach: Check if the AI's response itself states it doesn't know, 
+        # combined with whether it's portfolio-related.
+        is_missing_info = any(phrase in reply_text.lower() for phrase in [
+            "isn't specifically listed", 
+            "no mention of", 
+            "i don't know", 
+            "not stated", 
+            "not mentioned",
+            "do not have"
+        ])
         
-        if is_missing_from_kb:
-            # Evaluate if the question is portfolio/career/tech-related
+        if is_missing_info:
             is_relevant = await is_portfolio_related(user_message)
+            print(f"Is Portfolio Related? {is_relevant}")
             
             if is_relevant:
-                # Trigger escalation for professional questions missing from markdown
                 USER_SESSION_STATES[session_id] = {
                     "status": "waiting_for_email",
                     "pending_question": user_message
                 }
                 return {
-                    "reply": "This isn't explicitly stated in my knowledge base. Would you like me to pass this question directly to Hafizi? Please leave your email address on the chat."
+                    "reply": "This isn't stated in my knowledge base. Would you like me to pass this question directly to Hafizi? Please leave your email address on the chat."
                 }
-            else:
-                # If completely unrelated (e.g., cooking recipes, weather), answer normally without email prompt
-                return {"reply": reply_text}
-            
+                
         return {"reply": reply_text}
         
-    except HTTPException as he:
-        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
