@@ -536,27 +536,34 @@ async def debate_endpoint(request: DebateRequest):
             Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
             
             # 1. Pragmatic Architect Argument
-            arch_messages = [ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Argue from the perspective of The Pragmatic Architect (favoring simplicity, low overhead, and speed of delivery). Max 3 sentences.")]
+            arch_messages = [ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Argue from the perspective of The Pragmatic Architect (favoring simplicity, low overhead, and speed of delivery). Keep it short (maximum 2 sentences). Do not include any prefix labels like 'assistant:' or 'Architect:'.")]
             arch_res = await Settings.llm.achat(arch_messages)
             
             # 2. Scalability Evangelist Rebuttal
             evang_messages = [
-                ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. The Architect argued: '{str(arch_res)}'. Rebut and argue from the perspective of The Scalability Evangelist (favoring robust scaling, future-proofing, and decoupled systems). Max 3 sentences.")
+                ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. The Architect argued: '{str(arch_res)}'. Rebut from the perspective of The Scalability Evangelist (favoring robust scaling and decoupled systems). Keep it short (maximum 2 sentences). Do not include any prefix labels like 'assistant:' or 'Evangelist:'.")
             ]
             evang_res = await Settings.llm.achat(evang_messages)
             
             # 3. Moderator Summary
             mod_messages = [
-                ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Architect said: '{str(arch_res)}'. Evangelist said: '{str(evang_res)}'. Provide a concise moderator verdict and summary. Max 2 sentences.")
+                ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Architect said: '{str(arch_res)}'. Evangelist said: '{str(evang_res)}'. Provide a concise moderator verdict and summary in maximum 2 sentences. Do not include any prefix labels like 'assistant:' or 'Moderator Verdict:' in your response.")
             ]
             mod_res = await Settings.llm.achat(mod_messages)
             
+            # Helper function to clean any accidental role prefixes or markdown role tags
+            def clean_response(response_obj):
+                text = str(response_obj).strip()
+                # Remove unnecessary prefixes
+                text = re.sub(r'^(assistant|model|user|system):\s*', '', text, flags=re.IGNORECASE)
+                return text.strip()
+
             return {
                 "status": "success",
                 "model_used": model_name,
-                "architect": str(arch_res),
-                "evangelist": str(evang_res),
-                "moderator": str(mod_res)
+                "architect": clean_response(arch_res),
+                "evangelist": clean_response(evang_res),
+                "moderator": clean_response(mod_res)
             }
         except Exception as e:
             err_str = str(e)
