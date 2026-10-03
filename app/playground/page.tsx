@@ -349,7 +349,7 @@ export default function Playground() {
     setLoadingFileFromStorage(true);
     try {
       const { data } = supabase.storage
-        .from('factory-manuals')
+        .from('factory manuals')
         .getPublicUrl(fileName);
 
       const res = await fetch(data.publicUrl);
@@ -362,7 +362,7 @@ export default function Playground() {
       });
     } catch (err: any) {
       console.error(err);
-      alert(`Could not load ${fileName} from Supabase Storage. Ensure bucket 'factory-manuals' is public and file exists.`);
+      alert(`Could not load ${fileName} from Supabase Storage. Ensure bucket 'factory manuals' is public and file exists.`);
     } finally {
       setLoadingFileFromStorage(false);
     }
