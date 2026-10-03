@@ -1033,8 +1033,8 @@ export default function Playground() {
 
                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex flex-col justify-center">
                       <span className="text-xs text-slate-400 font-medium">Retrieval Status</span>
-                      <span className="text-sm font-bold text-emerald-600 mt-1">
-                        {ragDiagnostics.numSourceNodes > 0 ? "✅ Active Context Linked Successfully" : "ℹ️ Awaiting Query"}
+                      <span className="text-sm font-bold text-gray-600 mt-1">
+                        {ragDiagnostics.numSourceNodes > 0 ? "Active Context Linked Successfully" : "Awaiting Query"}
                       </span>
                     </div>
                   </div>
