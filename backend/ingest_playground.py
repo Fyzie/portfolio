@@ -1,11 +1,12 @@
 import os
+import json
 import time
 from dotenv import load_dotenv
 import qdrant_client
 
 from llama_index.core import (
     VectorStoreIndex, 
-    SimpleDirectoryReader, 
+    Document, 
     Settings, 
     StorageContext
 )
@@ -25,10 +26,25 @@ def main():
     Settings.llm = GoogleGenAI(model="gemini-3.6-flash", api_key=GOOGLE_API_KEY)
     Settings.embed_model = GoogleGenAIEmbedding(model_name="gemini-embedding-001", api_key=GOOGLE_API_KEY)
 
-    print("2. Reading JSON documents from ./data directory...")
-    reader = SimpleDirectoryReader(input_dir="./data", required_exts=[".json"])
-    documents = reader.load_data()
-    print(f"   -> Loaded {len(documents)} JSON document files.")
+    print("2. Reading and flattening JSON documents from ./data directory...")
+    documents = []
+    data_dir = "./data"
+    
+    # Read your JSON files manually so we can extract pure question/answer text
+    for filename in os.listdir(data_dir):
+        if filename.endswith(".json"):
+            filepath = os.path.join(data_dir, filename)
+            with open(filepath, 'r', encoding='utf-8') as f:
+                qa_list = json.load(f)
+                for item in qa_list:
+                    question = item.get("question", "")
+                    answers = "\n".join(item.get("answers", []))
+                    
+                    # Format as clean, natural language text instead of raw JSON syntax
+                    clean_text = f"Question: {question}\nAnswer: {answers}"
+                    documents.append(Document(text=clean_text, metadata={"source": filename}))
+                    
+    print(f"   -> Loaded {len(documents)} structured Q&A records.")
 
     print("3. Connecting to Qdrant Cloud...")
     client = qdrant_client.QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
@@ -36,8 +52,8 @@ def main():
     vector_store = QdrantVectorStore(client=client, collection_name="playground_knowledge")
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-    print("4. Chunking documents...")
-    # Smaller chunk size keeps the token count per request very low (< 2,500 tokens)
+    print("4. Applying your SentenceSplitter chunking method...")
+    # Keeping your exact chunk size and overlap preferences
     splitter = SentenceSplitter(chunk_size=250, chunk_overlap=25)
     nodes = splitter.get_nodes_from_documents(documents)
     print(f"   -> Created {len(nodes)} chunks.")
@@ -45,7 +61,6 @@ def main():
     print("5. Uploading to Qdrant with rate-limit throttling...")
     index = VectorStoreIndex([], storage_context=storage_context)
     
-    # Safe batching: 5 chunks per batch with a 6-second sleep (~10 requests/minute)
     batch_size = 5  
     total_batches = (len(nodes) + batch_size - 1) // batch_size
     
@@ -56,7 +71,7 @@ def main():
         
         success = False
         retries = 5
-        backoff = 20  # Starting backoff seconds
+        backoff = 20
         
         while not success and retries > 0:
             try:
@@ -66,7 +81,7 @@ def main():
                 if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                     print(f"      Rate limit hit (429). Backing off for {backoff} seconds... ({retries} retries left)")
                     time.sleep(backoff)
-                    backoff *= 2  # Exponential backoff (20s, 40s, 80s...)
+                    backoff *= 2
                     retries -= 1
                 else:
                     raise e
@@ -74,10 +89,9 @@ def main():
         if not success:
             raise RuntimeError("Failed to complete ingestion due to persistent rate-limiting.")
         
-        # Controlled sleep between successful batches to respect the 100 RPM limit
         time.sleep(6)
 
-    print("Success! JSON factory manual data successfully vectorized in 'playground_knowledge'.")
+    print("Success! Cleaned JSON data chunked and vectorized successfully in 'playground_knowledge'.")
 
 if __name__ == "__main__":
     main()

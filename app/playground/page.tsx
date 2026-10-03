@@ -327,7 +327,10 @@ export default function Playground() {
   ]);
   const [ragInput, setRagInput] = useState('');
   const [ragLoading, setRagLoading] = useState(false);
-  const [ragDiagnostics, setRagDiagnostics] = useState({ numSourceNodes: 0, topPreviews: [] as string[] });
+  const [ragDiagnostics, setRagDiagnostics] = useState({ 
+    numSourceNodes: 0, 
+    sourceNodesDetails: [] as Array<{ score?: number; text: string; metadata?: any }> 
+  });
   const [selectedFileModal, setSelectedFileModal] = useState<{ title: string; content: string } | null>(null);
   const [loadingFileFromStorage, setLoadingFileFromStorage] = useState(false);
   const ragMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -382,7 +385,7 @@ export default function Playground() {
       setRagMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
       setRagDiagnostics({
         numSourceNodes: data.num_source_nodes || 0,
-        topPreviews: data.top_nodes_previews || []
+        sourceNodesDetails: data.source_nodes_details || []
       });
     } catch (err: any) {
       setRagMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error querying the factory manual database." }]);
@@ -1019,29 +1022,47 @@ export default function Playground() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mb-4">
-                    Real-time telemetry showing retrieved source chunks and context distribution for the most recent chat query.
+                    Real-time telemetry showing the exact source answers and chunk context retrieved for your query.
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
                       <span className="text-xs text-slate-400 font-medium">Source Nodes Retrieved</span>
                       <span className="text-2xl font-extrabold text-slate-800 mt-1 font-mono">{ragDiagnostics.numSourceNodes}</span>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
-                      <span className="text-xs text-slate-400 font-medium block mb-1">Top 2 Retrieved Node Text Previews</span>
-                      {ragDiagnostics.topPreviews.length > 0 ? (
-                        <div className="flex flex-col gap-2">
-                          {ragDiagnostics.topPreviews.map((preview, i) => (
-                            <div key={i} className="text-[11px] bg-slate-50 p-2 rounded border border-slate-200 font-mono text-slate-700 truncate">
-                              <b>[Node {i+1}]:</b> {preview}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect nodes.</span>
-                      )}
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex flex-col justify-center">
+                      <span className="text-xs text-slate-400 font-medium">Retrieval Status</span>
+                      <span className="text-sm font-bold text-emerald-600 mt-1">
+                        {ragDiagnostics.numSourceNodes > 0 ? "✅ Active Context Linked Successfully" : "ℹ️ Awaiting Query"}
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Exact Answer / Chunk Breakdown */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-xs text-slate-500 font-bold block mb-3 uppercase tracking-wider">
+                      Exact Answers / Chunks Used from Knowledge Base:
+                    </span>
+                    {ragDiagnostics.sourceNodesDetails.length > 0 ? (
+                      <div className="flex flex-col gap-3 max-h-[250px] overflow-y-auto pr-1">
+                        {ragDiagnostics.sourceNodesDetails.map((node, i) => (
+                          <div key={i} className="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col gap-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono border-b border-slate-200 pb-1">
+                              <span>Source Node #{i + 1} {node.metadata?.source ? `(${node.metadata.source})` : ''}</span>
+                              {node.score !== undefined && node.score !== null && (
+                                <span className="text-blue-600 font-bold">Similarity Score: {node.score.toFixed(3)}</span>
+                              )}
+                            </div>
+                            <p className="font-mono text-slate-700 whitespace-pre-wrap leading-relaxed mt-1">
+                              {node.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect the exact retrieved answers.</span>
+                    )}
                   </div>
                 </div>
 
