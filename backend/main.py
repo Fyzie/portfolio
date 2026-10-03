@@ -162,9 +162,9 @@ async def is_portfolio_related(question: str) -> bool:
         response = await eval_llm.achat(prompt)
         print(f"Portfolio Response: {response}")
         return "YES" in str(response).upper()
-    except Exception:
+    except Exception as e:
         # Fallback to True if evaluation fails so we don't block valid questions
-        print("Portfolio evaluaiton failed!")
+        print(f"Portfolio evaluation failed!: {e}")
         return False
 
 @app.post("/chat")
