@@ -68,6 +68,14 @@ vector_store = QdrantVectorStore(
 
 index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
 
+# Global initialization for playground knowledge index (matching portfolio index)
+vector_store_pg = QdrantVectorStore(
+    client=client,
+    aclient=aclient,
+    collection_name="playground_knowledge"
+)
+playground_index = VectorStoreIndex.from_vector_store(vector_store=vector_store_pg)
+
 custom_prompt = (
     "You are a helpful AI assistant for Hafizi's portfolio. "
     "Your goal is to answer questions about Hafizi conversationally and concisely. "
@@ -141,12 +149,6 @@ async def chat_with_fallback(chat_request_message):
     )
 
 async def playground_chat_with_fallback(chat_request_message):
-    q_client = QdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY"))
-    q_aclient = AsyncQdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY"))
-    
-    vector_store_pg = QdrantVectorStore(client=q_client, aclient=q_aclient, collection_name="playground_knowledge")
-    playground_index = VectorStoreIndex.from_vector_store(vector_store=vector_store_pg)
-    
     playground_prompt = (
         "You are an expert Factory Manual Guidance assistant for plant operators and maintenance engineers. "
         "Answer questions strictly and accurately based on the provided factory manuals. "
@@ -156,6 +158,7 @@ async def playground_chat_with_fallback(chat_request_message):
 
     for model_name in FALLBACK_MODELS:
         try:
+            print(f"Playground Chat Response on {model_name}")
             Settings.llm = GoogleGenAI(
                 model=model_name,
                 api_key=os.getenv("GOOGLE_API_KEY")
@@ -167,12 +170,10 @@ async def playground_chat_with_fallback(chat_request_message):
                 verbose=True
             )
             
-            # 1. Await response FIRST
             response = await temp_playground_engine.achat(chat_request_message)
-            print(f"Playground Response on {model_name}")
-            
             source_nodes = getattr(response, "source_nodes", [])
             
+            # Extract detailed source information (Question & Answer/Text used)
             detailed_sources = []
             for node in source_nodes:
                 detailed_sources.append({
@@ -192,6 +193,7 @@ async def playground_chat_with_fallback(chat_request_message):
             err_str = str(e)
             print(f"Playground error on {model_name}: {err_str}")
             if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"Playground {model_name}: Resource exhausted or quota exceeded!")
                 continue
             else:
                 raise e
@@ -208,7 +210,7 @@ async def is_portfolio_related(question: str) -> bool:
             role=MessageRole.USER, 
             content=(
                 f"Analyze this user question about career path, work experience, work skills, or tech stack. "
-                f"Question: '{question}'\n"
+                f"Question: {question}"
                 f"Answer with ONLY one word: YES or NO."
             )
         )
@@ -309,7 +311,7 @@ async def playground_chat_endpoint(request: PlaygroundChatRequest):
             "reply": result["reply"],
             "model_used": result["model_used"],
             "num_source_nodes": result["num_source_nodes"],
-            "top_nodes_previews": result["top_nodes_previews"]
+            "source_nodes_details": result["source_nodes_details"]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -425,7 +427,7 @@ async def classify_fault_state(data: FaultClassifyRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/garments-regression")
-async def predict_garment_productivity(data: GarmentRegressRequest):
+async def ref_predict_garment_productivity(data: GarmentRegressRequest):
     try:
         if garment_regressor:
             inputs_arr = [[data.targeted_productivity, data.smv, data.over_time, data.incentive, data.no_of_workers]]
@@ -523,7 +525,7 @@ async def cv_detect(file: UploadFile = File(...)):
 async def get_history(task_type: str = "forecast"):
     if not supabase:
         return {"data": []}
-    
+        
     response = (
         supabase.table("analytics_logs")
         .select("*")
