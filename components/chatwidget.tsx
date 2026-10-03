@@ -55,12 +55,14 @@ export default function ChatWidget() {
     ]);
   };
 
+  // Generate a persistent session ID for this browser tab session
+  const [sessionId] = useState(() => Math.random().toString(36).substring(2, 11));
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
     if (!trimmed || loading) return;
 
-    // Append user message immediately
     const userMessage: Message = { role: 'user', content: trimmed };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
@@ -72,7 +74,10 @@ export default function ChatWidget() {
       const res = await fetch(`${backendUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed }),
+        body: JSON.stringify({ 
+          message: trimmed,
+          session_id: sessionId // Pass session ID to maintain escalation flow state
+        }),
       });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -88,7 +93,7 @@ export default function ChatWidget() {
         ...prev,
         {
           role: 'assistant',
-          content: 'Sorry, I had trouble connecting to the backend server. Maybe out of tokens. Please come back later.',
+          content: 'Sorry, I had trouble connecting to the backend server. Please try again later.',
         },
       ]);
     } finally {

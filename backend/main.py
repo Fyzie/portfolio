@@ -1,3 +1,5 @@
+
+import re
 import os
 import cv2
 import httpx
@@ -7,6 +9,7 @@ import uvicorn
 import smtplib
 import numpy as np
 import qdrant_client
+from typing import Dict, Any
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
 from supabase import create_client, Client
@@ -85,9 +88,17 @@ chat_engine = index.as_chat_engine(
     verbose=True
 )
 
+
+USER_SESSION_STATES: Dict[str, Dict[str, Any]] = {}
+
 class ChatRequest(BaseModel):
     message: str
+    session_id: str = "default_user"
 
+def extract_email(text: str):
+    """Extracts a valid email address using Regex."""
+    match = re.search(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
+    return match.group(0) if match else None
 
 
 # @app.post("/chat")
@@ -143,13 +154,86 @@ async def chat_with_fallback(chat_request_message):
         detail="All available Gemini free-tier model quotas have been exhausted for today."
     )
 
+async def is_portfolio_related(question: str) -> bool:
+    """Evaluates if the user's question is related to Hafizi's portfolio, tech stack, or engineering."""
+    try:
+        eval_llm = GoogleGenAI(model="gemini-3.6-flash", api_key=os.getenv("GOOGLE_API_KEY"))
+        prompt = (
+            f"Analyze this user question on an AI portfolio website for Muhammad Hafizi (a Machine Learning & Software Engineer specializing in AI, Computer Vision, FastAPI, Next.js, and robotics). "
+            f"Question: '{question}'\n"
+            f"Is this question related to Hafizi, his career, his technical skills, his projects, or software/AI/engineering topics? "
+            f"Answer with ONLY one word: YES or NO."
+        )
+        response = await eval_llm.achat(prompt)
+        return "YES" in str(response).upper()
+    except Exception:
+        # Fallback to True if evaluation fails so we don't block valid questions
+        return True
+
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
+    session_id = request.session_id
+    user_message = request.message.strip()
+    
+    # 1. Handle user typing their email during an active escalation state
+    current_state = USER_SESSION_STATES.get(session_id, {})
+    if current_state.get("status") == "waiting_for_email":
+        email = extract_email(user_message)
+        if email:
+            original_question = current_state.get("pending_question", "Unknown question")
+            try:
+                resend.Emails.send({
+                    "from": "Portfolio Assistant <onboarding@resend.dev>",
+                    "to": ["hafizimalik1998@gmail.com"],
+                    "subject": f"🚨 Portfolio Escalation Inquiry from {email}",
+                    "html": f"""
+                        <h3>New Unanswered Question Forwarded from Chatbot</h3>
+                        <p><b>User's Email:</b> {email}</p>
+                        <p><b>Exact Question Asked:</b></p>
+                        <blockquote style="background: #f4f4f4; padding: 10px; border-left: 4px solid #3b82f6;">
+                            {original_question}
+                        </blockquote>
+                    """
+                })
+            except Exception as e:
+                print(f"Failed to send email: {e}")
+                
+            USER_SESSION_STATES.pop(session_id, None)
+            return {
+                "reply": f"Thank you! I've successfully forwarded your question and your email ({email}) directly to Hafizi. He will get back to you soon!"
+            }
+        else:
+            return {
+                "reply": "I couldn't find a valid email address in your message. Please provide a valid email (e.g., yourname@domain.com) so I can forward your question to Hafizi."
+            }
+
+    # 2. Standard RAG Chat Flow
     try:
-        result = await chat_with_fallback(request.message)
-        return result
-    except HTTPException as he:
-        raise he
+        response_data = await chat_with_fallback(user_message)
+        reply_text = response_data["reply"]
+        
+        # Check if RAG failed to find context
+        is_rag_missing = "I am not sure" in reply_text or "knowledge base" in reply_text.lower()
+        
+        if is_rag_missing:
+            # Evaluate if the question is actually portfolio-related before asking for email
+            is_relevant = await is_portfolio_related(user_message)
+            
+            if is_relevant:
+                # Trigger escalation ONLY if it's portfolio-related
+                USER_SESSION_STATES[session_id] = {
+                    "status": "waiting_for_email",
+                    "pending_question": user_message
+                }
+                return {
+                    "reply": "This specific detail isn't stated in my knowledge base. Would you like me to pass this question directly to Hafizi? Please leave your email address in the chat."
+                }
+            else:
+                # If unrelated (e.g. general trivia), just return the standard AI response without asking for email
+                return response_data
+            
+        return response_data
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
