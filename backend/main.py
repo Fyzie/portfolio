@@ -521,6 +521,53 @@ async def cv_detect(file: UploadFile = File(...)):
         print(f"CV DETECT ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+class DebateRequest(BaseModel):
+    topic: str
+
+@app.post("/api/debate")
+async def debate_endpoint(request: DebateRequest):
+    topic = request.topic.strip()
+    if not topic:
+        raise HTTPException(status_code=400, detail="Topic is required.")
+        
+    for model_name in FALLBACK_MODELS:
+        try:
+            print(f"Running Multi-Persona Debate on {model_name}")
+            Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
+            
+            # 1. Pragmatic Architect Argument
+            arch_messages = [ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Argue from the perspective of The Pragmatic Architect (favoring simplicity, low overhead, and speed of delivery). Max 3 sentences.")]
+            arch_res = await Settings.llm.achat(arch_messages)
+            
+            # 2. Scalability Evangelist Rebuttal
+            evang_messages = [
+                ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. The Architect argued: '{str(arch_res)}'. Rebut and argue from the perspective of The Scalability Evangelist (favoring robust scaling, future-proofing, and decoupled systems). Max 3 sentences.")
+            ]
+            evang_res = await Settings.llm.achat(evang_messages)
+            
+            # 3. Moderator Summary
+            mod_messages = [
+                ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Architect said: '{str(arch_res)}'. Evangelist said: '{str(evang_res)}'. Provide a concise moderator verdict and summary. Max 2 sentences.")
+            ]
+            mod_res = await Settings.llm.achat(mod_messages)
+            
+            return {
+                "status": "success",
+                "model_used": model_name,
+                "architect": str(arch_res),
+                "evangelist": str(evang_res),
+                "moderator": str(mod_res)
+            }
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"Debate {model_name}: Quota exceeded, falling back...")
+                continue
+            else:
+                raise e
+                
+    raise HTTPException(status_code=429, detail="All available Gemini model quotas exhausted.")
+
 @app.get("/api/get-history")
 async def get_history(task_type: str = "forecast"):
     if not supabase:

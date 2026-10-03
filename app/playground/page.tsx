@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X, Loader2, Send } from 'lucide-react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X, Loader2, Send, Bot, User, Scale, Sparkles, Workflow } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { createClient } from '@supabase/supabase-js';
 
@@ -69,7 +69,8 @@ export default function Playground() {
     { id: 'analytics', label: 'Data Analytics', icon: <BarChart3 size={18} /> },
     { id: 'cv', label: 'Computer Vision', icon: <Eye size={18} /> },
     { id: 'nlp', label: 'NLP / Gen AI', icon: <MessageSquare size={18} /> },
-    { id: 'rag', label: 'RAG', icon: <Database size={18} /> },
+    { id: 'rag', label: 'RAG Systems', icon: <Database size={18} /> },
+    { id: 'agentic', label: 'Agentic AI', icon: <Workflow size={18} /> },
   ];
 
   const fetchHistory = async () => {
@@ -217,7 +218,7 @@ export default function Playground() {
     const speed = parseFloat(forecastInputs.speed);
 
     if (temp < 400 || temp > 550) return setErrorMessage("⚠️ Billet temperature must be between 400°C and 550°C.");
-    if (pressure < 5.0 || pressure > 45.0) return setErrorMessage("⚠️️ Ram pressure must be between 5.0 and 45.0 MPa.");
+    if (pressure < 5.0 || pressure > 45.0) return setErrorMessage("⚠️ Ram pressure must be between 5.0 and 45.0 MPa.");
     if (speed < 2.0 || speed > 30.0) return setErrorMessage("⚠️ Extrusion speed must be between 2.0 and 30.0 mm/s.");
 
     setIsProcessing(true);
@@ -327,24 +328,28 @@ export default function Playground() {
   ]);
   const [ragInput, setRagInput] = useState('');
   const [ragLoading, setRagLoading] = useState(false);
-  const [ragDiagnostics, setRagDiagnostics] = useState({ 
-    numSourceNodes: 0, 
-    sourceNodesDetails: [] as Array<{ score?: number; text: string; metadata?: any }> 
-  });
+  const [ragDiagnostics, setRagDiagnostics] = useState({ numSourceNodes: 0, topPreviews: [] as string[] });
   const [selectedFileModal, setSelectedFileModal] = useState<{ title: string; content: string } | null>(null);
   const [loadingFileFromStorage, setLoadingFileFromStorage] = useState(false);
   const ragMessagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    ragMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [ragMessages, ragLoading]);
+  // Multi-Persona Debater States
+  const [debateTopic, setDebateTopic] = useState("Engineers VS Technicians?");
+  const [debateLoading, setDebateLoading] = useState(false);
+  const [debateResult, setDebateResult] = useState<{ architect: string; evangelist: string; moderator: string; model_used: string } | null>(null);
+  const [debateError, setDebateError] = useState('');
 
-  // Function to fetch JSON from Supabase Storage bucket 'factory manuals'
+  const debatePresets = [
+    "Engineers VS Technicians?",
+    "Will AI code assistants make junior software engineers obsolete?",
+    "Should assembly lines rely on human craftsmanship or full robotics?"
+  ];
+
   const handleFetchManualFromSupabase = async (fileName: string, title: string) => {
     setLoadingFileFromStorage(true);
     try {
       const { data } = supabase.storage
-        .from('factory manuals')
+        .from('factory-manuals')
         .getPublicUrl(fileName);
 
       const res = await fetch(data.publicUrl);
@@ -357,7 +362,7 @@ export default function Playground() {
       });
     } catch (err: any) {
       console.error(err);
-      alert(`Could not load ${fileName} from Supabase Storage. Ensure bucket 'factory manuals' is public and file exists.`);
+      alert(`Could not load ${fileName} from Supabase Storage. Ensure bucket 'factory-manuals' is public and file exists.`);
     } finally {
       setLoadingFileFromStorage(false);
     }
@@ -385,12 +390,46 @@ export default function Playground() {
       setRagMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
       setRagDiagnostics({
         numSourceNodes: data.num_source_nodes || 0,
-        sourceNodesDetails: data.source_nodes_details || []
+        topPreviews: data.top_nodes_previews || []
       });
     } catch (err: any) {
       setRagMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error querying the factory manual database." }]);
     } finally {
       setRagLoading(false);
+    }
+  };
+
+  const handleStartDebate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!debateTopic.trim() || debateLoading) return;
+
+    setDebateLoading(true);
+    setDebateError('');
+    setDebateResult(null);
+
+    try {
+      const res = await fetch(`${backendUrl}/api/debate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: debateTopic }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.detail || "Failed to generate debate simulation.");
+      }
+
+      const data = await res.json();
+      setDebateResult({
+        architect: data.architect,
+        evangelist: data.evangelist,
+        moderator: data.moderator,
+        model_used: data.model_used
+      });
+    } catch (err: any) {
+      setDebateError(err.message || "Error running AI debate simulation.");
+    } finally {
+      setDebateLoading(false);
     }
   };
 
@@ -914,11 +953,148 @@ export default function Playground() {
               </div>
             )}
 
+            {/* NLP / GEN AI TAB - MULTI-PERSONA AI DEBATER SIMULATOR */}
             {activeTab === 'nlp' && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
-                <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
-                  <Wrench size={40} className="text-slate-400 mb-3" />
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-700 mb-1">Work in Progress</h3>
+              <div className="flex-1 flex flex-col gap-6 animate-in fade-in duration-500">
+                <div className="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <MessageSquare size={20} className="text-blue-500 shrink-0" />
+                    Multi-Persona AI Debater Simulator
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select a suggested topic below or write your own custom motion. Two AI agents with opposing engineering philosophies will debate live.
+                  </p>
+                </div>
+
+                {/* Clickable Preset Topic Cards */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-slate-600 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Sparkles size={14} className="text-amber-500" />
+                    Click a preset topic to instantly load it:
+                  </span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {debatePresets.map((preset, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setDebateTopic(preset)}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all flex flex-col justify-between text-xs sm:text-sm ${
+                          debateTopic === preset 
+                            ? 'bg-blue-50 border-blue-500 text-blue-900 shadow-sm font-semibold' 
+                            : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-slate-50/50'
+                        }`}
+                      >
+                        <p className="line-clamp-2">{preset}</p>
+                        <span className="text-[10px] text-blue-600 mt-2 font-medium flex items-center gap-1">
+                          Click to select →
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Debate Input Form */}
+                <form onSubmit={handleStartDebate} className="bg-white p-4 sm:p-6 border border-slate-200 rounded-xl shadow-sm flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
+                      Or write your own custom motion:
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input 
+                        type="text" 
+                        value={debateTopic}
+                        onChange={(e) => setDebateTopic(e.target.value)}
+                        placeholder="e.g. Should monolithic architectures be abandoned for microservices?"
+                        className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800"
+                        required
+                      />
+                      <button 
+                        type="submit" 
+                        disabled={debateLoading || !debateTopic.trim()}
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors text-xs sm:text-sm disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+                      >
+                        {debateLoading ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />}
+                        <span>{debateLoading ? 'Simulating Debate...' : 'Start Debate'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {debateError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-xs text-red-600">
+                      <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                      <span>{debateError}</span>
+                    </div>
+                  )}
+                </form>
+
+                {/* Debate Output Area */}
+                <div className="flex flex-col gap-4">
+                  {debateLoading && (
+                    <div className="bg-white border border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-slate-500 gap-3 shadow-sm">
+                      <Loader2 size={32} className="animate-spin text-blue-600" />
+                      <p className="text-xs sm:text-sm font-medium">Orchestrating multi-persona debate agents...</p>
+                    </div>
+                  )}
+
+                  {debateResult && !debateLoading && (
+                    <div className="flex flex-col gap-4 animate-in fade-in duration-500">
+                      {/* Persona A: Pragmatic Architect */}
+                      <div className="bg-white border border-blue-200 rounded-xl p-5 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-600"></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            PA
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-800 text-xs sm:text-sm">The Pragmatic Architect</h4>
+                            <p className="text-[10px] text-slate-400">Position: Pro-Simplicity & Low Operational Overhead</p>
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans pl-10">
+                          {debateResult.architect}
+                        </p>
+                      </div>
+
+                      {/* Persona B: Scalability Evangelist */}
+                      <div className="bg-white border border-emerald-200 rounded-xl p-5 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-600"></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                            SE
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-800 text-xs sm:text-sm">The Scalability Evangelist</h4>
+                            <p className="text-[10px] text-slate-400">Position: Pro-Decoupling & Future-Proofing</p>
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans pl-10">
+                          {debateResult.evangelist}
+                        </p>
+                      </div>
+
+                      {/* Moderator Summary & Verdict */}
+                      <div className="bg-slate-900 text-slate-100 rounded-xl p-5 shadow-md relative overflow-hidden border border-slate-800">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                            <Scale size={16} />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white text-xs sm:text-sm">Technical Moderator Verdict</h4>
+                            <p className="text-[10px] text-slate-400 font-mono">Model executed: {debateResult.model_used}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans pl-10">
+                          {debateResult.moderator}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!debateResult && !debateLoading && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-8 text-center text-slate-400 text-xs sm:text-sm">
+                      Click any topic card above or click "Start Debate" to test the simulation.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -945,13 +1121,13 @@ export default function Playground() {
                     </h4>
                     
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('manual1.json', 'Index 1: manual1.json')}
+                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Index 1: answers.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-blue-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 1</h5>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers.json</h5>
                           <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
@@ -959,13 +1135,13 @@ export default function Playground() {
                     </div>
 
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('manual2.json', 'Index 2: manual2.json')}
+                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Index 2: answers_eval.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-emerald-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 2</h5>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers_eval.json</h5>
                           <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
@@ -977,7 +1153,7 @@ export default function Playground() {
                   <div className="lg:col-span-8 bg-white border border-slate-200 rounded-xl flex flex-col h-[420px] shadow-sm">
                     <div className="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-xs sm:text-sm text-slate-700 flex items-center gap-2">
                       <MessageSquare size={16} className="text-blue-600" />
-                      <span>Interactive Manual Assistant</span>
+                      <span>Chat Assistant</span>
                     </div>
 
                     <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 text-xs sm:text-sm bg-slate-50/50">
@@ -1000,7 +1176,7 @@ export default function Playground() {
                         type="text" 
                         value={ragInput} 
                         onChange={(e) => setRagInput(e.target.value)} 
-                        placeholder="Ask about switch backup, VMS server replacement, safety..."
+                        placeholder="Ask about any common factory operation procedure..."
                         className="flex-1 px-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button type="submit" disabled={ragLoading || !ragInput.trim()} className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors">
@@ -1022,47 +1198,29 @@ export default function Playground() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mb-4">
-                    Real-time telemetry showing the exact source answers and chunk context retrieved for your query.
+                    Real-time telemetry showing exact source answers and chunk context retrieved for your query.
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
                       <span className="text-xs text-slate-400 font-medium">Source Nodes Retrieved</span>
                       <span className="text-2xl font-extrabold text-slate-800 mt-1 font-mono">{ragDiagnostics.numSourceNodes}</span>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex flex-col justify-center">
-                      <span className="text-xs text-slate-400 font-medium">Retrieval Status</span>
-                      <span className="text-sm font-bold text-gray-600 mt-1">
-                        {ragDiagnostics.numSourceNodes > 0 ? "Active Context Linked Successfully" : "Awaiting Query"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Exact Answer / Chunk Breakdown */}
-                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                    <span className="text-xs text-slate-500 font-bold block mb-3 uppercase tracking-wider">
-                      Exact Answers / Chunks Used from Knowledge Base:
-                    </span>
-                    {ragDiagnostics.sourceNodesDetails.length > 0 ? (
-                      <div className="flex flex-col gap-3 max-h-[250px] overflow-y-auto pr-1">
-                        {ragDiagnostics.sourceNodesDetails.map((node, i) => (
-                          <div key={i} className="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col gap-1">
-                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono border-b border-slate-200 pb-1">
-                              <span>Source Node #{i + 1} {node.metadata?.source ? `(${node.metadata.source})` : ''}</span>
-                              {node.score !== undefined && node.score !== null && (
-                                <span className="text-blue-600 font-bold">Similarity Score: {node.score.toFixed(3)}</span>
-                              )}
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
+                      <span className="text-xs text-slate-400 font-medium block mb-1">Top Retrieved Node Previews</span>
+                      {ragDiagnostics.topPreviews.length > 0 ? (
+                        <div className="flex flex-col gap-2">
+                          {ragDiagnostics.topPreviews.map((preview, i) => (
+                            <div key={i} className="text-[11px] bg-slate-50 p-2 rounded border border-slate-200 font-mono text-slate-700 truncate">
+                              <b>[Node {i+1}]:</b> {preview}
                             </div>
-                            <p className="font-mono text-slate-700 whitespace-pre-wrap leading-relaxed mt-1">
-                              {node.text}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect the exact retrieved answers.</span>
-                    )}
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect nodes.</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1094,6 +1252,17 @@ export default function Playground() {
                 )}
               </div>
             )}
+
+            {/* AGENTIC AI TAB */}
+            {activeTab === 'agentic' && (
+              <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
+                <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
+                  <Wrench size={40} className="text-slate-400 mb-3" />
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-700 mb-1">Work In Progress</h3>
+                </div>
+              </div>
+            )}
+
           </div>
         </div> 
       </div>
