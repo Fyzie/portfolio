@@ -118,11 +118,8 @@ FALLBACK_MODELS = [
 ]
 
 async def chat_with_fallback(chat_request_message):
-    last_exception = None
-    
     for model_name in FALLBACK_MODELS:
         try:
-            # Re-initialize or update LlamaIndex settings/LLM dynamically for this request
             Settings.llm = GoogleGenAI(
                 model=model_name,
                 api_key=os.getenv("GOOGLE_API_KEY")
@@ -135,20 +132,19 @@ async def chat_with_fallback(chat_request_message):
             )
             
             response = await temp_chat_engine.achat(chat_request_message)
-            return {"reply": str(response), "model_used": model_name}
+            return {
+                "reply": str(response), 
+                "model_used": model_name,
+                "source_nodes": getattr(response, "source_nodes", [])
+            }
             
         except Exception as e:
             err_str = str(e)
-            # Check for rate limit error
             if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
-                print(f"Model {model_name} hit rate limit. Trying next fallback model...")
-                last_exception = e
                 continue
             else:
-                # If different error than rate limit
                 raise e
                 
-    # If all models in the list exhausted daily quota
     raise HTTPException(
         status_code=429, 
         detail="All available Gemini free-tier model quotas have been exhausted for today."
@@ -209,31 +205,34 @@ async def chat_endpoint(request: ChatRequest):
 
     # 2. Standard RAG Chat Flow
     try:
-        response_data = await chat_with_fallback(user_message)
-        reply_text = response_data["reply"]
+        result = await chat_with_fallback(user_message)
+        reply_text = result["reply"]
+        source_nodes = result["source_nodes"]
         
-        # Check if RAG failed to find context
-        is_rag_missing = "I am not sure" in reply_text or "knowledge base" in reply_text.lower()
+        # Check if the knowledge base had NO relevant context for this question
+        is_missing_from_kb = len(source_nodes) == 0
         
-        if is_rag_missing:
-            # Evaluate if the question is actually portfolio-related before asking for email
+        if is_missing_from_kb:
+            # Evaluate if the question is portfolio/career/tech-related
             is_relevant = await is_portfolio_related(user_message)
             
             if is_relevant:
-                # Trigger escalation ONLY if it's portfolio-related
+                # Trigger escalation for professional questions missing from markdown
                 USER_SESSION_STATES[session_id] = {
                     "status": "waiting_for_email",
                     "pending_question": user_message
                 }
                 return {
-                    "reply": "This specific detail isn't stated in my knowledge base. Would you like me to pass this question directly to Hafizi? Please leave your email address in the chat."
+                    "reply": "This isn't explicitly stated in my knowledge base. Would you like me to pass this question directly to Hafizi? Please leave your email address on the chat."
                 }
             else:
-                # If unrelated (e.g. general trivia), just return the standard AI response without asking for email
-                return response_data
+                # If completely unrelated (e.g., cooking recipes, weather), answer normally without email prompt
+                return {"reply": reply_text}
             
-        return response_data
+        return {"reply": reply_text}
         
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
