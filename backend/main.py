@@ -160,10 +160,12 @@ async def is_portfolio_related(question: str) -> bool:
             f"Answer with ONLY one word: YES or NO."
         )
         response = await eval_llm.achat(prompt)
+        print(f"Portfolio Response: {response}")
         return "YES" in str(response).upper()
     except Exception:
         # Fallback to True if evaluation fails so we don't block valid questions
-        return True
+        print("Portfolio evaluaiton failed!")
+        return False
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
