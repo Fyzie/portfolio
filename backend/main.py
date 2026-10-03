@@ -156,6 +156,7 @@ async def playground_chat_with_fallback(chat_request_message):
 
     for model_name in FALLBACK_MODELS:
         try:
+            print(f"Playground Response on {model_name}: {response}")
             Settings.llm = GoogleGenAI(
                 model=model_name,
                 api_key=os.getenv("GOOGLE_API_KEY")
@@ -189,8 +190,10 @@ async def playground_chat_with_fallback(chat_request_message):
         except Exception as e:
             err_str = str(e)
             if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"{model_name}: Resource exhausted or quota exceeded!")
                 continue
             else:
+                print(f"{model_name}: {e}")
                 raise e
                 
     raise HTTPException(
