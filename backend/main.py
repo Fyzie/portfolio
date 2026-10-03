@@ -17,9 +17,10 @@ from qdrant_client import QdrantClient, AsyncQdrantClient
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, UploadFile, File
 
-from llama_index.core import VectorStoreIndex, Settings
-from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.llms.google_genai import GoogleGenAI
+from llama_index.core import VectorStoreIndex, Settings
+from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.embeddings.google_genai import GoogleGenAIEmbedding
 
 
@@ -120,6 +121,7 @@ FALLBACK_MODELS = [
 async def chat_with_fallback(chat_request_message):
     for model_name in FALLBACK_MODELS:
         try:
+            print(f"Response on {model_name}")
             Settings.llm = GoogleGenAI(
                 model=model_name,
                 api_key=os.getenv("GOOGLE_API_KEY")
@@ -150,20 +152,28 @@ async def chat_with_fallback(chat_request_message):
         detail="All available Gemini free-tier model quotas have been exhausted for today."
     )
 
+
 async def is_portfolio_related(question: str) -> bool:
     """Evaluates if the user's question is related to Hafizi's portfolio, tech stack, or engineering."""
     try:
         eval_llm = GoogleGenAI(model="gemini-3.6-flash", api_key=os.getenv("GOOGLE_API_KEY"))
-        prompt = (
-            f"Analyze this user question about career path or work experience or work skills or tech stack"
-            f"Question: '{question}'\n"
-            f"Answer with ONLY one word: YES or NO."
-        )
-        response = await eval_llm.achat(prompt)
+        
+        # Format the prompt properly as a list of ChatMessage objects for LlamaIndex LLMs
+        messages = [
+            ChatMessage(
+                role=MessageRole.USER, 
+                content=(
+                    f"Analyze this user question about career path, work experience, work skills, or tech stack. "
+                    f"Question: '{question}'\n"
+                    f"Answer with ONLY one word: YES or NO."
+                )
+            )
+        ]
+        
+        response = await eval_llm.achat(messages)
         print(f"Portfolio Response: {response}")
         return "YES" in str(response).upper()
     except Exception as e:
-        # Fallback to True if evaluation fails so we don't block valid questions
         print(f"Portfolio evaluation failed!: {e}")
         return False
 
