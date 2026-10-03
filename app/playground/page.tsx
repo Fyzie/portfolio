@@ -69,7 +69,7 @@ export default function Playground() {
     { id: 'analytics', label: 'Data Analytics', icon: <BarChart3 size={18} /> },
     { id: 'cv', label: 'Computer Vision', icon: <Eye size={18} /> },
     { id: 'nlp', label: 'NLP / Gen AI', icon: <MessageSquare size={18} /> },
-    { id: 'rag', label: 'RAG Systems', icon: <Database size={18} /> },
+    { id: 'rag', label: 'RAG', icon: <Database size={18} /> },
   ];
 
   const fetchHistory = async () => {
@@ -926,10 +926,10 @@ export default function Playground() {
                 <div className="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
                   <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
                     <Database size={20} className="text-blue-500 shrink-0" />
-                    RAG Playground: Factory Manual Guidance
+                    Factory SOP & Manual Assistant
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
-                    Query the factory operations vector knowledge base (`playground_knowledge`). Click files on the left to load live from Supabase Storage.
+                    An AI assistant that helps factory personnel quickly find, understand, and follow guidance from factory manuals and technical documents.
                   </p>
                 </div>
 
@@ -942,28 +942,28 @@ export default function Playground() {
                     </h4>
                     
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Factory Manual Index: answers.json')}
+                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Index 1: answers.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-blue-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers.json</h5>
-                          <p className="text-[11px] text-slate-400 mt-0.5">Click to preview from Supabase</p>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 1</h5>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
                       {loadingFileFromStorage && <Loader2 size={16} className="animate-spin text-blue-600" />}
                     </div>
 
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Factory Manual Evaluation Index: answers_eval.json')}
+                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Index 2: answers_eval.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-emerald-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers_eval.json</h5>
-                          <p className="text-[11px] text-slate-400 mt-0.5">Click to preview from Supabase</p>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 2</h5>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
                       {loadingFileFromStorage && <Loader2 size={16} className="animate-spin text-emerald-600" />}
