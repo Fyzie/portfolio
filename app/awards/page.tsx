@@ -97,7 +97,7 @@ export default function Award() {
             <div
               key={index}
               onClick={() => handleOpenModal(award.imageSrc, award.title)}
-              className="group flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-200 rounded-xl p-4 sm:p-5 md:p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer gap-3 sm:gap-0"
+              className="group flex flex-col sm:flex-row sm:items-center justify-between bg-white border border-slate-200 rounded-xl p-4 sm:p-5 md:p-6 hover:shadow-md hover:border-slate-300 transition-all cursor-pointer gap-3 sm:gap-0"
             >
               {/* Left Column: Date */}
               <div className="w-full sm:w-28 md:w-32 flex-shrink-0">

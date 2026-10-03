@@ -345,7 +345,7 @@ export default function Playground() {
           ))}
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[500px] sm:min-h-[600px]">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col min-h-[500px] sm:min-h-[600px]">
           <div className="bg-slate-100 border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
             <div className="font-bold text-slate-700 flex items-center gap-2 text-xs sm:text-sm truncate pr-2">
               <Settings size={18} className="text-slate-400 shrink-0" />
@@ -364,7 +364,7 @@ export default function Playground() {
               <div className="flex-1 flex flex-col gap-6 sm:gap-8 animate-in fade-in duration-500">
                 
                 {/* Task Selector Dropdown */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200 shadow-sm gap-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200 gap-4">
                   <div>
                     <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
                       <Cpu size={20} className="text-blue-500 shrink-0" />

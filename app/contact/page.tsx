@@ -118,7 +118,7 @@ export default function Contact() {
           Have a question? Complete the form below, and I will get back to you shortly.
         </p>
 
-        <div className="bg-slate-100 p-4 sm:p-8 md:p-12 rounded-xl border border-slate-200 shadow-sm">
+        <div className="bg-slate-100 p-4 sm:p-8 md:p-12 rounded-xl border border-slate-200">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               

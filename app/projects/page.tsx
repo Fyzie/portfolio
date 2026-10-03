@@ -112,7 +112,7 @@ export default function Project() {
         <div className="flex flex-col gap-8 sm:gap-12">
           
           {/* Card 1: Image Left */}
-          <div className="flex flex-col md:flex-row bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex flex-col md:flex-row bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
             <div className="w-full md:w-1/2 h-56 sm:h-64 md:h-90 bg-slate-200 relative border-b md:border-b-0 md:border-r border-slate-200">
               <ImageCarousel images={lensImages} onImageClick={setSelectedImage} />
             </div>
@@ -128,7 +128,7 @@ export default function Project() {
           </div>
 
           {/* Card 2: Image Right */}
-          <div className="flex flex-col md:flex-row-reverse bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex flex-col md:flex-row-reverse bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
             <div className="w-full md:w-1/2 h-56 sm:h-64 md:h-90 bg-slate-200 relative border-b md:border-b-0 md:border-l border-slate-200">
               <ImageCarousel images={cellImages} onImageClick={setSelectedImage} />
             </div>
@@ -145,7 +145,7 @@ export default function Project() {
           </div>
 
           {/* Card 3: Image Left */}
-          <div className="flex flex-col md:flex-row bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex flex-col md:flex-row bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
             <div className="w-full md:w-1/2 h-56 sm:h-64 md:h-90 bg-slate-200 relative border-b md:border-b-0 md:border-r border-slate-200">
               <ImageCarousel images={trackerImages} onImageClick={setSelectedImage} />
             </div>
@@ -161,7 +161,7 @@ export default function Project() {
           </div>
 
           {/* Card 4: Image Right */}
-          <div className="flex flex-col md:flex-row-reverse bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex flex-col md:flex-row-reverse bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
             <div className="w-full md:w-1/2 h-56 sm:h-64 md:h-90 bg-slate-200 relative border-b md:border-b-0 md:border-l border-slate-200">
               <ImageCarousel images={dcImages} onImageClick={setSelectedImage} />
             </div>

@@ -88,7 +88,7 @@ export default function Home() {
         <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Work Experience</h2>
         
         <div className="flex flex-col gap-6">
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900">Machine Learning Engineer</h3>
@@ -133,7 +133,7 @@ export default function Home() {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {skillCategories.map((group, index) => (
-            <div key={index} className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+            <div key={index} className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
               <h3 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">{group.category}</h3>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {group.skills.map((skill, skillIndex) => (
@@ -157,7 +157,7 @@ export default function Home() {
         <div className="flex flex-col gap-6">
           
           {/* Master's Degree Card */}
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900">Master of Science in Mechatronics Engineering (Research Mode)</h3>
@@ -201,61 +201,46 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* Minor Publications Section */}
-                <div className="mt-2">
-                  <button 
-                    onClick={() => setShowMorePubs(!showMorePubs)}
-                    className="text-sm flex items-center gap-1 font-bold text-slate-800 hover:text-blue-600 transition-colors mb-3"
+                <div className="flex items-start sm:items-center gap-3">
+                  <Link 
+                    href="https://www.tandfonline.com/doi/full/10.1080/23311916.2023.2240087" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
                   >
-                    {showMorePubs ? "Less" : "More.."}
-                    {showMorePubs ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </button>
+                    <ExternalLink size={18} />
+                  </Link>
+                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
+                    An automated approach for fibroblast cell confluency characterisation and sample handling using AIoT for bio-research and bio-manufacturing
+                  </p>
+                </div>
 
-                  {showMorePubs && (
-                    <div className="flex flex-col gap-3">
-                      <div className="flex items-start sm:items-center gap-3">
-                        <Link 
-                          href="https://www.tandfonline.com/doi/full/10.1080/23311916.2023.2240087" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
-                        >
-                          <ExternalLink size={18} />
-                        </Link>
-                        <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                          An automated approach for fibroblast cell confluency characterisation and sample handling using AIoT for bio-research and bio-manufacturing
-                        </p>
-                      </div>
+                <div className="flex items-start sm:items-center gap-3">
+                  <Link 
+                    href="https://link.springer.com/article/10.1007/s42452-025-07831-3" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
+                  >
+                    <ExternalLink size={18} />
+                  </Link>
+                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
+                    Advancing coral reef monitoring: a deep learning perspective on automated segmentation and classification
+                  </p>
+                </div>
 
-                      <div className="flex items-start sm:items-center gap-3">
-                        <Link 
-                          href="https://link.springer.com/article/10.1007/s42452-025-07831-3" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
-                        >
-                          <ExternalLink size={18} />
-                        </Link>
-                        <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                          Advancing coral reef monitoring: a deep learning perspective on automated segmentation and classification
-                        </p>
-                      </div>
-
-                      <div className="flex items-start sm:items-center gap-3">
-                        <Link 
-                          href="https://link.springer.com/chapter/10.1007/978-981-99-9833-3_9" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
-                        >
-                          <ExternalLink size={18} />
-                        </Link>
-                        <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                          IIUM Gombak driving cycle for motorcycle
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                <div className="flex items-start sm:items-center gap-3">
+                  <Link 
+                    href="https://link.springer.com/chapter/10.1007/978-981-99-9833-3_9" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
+                  >
+                    <ExternalLink size={18} />
+                  </Link>
+                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
+                    IIUM Gombak driving cycle for motorcycle
+                  </p>
                 </div>
               </div>
             </div>
@@ -302,7 +287,7 @@ export default function Home() {
           )}
 
           {/* Bachelor's Degree Card */}
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
             <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900">Bachelor of Mechatronics Engineering (Honours)</h3>
@@ -326,19 +311,21 @@ export default function Home() {
             </div>
           </div>
 
-          <div>
-            <button 
-              onClick={() => setShowMoreEducation(!showMoreEducation)}
-              className="text-sm flex items-center gap-1 font-bold text-slate-800 hover:text-blue-600 transition-colors"
-            >
-              {showMoreEducation ? "Less" : "More.."}
-              {showMoreEducation ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
-          </div>
+          {/* Centered Box Button that disappears once clicked */}
+          {!showMoreEducation && (
+            <div className="flex justify-center">
+              <button 
+                onClick={() => setShowMoreEducation(true)}
+                className="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-2"
+              >
+                More.. <ChevronDown size={16} />
+              </button>
+            </div>
+          )}
 
           {showMoreEducation && (
             <>
-              <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
                     <h3 className="text-lg sm:text-xl font-bold text-slate-900">Engineering Programmes (Foundation)</h3>
@@ -351,7 +338,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start">
                   <div>
                     <h3 className="text-lg sm:text-xl font-bold text-slate-900">Sijil Pelajaran Malaysia (Aliran Sains Tulen)</h3>
@@ -382,7 +369,7 @@ export default function Home() {
             rel="noopener noreferrer"
             className="group h-full flex flex-col"
           >
-            <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+            <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow h-full flex flex-col">
               <div className="flex justify-between items-start mb-1 gap-4">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">Azure AI Engineer Associate (AI-102)</h3>
                 <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
@@ -403,7 +390,7 @@ export default function Home() {
             rel="noopener noreferrer"
             className="group h-full flex flex-col"
           >
-            <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+            <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow h-full flex flex-col">
               <div className="flex justify-between items-start mb-1 gap-4">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">Azure AI Fundamentals (AI-900)</h3>
                 <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
@@ -418,7 +405,7 @@ export default function Home() {
           </Link>
 
           {/* Cert 3 */}
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col">
+          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl flex flex-col">
             <div className="flex justify-between items-start mb-1 gap-4">
               <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">Peneraju Teknologi PLUS AI and Machine Learning</h3>
               <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
@@ -437,7 +424,7 @@ export default function Home() {
               setSelectedImage('/cute_certificate.jpg');
               setSelectedTitle('Deep Learning in Intelligent Video Analytics and Computer Vision');
             }}
-            className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col cursor-pointer group"
+            className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition-all flex flex-col cursor-pointer group"
           >
             <div className="flex justify-between items-start mb-1 gap-4">
               <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
