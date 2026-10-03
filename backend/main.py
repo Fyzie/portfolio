@@ -155,9 +155,8 @@ async def is_portfolio_related(question: str) -> bool:
     try:
         eval_llm = GoogleGenAI(model="gemini-3.6-flash", api_key=os.getenv("GOOGLE_API_KEY"))
         prompt = (
-            f"Analyze this user question on an AI portfolio website for Muhammad Hafizi (a Machine Learning & Software Engineer specializing in AI, Computer Vision, FastAPI, Next.js, and robotics). "
+            f"Analyze this user question about career path or work experience or work skills or tech stack"
             f"Question: '{question}'\n"
-            f"Is this question related to Hafizi, his career, his technical skills, his projects, or software/AI/engineering topics? "
             f"Answer with ONLY one word: YES or NO."
         )
         response = await eval_llm.achat(prompt)
@@ -170,6 +169,7 @@ async def is_portfolio_related(question: str) -> bool:
 async def chat_endpoint(request: ChatRequest):
     session_id = request.session_id
     user_message = request.message.strip()
+    email_escalation = False
     
     # 1. Handle user typing their email during an active escalation state
     current_state = USER_SESSION_STATES.get(session_id, {})
@@ -193,15 +193,15 @@ async def chat_endpoint(request: ChatRequest):
                 })
             except Exception as e:
                 print(f"Failed to send email: {e}")
-                
+
             USER_SESSION_STATES.pop(session_id, None)
             return {
                 "reply": f"Thank you! I've successfully forwarded your question and your email ({email}) directly to Hafizi. He will get back to you soon!"
             }
         else:
-            return {
-                "reply": "I couldn't find a valid email address in your message. Please provide a valid email (e.g., yourname@domain.com) so I can forward your question to Hafizi."
-            }
+            email_text = "I couldn't find a valid email address in your message. "
+            email_escalation = True
+        USER_SESSION_STATES.pop(session_id, None)
 
     # 2. Standard RAG Chat Flow
     try:
@@ -223,6 +223,9 @@ async def chat_endpoint(request: ChatRequest):
         # combined with whether it's portfolio-related.
         is_missing_info = any(phrase in reply_text.lower() for phrase in [
             "isn't specifically listed", 
+            "isn't explicitly listed",
+            "isn't highlighted",
+            "isn't mentioned",
             "no mention of", 
             "i don't know", 
             "not stated", 
@@ -242,6 +245,9 @@ async def chat_endpoint(request: ChatRequest):
                 return {
                     "reply": "This isn't stated in my knowledge base. Would you like me to pass this question directly to Hafizi? Please leave your email address on the chat."
                 }
+
+        if email_escalation:
+            reply_text = email_text + reply_text
                 
         return {"reply": reply_text}
         
