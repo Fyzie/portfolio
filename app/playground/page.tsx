@@ -1121,13 +1121,13 @@ export default function Playground() {
                     </h4>
                     
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Index 1: answers.json')}
+                      onClick={() => handleFetchManualFromSupabase('manual1.json', 'Index 1: manual1.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-blue-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers.json</h5>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 1</h5>
                           <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
@@ -1135,13 +1135,13 @@ export default function Playground() {
                     </div>
 
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Index 2: answers_eval.json')}
+                      onClick={() => handleFetchManualFromSupabase('manual2.json', 'Index 2: manual2.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-emerald-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers_eval.json</h5>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 2</h5>
                           <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
