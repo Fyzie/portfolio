@@ -143,6 +143,7 @@ async def chat_with_fallback(chat_request_message):
         except Exception as e:
             err_str = str(e)
             if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"{model_name}: Resource exhasted or quota exceeded!")
                 continue
             else:
                 raise e
@@ -263,6 +264,42 @@ async def chat_endpoint(request: ChatRequest):
                 
         return {"reply": reply_text}
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class PlaygroundChatRequest(BaseModel):
+    message: str
+
+@app.post("/api/playground-chat")
+async def playground_chat_endpoint(request: PlaygroundChatRequest):
+    try:
+        # Connect to the 'playground_knowledge' collection
+        client = QdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY"))
+        aclient = AsyncQdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY"))
+        
+        vector_store = QdrantVectorStore(client=client, aclient=aclient, collection_name="playground_knowledge")
+        playground_index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
+        
+        chat_engine = playground_index.as_chat_engine(
+            chat_mode="condense_plus_context",
+            system_prompt=(
+                "You are an expert Factory Manual Guidance assistant for plant operators and maintenance engineers. "
+                "Answer questions strictly and accurately based on the provided factory manuals. Keep answers professional, concise, and clear."
+            ),
+            verbose=True
+        )
+        
+        response = await chat_engine.achat(request.message)
+        source_nodes = getattr(response, "source_nodes", [])
+        
+        # Extract top 2 node text previews for diagnostics
+        top_previews = [node.text[:300] for node in source_nodes[:2]]
+        
+        return {
+            "reply": str(response),
+            "num_source_nodes": len(source_nodes),
+            "top_nodes_previews": top_previews
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

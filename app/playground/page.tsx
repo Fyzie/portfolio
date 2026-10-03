@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X, Loader2, Send } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client for frontend storage fetching
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface ChartPoint {
   step?: string;
@@ -211,7 +217,7 @@ export default function Playground() {
     const speed = parseFloat(forecastInputs.speed);
 
     if (temp < 400 || temp > 550) return setErrorMessage("⚠️ Billet temperature must be between 400°C and 550°C.");
-    if (pressure < 5.0 || pressure > 45.0) return setErrorMessage("⚠️ Ram pressure must be between 5.0 and 45.0 MPa.");
+    if (pressure < 5.0 || pressure > 45.0) return setErrorMessage("⚠️️ Ram pressure must be between 5.0 and 45.0 MPa.");
     if (speed < 2.0 || speed > 30.0) return setErrorMessage("⚠️ Extrusion speed must be between 2.0 and 30.0 mm/s.");
 
     setIsProcessing(true);
@@ -312,6 +318,76 @@ export default function Playground() {
       setErrorMessage(err.message || 'Error running productivity regression');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // RAG Playground States
+  const [ragMessages, setRagMessages] = useState<any[]>([
+    { role: 'assistant', content: "Hello! I am your Factory Manual assistant. Ask me anything about what are in the manuals." }
+  ]);
+  const [ragInput, setRagInput] = useState('');
+  const [ragLoading, setRagLoading] = useState(false);
+  const [ragDiagnostics, setRagDiagnostics] = useState({ numSourceNodes: 0, topPreviews: [] as string[] });
+  const [selectedFileModal, setSelectedFileModal] = useState<{ title: string; content: string } | null>(null);
+  const [loadingFileFromStorage, setLoadingFileFromStorage] = useState(false);
+  const ragMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ragMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [ragMessages, ragLoading]);
+
+  // Function to fetch JSON from Supabase Storage bucket 'factory manuals'
+  const handleFetchManualFromSupabase = async (fileName: string, title: string) => {
+    setLoadingFileFromStorage(true);
+    try {
+      const { data } = supabase.storage
+        .from('factory manuals')
+        .getPublicUrl(fileName);
+
+      const res = await fetch(data.publicUrl);
+      if (!res.ok) throw new Error("Failed to fetch file from Supabase Storage.");
+
+      const jsonData = await res.json();
+      setSelectedFileModal({
+        title: title,
+        content: JSON.stringify(jsonData, null, 2)
+      });
+    } catch (err: any) {
+      console.error(err);
+      alert(`Could not load ${fileName} from Supabase Storage. Ensure bucket 'factory manuals' is public and file exists.`);
+    } finally {
+      setLoadingFileFromStorage(false);
+    }
+  };
+
+  const handleRagSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = ragInput.trim();
+    if (!trimmed || ragLoading) return;
+
+    setRagMessages(prev => [...prev, { role: 'user', content: trimmed }]);
+    setRagInput('');
+    setRagLoading(true);
+
+    try {
+      const res = await fetch(`${backendUrl}/api/playground-chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: trimmed }),
+      });
+
+      if (!res.ok) throw new Error("Failed to query factory manual knowledge base");
+
+      const data = await res.json();
+      setRagMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+      setRagDiagnostics({
+        numSourceNodes: data.num_source_nodes || 0,
+        topPreviews: data.top_nodes_previews || []
+      });
+    } catch (err: any) {
+      setRagMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error querying the factory manual database." }]);
+    } finally {
+      setRagLoading(false);
     }
   };
 
@@ -843,12 +919,158 @@ export default function Playground() {
                 </div>
               </div>
             )}
+            
+            {/* RAG SYSTEMS TAB - FACTORY MANUAL GUIDANCE (SUPABASE STORAGE INTEGRATION) */}
             {activeTab === 'rag' && (
-              <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
-                <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
-                  <Wrench size={40} className="text-slate-400 mb-3" />
-                  <h3 className="text-xl sm:text-2xl font-bold text-slate-700 mb-1">Work in Progress</h3>
+              <div className="flex-1 flex flex-col gap-6 animate-in fade-in duration-500">
+                <div className="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <Database size={20} className="text-blue-500 shrink-0" />
+                    RAG Playground: Factory Manual Guidance
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Query the factory operations vector knowledge base (`playground_knowledge`). Click files on the left to load live from Supabase Storage.
+                  </p>
                 </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* LEFT: Factory Manual Files fetched from Supabase Storage */}
+                  <div className="lg:col-span-4 flex flex-col gap-4">
+                    <h4 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+                      <Wrench size={16} className="text-orange-500" />
+                      Supabase Storage Manuals
+                    </h4>
+                    
+                    <div 
+                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Factory Manual Index: answers.json')}
+                      className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Database size={24} className="text-blue-600 shrink-0" />
+                        <div>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers.json</h5>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Click to preview from Supabase</p>
+                        </div>
+                      </div>
+                      {loadingFileFromStorage && <Loader2 size={16} className="animate-spin text-blue-600" />}
+                    </div>
+
+                    <div 
+                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Factory Manual Evaluation Index: answers_eval.json')}
+                      className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Database size={24} className="text-emerald-600 shrink-0" />
+                        <div>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers_eval.json</h5>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Click to preview from Supabase</p>
+                        </div>
+                      </div>
+                      {loadingFileFromStorage && <Loader2 size={16} className="animate-spin text-emerald-600" />}
+                    </div>
+                  </div>
+
+                  {/* RIGHT: Chat Section */}
+                  <div className="lg:col-span-8 bg-white border border-slate-200 rounded-xl flex flex-col h-[420px] shadow-sm">
+                    <div className="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-xs sm:text-sm text-slate-700 flex items-center gap-2">
+                      <MessageSquare size={16} className="text-blue-600" />
+                      <span>Interactive Manual Assistant</span>
+                    </div>
+
+                    <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 text-xs sm:text-sm bg-slate-50/50">
+                      {ragMessages.map((msg, idx) => (
+                        <div key={idx} className={`p-3 rounded-xl max-w-[85%] leading-relaxed ${msg.role === 'user' ? 'bg-blue-600 text-white self-end rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 shadow-sm self-start rounded-bl-none'}`}>
+                          {msg.content}
+                        </div>
+                      ))}
+                      {ragLoading && (
+                        <div className="bg-white text-slate-500 border border-slate-200 shadow-sm self-start rounded-xl p-3 flex items-center gap-2 text-xs">
+                          <Loader2 size={14} className="animate-spin text-blue-600 shrink-0" />
+                          <span>Searching factory manual vector database...</span>
+                        </div>
+                      )}
+                      <div ref={ragMessagesEndRef} />
+                    </div>
+
+                    <form onSubmit={handleRagSend} className="p-3 bg-white border-t border-slate-200 flex gap-2">
+                      <input 
+                        type="text" 
+                        value={ragInput} 
+                        onChange={(e) => setRagInput(e.target.value)} 
+                        placeholder="Ask about switch backup, VMS server replacement, safety..."
+                        className="flex-1 px-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button type="submit" disabled={ragLoading || !ragInput.trim()} className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                        <Send size={15} />
+                      </button>
+                    </form>
+                  </div>
+                </div>
+
+                {/* BELOW: Answer Drift & Vector Retrieval Diagnostics Panel */}
+                <div className="border border-slate-200 rounded-xl bg-slate-50 p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                      <Activity size={16} className="text-indigo-500" />
+                      Answer Drift & Vector Retrieval Diagnostics
+                    </h4>
+                    <span className="text-[11px] bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-0.5 rounded-full font-mono">
+                      Collection: playground_knowledge
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Real-time telemetry showing retrieved source chunks and context distribution for the most recent chat query.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                      <span className="text-xs text-slate-400 font-medium">Source Nodes Retrieved</span>
+                      <span className="text-2xl font-extrabold text-slate-800 mt-1 font-mono">{ragDiagnostics.numSourceNodes}</span>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
+                      <span className="text-xs text-slate-400 font-medium block mb-1">Top 2 Retrieved Node Text Previews</span>
+                      {ragDiagnostics.topPreviews.length > 0 ? (
+                        <div className="flex flex-col gap-2">
+                          {ragDiagnostics.topPreviews.map((preview, i) => (
+                            <div key={i} className="text-[11px] bg-slate-50 p-2 rounded border border-slate-200 font-mono text-slate-700 truncate">
+                              <b>[Node {i+1}]:</b> {preview}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect nodes.</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SUPABASE STORAGE FILE PREVIEW MODAL POPUP */}
+                {selectedFileModal && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                          <Database size={18} className="text-blue-600" />
+                          {selectedFileModal.title}
+                        </h3>
+                        <button onClick={() => setSelectedFileModal(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                          <X size={20} />
+                        </button>
+                      </div>
+
+                      <div className="p-6 overflow-y-auto flex-1 font-mono text-xs text-slate-200 bg-slate-900 rounded-b-xl whitespace-pre-wrap leading-relaxed">
+                        {selectedFileModal.content}
+                      </div>
+
+                      <div className="px-6 py-4 border-t border-slate-100 flex justify-end bg-white rounded-b-2xl">
+                        <button onClick={() => setSelectedFileModal(null)} className="px-5 py-2 bg-slate-800 text-white rounded-lg text-xs sm:text-sm font-medium hover:bg-slate-900 transition-colors">
+                          Close Window
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
