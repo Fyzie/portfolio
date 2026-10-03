@@ -141,7 +141,6 @@ async def chat_with_fallback(chat_request_message):
     )
 
 async def playground_chat_with_fallback(chat_request_message):
-    # Connect to the 'playground_knowledge' collection
     q_client = QdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY"))
     q_aclient = AsyncQdrantClient(url=os.getenv("QDRANT_URL"), api_key=os.getenv("QDRANT_API_KEY"))
     
@@ -153,7 +152,6 @@ async def playground_chat_with_fallback(chat_request_message):
         "Answer questions strictly and accurately based on the provided factory manuals. "
         "- Keep answers brief (maximum 2 to 3 short sentences). "
         "- Never output large bulleted lists or walls of text unless explicitly asked. "
-        "- Sound natural, professional, and precise."
     )
 
     for model_name in FALLBACK_MODELS:
@@ -195,24 +193,35 @@ async def playground_chat_with_fallback(chat_request_message):
     )
 
 async def is_portfolio_related(question: str) -> bool:
-    """Evaluates if the user's question is related to Hafizi's portfolio, tech stack, or engineering."""
-    try:
-        eval_llm = GoogleGenAI(model="gemini-3.6-flash", api_key=os.getenv("GOOGLE_API_KEY"))
-        messages = [
-            ChatMessage(
-                role=MessageRole.USER, 
-                content=(
-                    f"Analyze this user question about career path, work experience, work skills, or tech stack. "
-                    f"Question: '{question}'\n"
-                    f"Answer with ONLY one word: YES or NO."
-                )
+    """Evaluates if the user's question is related to Hafizi's portfolio with full model fallback mechanism."""
+    messages = [
+        ChatMessage(
+            role=MessageRole.USER, 
+            content=(
+                f"Analyze this user question about career path, work experience, work skills, or tech stack. "
+                f"Question: '{question}'\n"
+                f"Answer with ONLY one word: YES or NO."
             )
-        ]
-        response = await eval_llm.achat(messages)
-        return "YES" in str(response).upper()
-    except Exception as e:
-        print(f"Portfolio evaluation failed!: {e}")
-        return False
+        )
+    ]
+    
+    for model_name in FALLBACK_MODELS:
+        try:
+            eval_llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
+            response = await eval_llm.achat(messages)
+            print(f"Portfolio Evaluation Response on {model_name}: {response}")
+            return "YES" in str(response).upper()
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"is_portfolio_related {model_name}: Resource exhausted or quota exceeded!")
+                continue
+            else:
+                print(f"is_portfolio_related error on {model_name}: {e}")
+                continue
+                
+    print("Portfolio evaluation failed across all model fallbacks!")
+    return False
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):

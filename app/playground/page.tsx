@@ -942,7 +942,7 @@ export default function Playground() {
                     </h4>
                     
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Index 1: answers.json')}
+                      onClick={() => handleFetchManualFromSupabase('manual1.json', 'Index 1: manual1.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
@@ -956,7 +956,7 @@ export default function Playground() {
                     </div>
 
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Index 2: answers_eval.json')}
+                      onClick={() => handleFetchManualFromSupabase('manual2.json', 'Index 2: manual2.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">

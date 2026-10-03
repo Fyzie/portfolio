@@ -1,0 +1,188 @@
+[
+    {
+        "question": "What should you do if you spot any unsafe acts or conditions?",
+        "answers": [
+            "You must report to your supervisor if you spot any unsafe acts or conditions"
+        ]
+    },
+    {
+        "question": "How many ports do each Switch have?",
+        "answers": [
+            "48-ports Network Switches"
+        ]
+    },
+    {
+        "question": "What should you do if you are feeling unwell or injured?",
+        "answers": [
+            "You must report to your supervisor if you spot any unsafe acts or conditions, you are not well or are injured, or you witness any accident or incident."
+        ]
+    },
+    {
+        "question": "What are decoders used for?",
+        "answers": [
+            "enables users to view live and recorded on the CCTV monitor via decoder in stations"
+        ]
+    },
+    {
+        "question": "What is the colour of the health indicator for a working VMS server?",
+        "answers": [
+            "The indicator turns solid blue if the system is in good health."
+        ]
+    },
+    {
+        "question": "What are the 2 files required for performing backup of switch?",
+        "answers": [
+            "vcboot.cfg (configuration file) and vcsetup.cfg (virtual chassis configuration file)"
+        ]
+    },
+    {
+        "question": "What is the function of Encoder?",
+        "answers": [
+            " The video encoder digitizes analogue video signals and sends digital video images directly over an IP network to the decoders or video storage unit. It encodes an analogue video into a digital video and enables users to view live and recorded on the CCTV monitor via decoder"
+        ]
+    },
+    {
+        "question": "Which are the duties and responsibilities of a competent service personnel?",
+        "answers": [
+            "You should not endanger yourself or others working around you through unsafe working practices.\nYou must adhere to safe work procedures.\nYou should follow the instructions of your supervisor and ask questions if unsure.\nYou must report to your supervisor if you spot any unsafe acts or conditions, you are not well or are injured, or you witness any accident or incident.\nAvoid sources of ignition such as sparks, flames, or cigarettes.\nAvoid wearing open-covered shoes or sandals.\nAlways work in buddy system when working inside tunnels.\nAlways maintain good housekeeping."
+        ]
+    },
+    {
+        "question": "What is a TCP/IP IO Module used for?",
+        "answers": [
+            "The module offers multiple alarm inputs and auxiliary relay outputs."
+        ]
+    },
+    {
+        "question": "Which equipment is the Rack Fan alarm connection connected to ?",
+        "answers": [
+            "TCP/IP IO MODULE"
+        ]
+    },
+    {
+        "question": "What are the shutdown procedures for VMS?",
+        "answers": [
+            "Switch OFF the NMS server.\nSwitch OFF the secondary VMS server.\nSwitch OFF the primary VMS server.\nPower OFF the Syslog server.\nSwitch OFF the encoders, decoders, and IO modules.\nFinally, switch OFF the switches"
+        ]
+    },
+    {
+        "question": "What is the first step when replacing the faulty Switch?",
+        "answers": [
+            "Performing Backup"
+        ]
+    },
+    {
+        "question": "What are the functions of Control Client?",
+        "answers": [
+            "Monitoring\nTo show live and recorded images\nAlarm Centre\nTo display the alarms\nAlarm & Event Search\nTo search for alarm history"
+        ]
+    },
+    {
+        "question": "What are the colour of the power indicator if the video encoder is turned on? ",
+        "answers": [
+            "Lights green when the device is powered on."
+        ]
+    },
+    {
+        "question": "What should you do if you witness any accident or incident?",
+        "answers": [
+            "You must report to your supervisor if you spot any unsafe acts or conditions"
+        ]
+    },
+    {
+        "question": "What is the software used to monitor all VSS alarms?",
+        "answers": [
+            "Alarm Centre\nTo display the alarms"
+        ]
+    },
+    {
+        "question": "What is the colour of the hard drive indicator for a VMS server with hard drive failure?",
+        "answers": [
+            "The indicator flashes amber if there is a hard drive error."
+        ]
+    },
+    {
+        "question": "What is the software required to Replace TCP/IP IO Module?",
+        "answers": [
+            "Adam/Apax .NET Utility"
+        ]
+    },
+    {
+        "question": "Which equipment operating software is Linux?",
+        "answers": [
+            "VMS Server"
+        ]
+    },
+    {
+        "question": "What are the startup procedures for VMS?",
+        "answers": [
+            "Switch ON the switches.\nSwitch ON the encoders, decoders, IO modules.\nPower up the Syslog server.\nPower up the primary VMS server.\nAfter the primary VMS server is powered up, power up the secondary VMS server.\nSwitch ON NMS server."
+        ]
+    },
+    {
+        "question": "What is the default IP address TCP/IP IO Module?",
+        "answers": [
+            "If this is the first time\nyou have connected the module; its IP will be 10.0.0.1 by default"
+        ]
+    },
+    {
+        "question": "Should the subnet mask of the ADAM-6000 module be the same as the host PC? ",
+        "answers": [
+            "You need to change the IP address of the ADAM-6000 module so that it is the same\nsubnet as the host PC"
+        ]
+    },
+    {
+        "question": "What are the recommended window divisions in HikCentral Monitoring page?",
+        "answers": [
+            "Our recommendation will be to select 1, 4, 9 and 16"
+        ]
+    },
+    {
+        "question": "What is an Audit Trail in HikCentral Control Client software?",
+        "answers": [
+            "An audit trail (also called audit log) is a security-relevant chronological record, set of records, and/or destination and source of records that provide documentary evidence of the sequence of camera activities"
+        ]
+    },
+    {
+        "question": "What are the 3 main functions of NMS server?",
+        "answers": [
+            "The user will use only 3 main functions to monitor the 2 switches installed for R160 BPLRT   CCTV. They are Analytics, Discovery, and Notifications."
+        ]
+    },
+    {
+        "question": "What are some of the principal network security defenses?",
+        "answers": [
+            "The principal network security defenses are firewalls, intrusion detection and prevention systems (IPS/IDS), Encryptions and content inspection systems like anti-virus, anti-malware, anti-spam, and Access Control Lists (ACL)."
+        ]
+    },
+    {
+        "question": "What is the purpose of the smart wall?",
+        "answers": [
+            "To display the decoders output, drag and drop images to the monitors"
+        ]
+    },
+    {
+        "question": "How many servers are used to deploy vServer OS and the vServer Cluster solution?",
+        "answers": [
+            "After the vServer OS and the vServer Cluster solution are deployed on two servers"
+        ]
+    },
+    {
+        "question": "How do vServer hosts form a cluster?",
+        "answers": [
+            "the vServer hosts do not automatically form a cluster, and the two vServer hosts need to be  formed into a virtualized cluster through the vServer Cluster Client"
+        ]
+    },
+    {
+        "question": "What colour does the indicator show when an error occurred in VMS server?",
+        "answers": [
+            "The indicator flashes amber:\nWhen the system is turned on.\nWhen the system is in standby.\nIf any error condition exists. For example, a failed fan, PSU, or a hard drive.\nCheck the System Event Log or system messages for the specific issue.\n\nThe POST process is interrupted without any video output due to invalid memory configurations"
+        ]
+    },
+    {
+        "question": "How does the new CCTV Switching System synchronise the time?",
+        "answers": [
+            "The New CCTV Switching System will be connected to new master clock system switch. This will allow the system to synchronize the time via the NTP signal provided."
+        ]
+    }
+]
