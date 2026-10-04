@@ -328,7 +328,10 @@ export default function Playground() {
   ]);
   const [ragInput, setRagInput] = useState('');
   const [ragLoading, setRagLoading] = useState(false);
-  const [ragDiagnostics, setRagDiagnostics] = useState({ numSourceNodes: 0, topPreviews: [] as string[] });
+  const [ragDiagnostics, setRagDiagnostics] = useState({ 
+    numSourceNodes: 0, 
+    sourceNodesDetails: [] as Array<{ score?: number; text: string; metadata?: any }> 
+  });
   const [selectedFileModal, setSelectedFileModal] = useState<{ title: string; content: string } | null>(null);
   const [loadingFileFromStorage, setLoadingFileFromStorage] = useState(false);
   const ragMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -390,7 +393,7 @@ export default function Playground() {
       setRagMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
       setRagDiagnostics({
         numSourceNodes: data.num_source_nodes || 0,
-        topPreviews: data.top_nodes_previews || []
+        sourceNodesDetails: data.source_nodes_details || []
       });
     } catch (err: any) {
       setRagMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error querying the factory manual database." }]);
@@ -466,7 +469,7 @@ export default function Playground() {
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col min-h-[500px] sm:min-h-[600px]">
           <div className="bg-slate-100 border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
             <div className="font-bold text-slate-700 flex items-center gap-2 text-xs sm:text-sm truncate pr-2">
-              <Settings size={18} className="text-slate-400 shrink-0" />
+              <Wrench size={18} className="text-slate-500 shrink-0" />
               <span className="truncate">Demo Environment: {tabs.find(t => t.id === activeTab)?.label}</span>
             </div>
             <div className="flex gap-1.5 sm:gap-2 shrink-0">
@@ -1121,13 +1124,13 @@ export default function Playground() {
                     </h4>
                     
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('manual1.json', 'Index 1: manual1.json')}
+                      onClick={() => handleFetchManualFromSupabase('answers.json', 'Index 1: answers.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-blue-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 1</h5>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers.json</h5>
                           <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
@@ -1135,13 +1138,13 @@ export default function Playground() {
                     </div>
 
                     <div 
-                      onClick={() => handleFetchManualFromSupabase('manual2.json', 'Index 2: manual2.json')}
+                      onClick={() => handleFetchManualFromSupabase('answers_eval.json', 'Index 2: answers_eval.json')}
                       className="p-4 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all shadow-sm flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
                         <Database size={24} className="text-emerald-600 shrink-0" />
                         <div>
-                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">Index 2</h5>
+                          <h5 className="font-bold text-slate-800 text-xs sm:text-sm">answers_eval.json</h5>
                           <p className="text-[11px] text-slate-400 mt-0.5">Click to preview</p>
                         </div>
                       </div>
@@ -1186,7 +1189,7 @@ export default function Playground() {
                   </div>
                 </div>
 
-                {/* BELOW: Answer Drift & Vector Retrieval Diagnostics Panel */}
+                {/* BELOW: Answer Drift & Vector Retrieval Diagnostics Panel (RESTORED FULL GUI) */}
                 <div className="border border-slate-200 rounded-xl bg-slate-50 p-4 sm:p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
@@ -1201,26 +1204,44 @@ export default function Playground() {
                     Real-time telemetry showing exact source answers and chunk context retrieved for your query.
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-center">
                       <span className="text-xs text-slate-400 font-medium">Source Nodes Retrieved</span>
                       <span className="text-2xl font-extrabold text-slate-800 mt-1 font-mono">{ragDiagnostics.numSourceNodes}</span>
                     </div>
 
-                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2">
-                      <span className="text-xs text-slate-400 font-medium block mb-1">Top Retrieved Node Previews</span>
-                      {ragDiagnostics.topPreviews.length > 0 ? (
-                        <div className="flex flex-col gap-2">
-                          {ragDiagnostics.topPreviews.map((preview, i) => (
-                            <div key={i} className="text-[11px] bg-slate-50 p-2 rounded border border-slate-200 font-mono text-slate-700 truncate">
-                              <b>[Node {i+1}]:</b> {preview}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect nodes.</span>
-                      )}
+                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm md:col-span-2 flex flex-col justify-center">
+                      <span className="text-xs text-slate-400 font-medium">Retrieval Status</span>
+                      <span className="text-sm font-bold text-gray-600 mt-1">
+                        {ragDiagnostics.numSourceNodes > 0 ? "Active Context Linked Successfully" : "Awaiting Query"}
+                      </span>
                     </div>
+                  </div>
+
+                  {/* Exact Answer / Chunk Breakdown Cards */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span className="text-xs text-slate-500 font-bold block mb-3 uppercase tracking-wider">
+                      Exact Answers / Chunks Used from Knowledge Base:
+                    </span>
+                    {ragDiagnostics.sourceNodesDetails.length > 0 ? (
+                      <div className="flex flex-col gap-3 max-h-[250px] overflow-y-auto pr-1">
+                        {ragDiagnostics.sourceNodesDetails.map((node, i) => (
+                          <div key={i} className="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-col gap-1">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono border-b border-slate-200 pb-1">
+                              <span>Source Node #{i + 1} {node.metadata?.source ? `(${node.metadata.source})` : ''}</span>
+                              {node.score !== undefined && node.score !== null && (
+                                <span className="text-blue-600 font-bold">Similarity Score: {node.score.toFixed(3)}</span>
+                              )}
+                            </div>
+                            <p className="font-mono text-slate-700 whitespace-pre-wrap leading-relaxed mt-1">
+                              {node.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">No query executed yet. Ask a question above to inspect the exact retrieved answers.</span>
+                    )}
                   </div>
                 </div>
 
@@ -1257,7 +1278,7 @@ export default function Playground() {
             {activeTab === 'agentic' && (
               <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
                 <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
-                  <Wrench size={40} className="text-slate-400 mb-3" />
+                  <Workflow size={40} className="text-slate-400 mb-3" />
                   <h3 className="text-xl sm:text-2xl font-bold text-slate-700 mb-1">Work In Progress</h3>
                 </div>
               </div>
