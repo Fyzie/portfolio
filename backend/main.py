@@ -209,7 +209,7 @@ async def is_portfolio_related(question: str) -> bool:
         ChatMessage(
             role=MessageRole.USER, 
             content=(
-                f"Analyze this user question about career path, work experience, work skills, or tech stack. "
+                f"Analyze this user question about career path, work experience, work skills, compensation, or tech stack. "
                 f"Question: {question}"
                 f"Answer with ONLY one word: YES or NO."
             )
