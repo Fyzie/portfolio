@@ -1,0 +1,146 @@
+{
+  "manual_title": "Factory Machinery Faults, Spare Parts, and Repair Procedures",
+  "version": "2.0",
+  "qa_pairs": [
+    {
+      "id": 1,
+      "problem": "Hydraulic press making clicking sound and losing pressure",
+      "spare_part_involved": "Hydraulic Seal Kit A-20",
+      "department": "Assembly Line 1",
+      "procedure": "1. Lock out tag out (LOTO) hydraulic power unit. 2. Depressurize system lines. 3. Replace worn seals using Hydraulic Seal Kit A-20. 4. Test pressure at 25 MPa."
+    },
+    {
+      "id": 2,
+      "problem": "Pneumatic cylinder failing to retract on packaging unit",
+      "spare_part_involved": "Pneumatic Valve Solenoid 24V",
+      "department": "Packaging Unit",
+      "procedure": "1. Disconnect 24V DC power supply. 2. Inspect solenoid wiring continuity. 3. Swap out faulty unit with Pneumatic Valve Solenoid 24V from Bin 12A. 4. Verify actuation."
+    },
+    {
+      "id": 3,
+      "problem": "Extrusion press main drive overheating and vibrating excessively",
+      "spare_part_involved": "High-Temp Bearing SKF-6205",
+      "department": "Extrusion Press",
+      "procedure": "1. Stop extrusion motor and allow cooling to below 40°C. 2. Remove housing cover. 3. Extract damaged bearing and install High-Temp Bearing SKF-6205. 4. Apply high-temp lithium grease."
+    },
+    {
+      "id": 4,
+      "problem": "Assembly line conveyor sensor failing to register passing parts",
+      "spare_part_involved": "Proximity Sensor Inductive M18",
+      "department": "Assembly Line 2",
+      "procedure": "1. Clean sensor optical/inductive face. 2. Check LED indicator status. 3. Replace with Proximity Sensor Inductive M18 from Cabinet 2 if unresponsive. 4. Recalibrate sensing gap to 2mm."
+    },
+    {
+      "id": 5,
+      "problem": "Billet heater failing to reach target temperature of 475°C",
+      "spare_part_involved": "Extrusion Die Heater Band 500W",
+      "department": "Extrusion Press",
+      "procedure": "1. Disconnect terminal power leads. 2. Measure resistance across band terminals. 3. Replace defective band with Extrusion Die Heater Band 500W. 4. Run thermal calibration cycle."
+    },
+    {
+      "id": 6,
+      "problem": "Conveyor belt slipping under heavy load",
+      "spare_part_involved": "Drive Belt SPZ-1250",
+      "department": "Assembly Line 1",
+      "procedure": "1. Release tensioner bolts. 2. Remove worn belt and install Drive Belt SPZ-1250. 3. Adjust tension to 450N deflection force. 4. Run empty test loop for 5 minutes."
+    },
+    {
+      "id": 7,
+      "problem": "Cooling water flow dropping below safety threshold",
+      "spare_part_involved": "Centrifugal Water Pump Impeller",
+      "department": "Utility Plant",
+      "procedure": "1. Isolate inlet and outlet valves. 2. Drain pump volute casing. 3. Replace damaged impeller. 4. Prime pump and verify flow rate exceeds 50 L/min."
+    },
+    {
+      "id": 8,
+      "problem": "PLC control panel displaying communication timeout error",
+      "spare_part_involved": "Industrial Ethernet Switch 8-Port",
+      "department": "Control Room",
+      "procedure": "1. Check RJ45 link status lights. 2. Power cycle switch. 3. Replace switch if port matrix fails handshake. 4. Verify IP routing table."
+    },
+    {
+      "id": 9,
+      "problem": "Pneumatic air pressure dropping rapidly in main header",
+      "spare_part_involved": "Air Pressure Regulator 1/2 inch",
+      "department": "Compressor Room",
+      "procedure": "1. Shut off compressor feed. 2. Unscrew bonnet and replace internal diaphragm. 3. Reassemble and adjust secondary pressure to 8 bar."
+    },
+    {
+      "id": 10,
+      "problem": "Robotic welding arm halting mid-trajectory with servo fault",
+      "spare_part_involved": "Servo Motor Encoder Cable 5m",
+      "department": "Robot Cell 3",
+      "procedure": "1. Engage emergency stop. 2. Inspect cable harness for pinch damage. 3. Replace with Servo Motor Encoder Cable 5m. 4. Clear axis faults on teach pendant."
+    },
+    {
+      "id": 11,
+      "problem": "Stamping press clutch engaging with severe delay",
+      "spare_part_involved": "Pneumatic Quick Exhaust Valve",
+      "department": "Stamping Shop",
+      "procedure": "1. Bleed pneumatic circuit. 2. Remove clogged quick exhaust valve. 3. Install new valve with thread sealant. 4. Test stroke response time."
+    },
+    {
+      "id": 12,
+      "problem": "Main exhaust fan emitting high-pitched squeal",
+      "spare_part_involved": "V-Belt Pulley 200mm",
+      "department": "Ventilation Roof",
+      "procedure": "1. Lock out fan motor. 2. Check pulley alignment with laser alignment tool. 3. Replace worn pulley. 4. Re-tension belt."
+    },
+    {
+      "id": 13,
+      "problem": "Chemical dosing pump erratic dosing rate",
+      "spare_part_involved": "Diaphragm Dosing Head Kit",
+      "department": "Water Treatment",
+      "procedure": "1. Flush system with clean water. 2. Disassemble dosing head. 3. Replace PTFE diaphragm and check valves. 4. Calibrate stroke volume."
+    },
+    {
+      "id": 14,
+      "problem": "Laser cutting head losing focus during high-speed cuts",
+      "spare_part_involved": "Focusing Lens ZnSe 1.5 inch",
+      "department": "Laser Cell",
+      "procedure": "1. Clean lens with optical ethanol. 2. Inspect for micro-cracks. 3. Replace with Focusing Lens ZnSe if scratched. 4. Perform auto-focus calibration."
+    },
+    {
+      "id": 15,
+      "problem": "Roller bearing seizing up on annealing oven conveyor",
+      "spare_part_involved": "Flange Bearing UCF-208",
+      "department": "Heat Treatment",
+      "procedure": "1. Cool oven zone below 60°C. 2. Unbolt flange mounting blocks. 3. Replace with Flange Bearing UCF-208. 4. Grease with high-temp paste."
+    },
+    {
+      "id": 16,
+      "problem": "Air compressor oil temperature exceeding 95°C",
+      "spare_part_involved": "Air Compressor Oil Filter Element",
+      "department": "Compressor Room",
+      "procedure": "1. Stop compressor and depressurize sump. 2. Spin off old filter. 3. Install Air Compressor Oil Filter Element and top up synthetic oil. 4. Run test load."
+    },
+    {
+      "id": 17,
+      "problem": "Packaging sealer bar failing to maintain sealing heat",
+      "spare_part_involved": "PTFE Adhesive Heating Tape Roll",
+      "department": "Packaging Unit",
+      "procedure": "1. Disconnect heating bar power. 2. Peel off burnt PTFE tape. 3. Clean sealing bar surface. 4. Apply new PTFE Adhesive Heating Tape Roll smoothly."
+    },
+    {
+      "id": 18,
+      "problem": "Electric overhead crane hoist brake slipping",
+      "spare_part_involved": "Hoist Brake Lining Pad Set",
+      "department": "Warehouse Bay",
+      "procedure": "1. Lower hook to ground level. 2. Remove brake housing cover. 3. Rivet new Hoist Brake Lining Pad Set. 4. Adjust air gap to 0.5mm."
+    },
+    {
+      "id": 19,
+      "problem": "Automated guided vehicle (AGV) missing magnetic guide tape",
+      "spare_part_involved": "Magnetic Navigation Sensor Hall-Effect",
+      "department": "Logistics Corridor",
+      "procedure": "1. Power down AGV maintenance switch. 2. Replace bottom-mounted sensor array. 3. Run sensor calibration routine via service tablet."
+    },
+    {
+      "id": 20,
+      "problem": "Boiler feed water pump motor tripping thermal overload",
+      "spare_part_involved": "Thermal Overload Relay 18-25A",
+      "department": "Boiler Room",
+      "procedure": "1. Measure running current across all three phases. 2. Reset relay. 3. Replace Thermal Overload Relay if trip threshold drifts. 4. Verify amp draw."
+    }
+  ]
+}

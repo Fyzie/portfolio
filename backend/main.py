@@ -589,3 +589,75 @@ async def get_history(task_type: str = "forecast"):
         .execute()
     )
     return {"data": response.data}
+
+class InventoryUpdateRequest(BaseModel):
+    item_id: int
+    new_stock: int
+
+@app.get("/api/inventory")
+async def get_inventory(search: str = ""):
+    if not supabase:
+        return {"data": []}
+    try:
+        query = supabase.table("factory_inventory").select("*")
+        if search:
+            query = query.ilike("item_name", f"%{search}%")
+        response = query.order("item_name").execute()
+        return {"status": "success", "data": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/inventory/update")
+async def update_inventory_stock(request: InventoryUpdateRequest):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured.")
+    try:
+        response = supabase.table("factory_inventory").update({
+            "stock_number": request.new_stock,
+            "updated_at": "now()"
+        }).eq("id", request.item_id).execute()
+        return {"status": "success", "message": "Stock updated successfully", "data": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class AgenticDispatchRequest(BaseModel):
+    issue: str
+
+@app.post("/api/agentic-dispatch")
+async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
+    issue = request.issue.strip()
+    if not issue:
+        raise HTTPException(status_code=400, detail="Issue description is required.")
+    
+    try:
+        # 1. RAG Step: Query playground knowledge base for procedure & spare part
+        rag_result = await playground_chat_with_fallback(issue)
+        repair_guidance = rag_result["reply"]
+        
+        # 2. MCP Step: Query Supabase inventory for spare parts status
+        inventory_items = []
+        if supabase:
+            inv_res = supabase.table("factory_inventory").select("*").execute()
+            inventory_items = inv_res.data or []
+            
+        # Let AI Agent synthesize RAG guidance + Inventory MCP data
+        agent_prompt = (
+            f"You are an Autonomous Maintenance Dispatch Agent. \n"
+            f"Reported Issue: '{issue}'\n"
+            f"RAG Manual Guidance Retrieved: '{repair_guidance}'\n"
+            f"Live Inventory Database (MCP): {inventory_items}\n\n"
+            f"Task: Synthesize a maintenance ticket. Identify the exact spare part needed, check if it is in stock from the inventory list, and outline the repair steps. Keep it professional and concise."
+        )
+        
+        Settings.llm = GoogleGenAI(model="gemini-3.6-flash", api_key=os.getenv("GOOGLE_API_KEY"))
+        agent_response = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=agent_prompt)])
+        
+        return {
+            "status": "success",
+            "model_used": rag_result["model_used"],
+            "ticket_summary": str(agent_response),
+            "rag_sources": rag_result["source_nodes_details"],
+            "inventory_checked": len(inventory_items)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,0 +1,7 @@
+CREATE TABLE analytics_logs (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+    task_type TEXT NOT NULL, -- 'forecast', 'classification', or 'regression'
+    inputs JSONB NOT NULL,   -- Stores input parameters
+    outputs JSONB NOT NULL   -- Stores prediction results or probabilities
+);

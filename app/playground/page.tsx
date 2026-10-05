@@ -71,6 +71,7 @@ export default function Playground() {
     { id: 'nlp', label: 'NLP / Gen AI', icon: <MessageSquare size={18} /> },
     { id: 'rag', label: 'RAG Systems', icon: <Database size={18} /> },
     { id: 'agentic', label: 'Agentic AI', icon: <Workflow size={18} /> },
+    { id: 'reinforcement', label: 'Reinforcement Learning', icon: <Workflow size={18} /> },
   ];
 
   const fetchHistory = async () => {
@@ -335,6 +336,85 @@ export default function Playground() {
   const [selectedFileModal, setSelectedFileModal] = useState<{ title: string; content: string } | null>(null);
   const [loadingFileFromStorage, setLoadingFileFromStorage] = useState(false);
   const ragMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Agentic AI States
+  const [agentMessages, setAgentMessages] = useState<any[]>([
+    { role: 'assistant', content: "Autonomous Maintenance Agent initialized. Describe a machinery fault or issue below to trigger RAG manual retrieval & MCP inventory dispatch." }
+  ]);
+  const [agentInput, setAgentInput] = useState('');
+  const [agentLoading, setAgentLoading] = useState(false);
+
+  // Inventory Management States in Agentic Tab
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [selectedItemForUpdate, setSelectedItemForUpdate] = useState<any | null>(null);
+  const [newStockValue, setNewStockValue] = useState(0);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+
+  const fetchInventoryData = async (searchQuery = '') => {
+    setInventoryLoading(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/inventory?search=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        setInventoryItems(data.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to load inventory", err);
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'agentic') {
+      fetchInventoryData(inventorySearch);
+    }
+  }, [activeTab, inventorySearch]);
+
+  const handleUpdateStockSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItemForUpdate) return;
+    try {
+      const res = await fetch(`${backendUrl}/api/inventory/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_id: selectedItemForUpdate.id, new_stock: Number(newStockValue) })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setSelectedItemForUpdate(null);
+        fetchInventoryData(inventorySearch);
+      }
+    } catch (err) {
+      alert("Failed to update stock.");
+    }
+  };
+
+  const handleAgentSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = agentInput.trim();
+    if (!trimmed || agentLoading) return;
+
+    setAgentMessages(prev => [...prev, { role: 'user', content: trimmed }]);
+    setAgentInput('');
+    setAgentLoading(true);
+
+    try {
+      const res = await fetch(`${backendUrl}/api/agentic-dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ issue: trimmed }),
+      });
+      if (!res.ok) throw new Error("Agentic dispatch failed");
+      const data = await res.json();
+      setAgentMessages(prev => [...prev, { role: 'assistant', content: data.ticket_summary }]);
+    } catch (err) {
+      setAgentMessages(prev => [...prev, { role: 'assistant', content: "Error executing agentic workflow." }]);
+    } finally {
+      setAgentLoading(false);
+    }
+  };
 
   // Multi-Persona Debater States
   const [debateTopic, setDebateTopic] = useState("Engineers VS Technicians?");
@@ -1276,6 +1356,186 @@ export default function Playground() {
 
             {/* AGENTIC AI TAB */}
             {activeTab === 'agentic' && (
+              <div className="flex-1 flex flex-col gap-8 animate-in fade-in duration-500">
+                <div className="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <Workflow size={20} className="text-blue-500 shrink-0" />
+                    Agentic AI Workflow Showcase (RAG + MCP)
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP).
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Section 1: Chat Assistant */}
+                  <div className="bg-white border border-slate-200 rounded-xl flex flex-col h-[450px] shadow-sm">
+                    <div className="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-xs sm:text-sm text-slate-700 flex items-center gap-2">
+                      <Bot size={16} className="text-blue-600" />
+                      <span>Autonomous Maintenance Dispatch Agent</span>
+                    </div>
+                    <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 text-xs bg-slate-50/50">
+                      {agentMessages.map((msg, idx) => (
+                        <div key={idx} className={`p-3 rounded-xl max-w-[90%] leading-relaxed whitespace-pre-wrap ${msg.role === 'user' ? 'bg-blue-600 text-white self-end rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 shadow-sm self-start rounded-bl-none'}`}>
+                          {msg.content}
+                        </div>
+                      ))}
+                      {agentLoading && (
+                        <div className="bg-white text-slate-500 border border-slate-200 shadow-sm self-start rounded-xl p-3 flex items-center gap-2 text-xs">
+                          <Loader2 size={14} className="animate-spin text-blue-600 shrink-0" />
+                          <span>Agent executing RAG search & querying ERP inventory MCP...</span>
+                        </div>
+                      )}
+                    </div>
+                    <form onSubmit={handleAgentSend} className="p-3 bg-white border-t border-slate-200 flex gap-2">
+                      <input 
+                        type="text" 
+                        value={agentInput} 
+                        onChange={(e) => setAgentInput(e.target.value)} 
+                        placeholder="Describe machinery fault (e.g. Press clicking & pressure dropping)..."
+                        className="flex-1 px-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button type="submit" disabled={agentLoading || !agentInput.trim()} className="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                        <Send size={15} />
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Section 2: Index Manual Preview */}
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 shadow-sm">
+                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2 border-b pb-3">
+                      <Database size={16} className="text-emerald-600" />
+                      <span>Index Manual</span>
+                    </h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div 
+                        onClick={() => handleFetchManualFromSupabase('manual3.json', 'Index 1: manual3.json')} 
+                        className="p-3 bg-slate-50 border rounded-lg cursor-pointer hover:border-emerald-500 text-xs font-semibold text-slate-700 text-center flex items-center justify-center gap-2"
+                      >
+                        <Database size={16} className="text-emerald-600" />
+                        <span>Index 1</span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-2">
+                      Click the manual above to inspect the raw JSON knowledge base used by the agentic retrieval pipeline.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Section 3 & 4: Inventory & Live Letter-by-Letter Search Input */}
+                <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-3">
+                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                      <Wrench size={16} className="text-orange-500" />
+                      <span>Inventory & ERP Live Stock Management</span>
+                    </h4>
+                    {/* Section 3: Keyword Item Name Search Input */}
+                    <div className="w-full sm:w-72">
+                      <input 
+                        type="text"
+                        value={inventorySearch}
+                        onChange={(e) => setInventorySearch(e.target.value)}
+                        placeholder="Search item name letter by letter..."
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Section 4: Inventory List Table with Update Buttons */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b text-slate-400 uppercase">
+                          <th className="py-2.5 px-3">Item Name</th>
+                          <th className="py-2.5 px-3">Spare Part Type</th>
+                          <th className="py-2.5 px-3">Current Stock</th>
+                          <th className="py-2.5 px-3">Location / Dept</th>
+                          <th className="py-2.5 px-3 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {inventoryLoading ? (
+                          <tr><td colSpan={5} className="py-6 text-center text-slate-400">Loading inventory ERP database...</td></tr>
+                        ) : inventoryItems.length > 0 ? (
+                          inventoryItems.map((item) => (
+                            <tr key={item.id} className="hover:bg-slate-50/60">
+                              <td className="py-3 px-3 font-semibold text-slate-800">{item.item_name}</td>
+                              <td className="py-3 px-3 text-slate-600">{item.spare_part_type}</td>
+                              <td className="py-3 px-3 font-mono font-bold text-blue-600">{item.stock_number}</td>
+                              <td className="py-3 px-3 text-slate-500">{item.item_place} ({item.department})</td>
+                              <td className="py-3 px-3 text-right">
+                                <button 
+                                  onClick={() => { setSelectedItemForUpdate(item); setNewStockValue(item.stock_number); }}
+                                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded font-medium text-[11px]"
+                                >
+                                  Update Stock
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr><td colSpan={5} className="py-6 text-center text-slate-400">No inventory items found matching "{inventorySearch}".</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* UPDATE STOCK MODAL POPUP */}
+                {selectedItemForUpdate && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200">
+                      <div className="flex items-center justify-between mb-4 border-b pb-3">
+                        <h3 className="font-bold text-slate-800 text-sm">Update Inventory Stock</h3>
+                        <button onClick={() => setSelectedItemForUpdate(null)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+                      </div>
+                      <form onSubmit={handleUpdateStockSubmit} className="flex flex-col gap-4 text-xs">
+                        <div>
+                          <span className="font-medium text-slate-500 block mb-1">Item Name:</span>
+                          <span className="font-bold text-slate-800 text-sm">{selectedItemForUpdate.item_name}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-slate-500 block mb-1">Current Stock:</span>
+                          <span className="font-mono font-bold text-blue-600 text-sm">{selectedItemForUpdate.stock_number}</span>
+                        </div>
+                        <div>
+                          <label className="font-medium text-slate-600 block mb-1">New Stock Number:</label>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            required 
+                            value={newStockValue} 
+                            onChange={(e) => setNewStockValue(Number(e.target.value))}
+                            className="w-full p-2.5 border rounded-lg font-mono font-bold outline-none focus:ring-2 focus:ring-blue-500" 
+                          />
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <button type="submit" className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium">Save Update</button>
+                          <button type="button" onClick={() => setSelectedItemForUpdate(null)} className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUPABASE FILE PREVIEW MODAL */}
+                {selectedFileModal && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl border">
+                      <div className="px-6 py-4 border-b flex items-center justify-between">
+                        <h3 className="font-bold text-slate-800 text-sm">{selectedFileModal.title}</h3>
+                        <button onClick={() => setSelectedFileModal(null)} className="text-slate-400"><X size={20} /></button>
+                      </div>
+                      <div className="p-6 overflow-y-auto flex-1 font-mono text-xs text-slate-200 bg-slate-900 rounded-b-xl whitespace-pre-wrap">
+                        {selectedFileModal.content}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'reinforcement' && (
               <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
                 <div className="flex flex-col items-center justify-center p-8 sm:p-12 bg-slate-50 rounded-xl border-2 border-slate-200 border-dashed w-full max-w-2xl mx-auto">
                   <Workflow size={40} className="text-slate-400 mb-3" />
