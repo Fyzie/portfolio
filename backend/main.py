@@ -601,11 +601,22 @@ async def get_inventory(search: str = ""):
     try:
         query = supabase.table("factory_inventory").select("*")
         if search:
-            query = query.ilike("item_name", f"%{search}%")
+            clean_search = search.strip()
+            query = query.or_(f"item_name.ilike.%{clean_search}%,spare_part_type.ilike.%{clean_search}%")
+            
         response = query.order("item_name").execute()
         return {"status": "success", "data": response.data}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Inventory search error: {e}")
+        try:
+            all_res = supabase.table("factory_inventory").select("*").order("item_name").execute()
+            items = all_res.data or []
+            if search:
+                s = search.lower()
+                items = [i for i in items if s in i.get("item_name", "").lower() or s in i.get("spare_part_type", "").lower()]
+            return {"status": "success", "data": items}
+        except Exception as inner_e:
+            raise HTTPException(status_code=500, detail=str(inner_e))
 
 @app.post("/api/inventory/update")
 async def update_inventory_stock(request: InventoryUpdateRequest):

@@ -1474,7 +1474,7 @@ export default function Playground() {
                             </tr>
                           ))
                         ) : (
-                          <tr><td colSpan={5} className="py-6 text-center text-slate-400">No inventory items found matching "{inventorySearch}".</td></tr>
+                          <tr><td colSpan={5} className="py-6 text-center text-slate-400">No inventory items found matching "{inventorySearch}"</td></tr>
                         )}
                       </tbody>
                     </table>
