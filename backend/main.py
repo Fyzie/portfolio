@@ -623,6 +623,69 @@ async def update_inventory_stock(request: InventoryUpdateRequest):
 class AgenticDispatchRequest(BaseModel):
     issue: str
 
+vector_store_agentic = QdrantVectorStore(
+    client=client,
+    aclient=aclient,
+    collection_name="agentic_knowledge"
+)
+agentic_index = VectorStoreIndex.as_retriever(vector_store=vector_store_agentic)
+
+async def agentic_chat_with_fallback(chat_request_message):
+    agentic_prompt = (
+        "You are an expert Autonomous Maintenance Dispatch Agent. "
+        "Answer questions strictly and accurately based on the provided factory maintenance paragraphs. "
+        "- Keep answers brief (maximum 2 to 3 short sentences). "
+        "- Never output large bulleted lists or walls of text unless explicitly asked. "
+    )
+
+    temp_agentic_vector_store = QdrantVectorStore(client=client, aclient=aclient, collection_name="agentic_knowledge")
+    temp_agentic_index = VectorStoreIndex.from_vector_store(vector_store=temp_agentic_vector_store)
+
+    for model_name in FALLBACK_MODELS:
+        try:
+            print(f"Agentic Chat Response on {model_name}")
+            Settings.llm = GoogleGenAI(
+                model=model_name,
+                api_key=os.getenv("GOOGLE_API_KEY")
+            )
+            
+            temp_agentic_engine = temp_agentic_index.as_chat_engine(
+                chat_mode="condense_plus_context",
+                system_prompt=agentic_prompt,
+                verbose=True
+            )
+            
+            response = await temp_agentic_engine.achat(chat_request_message)
+            source_nodes = getattr(response, "source_nodes", [])
+            
+            detailed_sources = []
+            for node in source_nodes:
+                detailed_sources.append({
+                    "score": getattr(node, "score", None),
+                    "text": node.text,
+                    "metadata": node.metadata
+                })
+            
+            return {
+                "reply": str(response),
+                "model_used": model_name,
+                "num_source_nodes": len(source_nodes),
+                "source_nodes_details": detailed_sources
+            }
+            
+        except Exception as e:
+            err_str = str(e)
+            print(f"Agentic error on {model_name}: {err_str}")
+            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                continue
+            else:
+                raise e
+                
+    raise HTTPException(
+        status_code=429, 
+        detail="All available Gemini free-tier model quotas have been exhausted for today."
+    )
+
 @app.post("/api/agentic-dispatch")
 async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
     issue = request.issue.strip()
@@ -630,17 +693,14 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         raise HTTPException(status_code=400, detail="Issue description is required.")
     
     try:
-        # 1. RAG Step: Query playground knowledge base for procedure & spare part
-        rag_result = await playground_chat_with_fallback(issue)
+        rag_result = await agentic_chat_with_fallback(issue)
         repair_guidance = rag_result["reply"]
         
-        # 2. MCP Step: Query Supabase inventory for spare parts status
         inventory_items = []
         if supabase:
             inv_res = supabase.table("factory_inventory").select("*").execute()
             inventory_items = inv_res.data or []
             
-        # Let AI Agent synthesize RAG guidance + Inventory MCP data
         agent_prompt = (
             f"You are an Autonomous Maintenance Dispatch Agent. \n"
             f"Reported Issue: '{issue}'\n"

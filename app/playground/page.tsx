@@ -339,7 +339,7 @@ export default function Playground() {
 
   // Agentic AI States
   const [agentMessages, setAgentMessages] = useState<any[]>([
-    { role: 'assistant', content: "Autonomous Maintenance Agent initialized. Describe a machinery fault or issue below to trigger RAG manual retrieval & MCP inventory dispatch." }
+    { role: 'assistant', content: "Hello! Describe a machinery fault or issue related to the manuals." }
   ]);
   const [agentInput, setAgentInput] = useState('');
   const [agentLoading, setAgentLoading] = useState(false);
@@ -1360,7 +1360,7 @@ export default function Playground() {
                 <div className="bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-200">
                   <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
                     <Workflow size={20} className="text-blue-500 shrink-0" />
-                    Agentic AI Workflow Showcase (RAG + MCP)
+                    Autonomous Maintenance Dispatch Agent
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
                     Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP).
@@ -1372,7 +1372,7 @@ export default function Playground() {
                   <div className="bg-white border border-slate-200 rounded-xl flex flex-col h-[450px] shadow-sm">
                     <div className="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-xs sm:text-sm text-slate-700 flex items-center gap-2">
                       <Bot size={16} className="text-blue-600" />
-                      <span>Autonomous Maintenance Dispatch Agent</span>
+                      <span>Chat Assistant</span>
                     </div>
                     <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 text-xs bg-slate-50/50">
                       {agentMessages.map((msg, idx) => (
@@ -1417,7 +1417,7 @@ export default function Playground() {
                       </div>
                     </div>
                     <p className="text-[11px] text-slate-400 mt-2">
-                      Click the manual above to inspect the raw JSON knowledge base used by the agentic retrieval pipeline.
+                      Click the manual above to inspect the knowledge base used by the agentic retrieval pipeline.
                     </p>
                   </div>
                 </div>
