@@ -421,21 +421,22 @@ export default function Playground() {
   const [newItemName, setNewItemName] = useState('');
   const [newItemStock, setNewItemStock] = useState(10);
   const [isAddingItem, setIsAddingItem] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Pagination States for Inventory Table
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-
-  // Reset to page 1 whenever search query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [inventorySearch]);
 
   // Calculate sliced items for current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentInventoryItems = inventoryItems.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(inventoryItems.length / itemsPerPage) || 1;
+
+  // Reset to page 1 whenever search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [inventorySearch]);
 
   const handleAddItemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -460,6 +461,26 @@ export default function Playground() {
       alert("Storage limit reached (Max 100 items).");
     } finally {
       setIsAddingItem(false);
+    }
+  };
+
+  const handleResetERP = async () => {
+    if (!confirm("Are you sure you want to reset the ERP inventory back to its original state? All custom added items will be cleared.")) return;
+    setIsResetting(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/inventory/reset`, { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setInventorySearch('');
+        fetchInventoryData('');
+        alert("ERP Inventory reset successfully!");
+      } else {
+        alert("Failed to reset ERP.");
+      }
+    } catch (err) {
+      alert("Error resetting ERP inventory.");
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -1469,7 +1490,7 @@ export default function Playground() {
                   </div>
                 </div>
 
-                {/* Section 3 & 4: Inventory & Live Letter-by-Letter Search Input with Add Item Button */}
+                {/* Section 3 & 4: Inventory & Live Letter-by-Letter Search Input with Add Item & Reset Buttons */}
                 <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-3">
                     <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
@@ -1477,6 +1498,7 @@ export default function Playground() {
                       <span>Inventory & ERP Live Stock Management</span>
                     </h4>
                     
+                    {/* Buttons & Search Bar grouped on the right */}
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <button 
                         onClick={() => setIsAddModalOpen(true)}
@@ -1484,12 +1506,23 @@ export default function Playground() {
                       >
                         <span>+ Add Item</span>
                       </button>
-                      <div className="w-full sm:w-64">
+
+                      {/* RESET BUTTON */}
+                      <button 
+                        onClick={handleResetERP}
+                        disabled={isResetting}
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                      >
+                        {isResetting ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                        <span>{isResetting ? 'Resetting...' : 'Reset ERP'}</span>
+                      </button>
+
+                      <div className="w-full sm:w-56">
                         <input 
                           type="text"
                           value={inventorySearch}
                           onChange={(e) => setInventorySearch(e.target.value)}
-                          placeholder="Search item name letter by letter..."
+                          placeholder="Search item name..."
                           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>

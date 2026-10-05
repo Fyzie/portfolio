@@ -640,6 +640,7 @@ def clean_agent_response(response_obj):
     text = re.sub(r'^(?:assistant|model|user|system)\b\s*', '', text, flags=re.IGNORECASE)
     
     # 2. Strip out markdown bolding and header symbols (** and ###)
+    text = text.replace('*', '')
     text = text.replace('**', '')
     text = text.replace('### ', '')
     text = text.replace('###', '')
@@ -846,5 +847,32 @@ async def add_smart_inventory_item(request: SmartInventoryAddRequest):
             "message": "Smart inventory item added successfully",
             "data": insert_res.data
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/inventory/reset")
+async def reset_factory_inventory_endpoint():
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured.")
+    try:
+        # 1. Delete user-added items beyond ID 5
+        supabase.table("factory_inventory").delete().gt("id", 5).execute()
+        
+        # 2. Reset the original 5 items back to default stock counts
+        original_defaults = [
+            {"id": 1, "item_name": "Hydraulic Seal Kit A-20", "spare_part_type": "Hydraulic", "stock_number": 14, "item_place": "Shelf 3B", "department": "Assembly Line 1"},
+            {"id": 2, "item_name": "Pneumatic Valve Solenoid 24V", "spare_part_type": "Pneumatic", "stock_number": 8, "item_place": "Bin 12A", "department": "Packaging Unit"},
+            {"id": 3, "item_name": "High-Temp Bearing SKF-6205", "spare_part_type": "Mechanical", "stock_number": 22, "item_place": "Rack 4C", "department": "Extrusion Press"},
+            {"id": 4, "item_name": "Proximity Sensor Inductive M18", "spare_part_type": "Electrical", "stock_number": 5, "item_place": "Cabinet 2", "department": "Assembly Line 2"},
+            {"id": 5, "item_name": "Extrusion Die Heater Band 500W", "spare_part_type": "Thermal", "stock_number": 3, "item_place": "Shelf 1A", "department": "Extrusion Press"}
+        ]
+        
+        for item in original_defaults:
+            supabase.table("factory_inventory").update({
+                "stock_number": item["stock_number"],
+                "updated_at": "now()"
+            }).eq("id", item["id"]).execute()
+            
+        return {"status": "success", "message": "ERP inventory successfully reset to original state."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
