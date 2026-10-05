@@ -17,3 +17,73 @@ values
     ('High-Temp Bearing SKF-6205', 'Mechanical', 22, 'Rack 4C', 'Extrusion Press'),
     ('Proximity Sensor Inductive M18', 'Electrical', 5, 'Cabinet 2', 'Assembly Line 2'),
     ('Extrusion Die Heater Band 500W', 'Thermal', 3, 'Shelf 1A', 'Extrusion Press');
+
+
+
+
+
+
+
+
+Step 1: SQL Script to Reset Table Weekly & Keep Original 5 Items
+Run this in your Supabase SQL Editor. This creates a function that deletes everything except your original core seed data, resetting the stock numbers back to their defaults.
+
+create or replace function public.reset_factory_inventory()
+returns void
+language plpgsql
+security definer
+as $$
+begin
+    -- 1. Delete any public user-added items beyond the original 5 IDs
+    delete from public.factory_inventory where id > 5;
+
+    -- 2. Reset the original 5 items back to their default stock and values
+    update public.factory_inventory 
+    set stock_number = case 
+        when id = 1 then 14
+        when id = 2 then 8
+        when id = 3 then 22
+        when id = 4 then 5
+        when id = 5 then 3
+    end,
+    updated_at = now()
+    where id <= 5;
+end;
+$$;
+
+How to automate it weekly (Cron Job):
+Supabase supports pg_cron for scheduling. You can schedule this function to run every Monday at 12:00 AM UTC:
+
+-- Enable pg_cron extension if not already enabled
+create extension if not exists pg_cron;
+
+-- Schedule the reset function every Monday at midnight UTC
+select cron.schedule(
+    'reset-inventory-weekly', 
+    '0 0 * * 1', 
+    $$select public.reset_factory_inventory();$$
+);
+
+Step 2: SQL Script to Enforce a Maximum 100 Rows Limit
+To protect your database from exceeding 100 rows and bloating storage, you can add a Row-Level Trigger that checks the count before every insert and blocks new items if the table already has 100 rows.
+
+create or replace function public.check_inventory_row_limit()
+returns trigger
+language plpgsql
+as $$
+begin
+    if (select count(*) from public.factory_inventory) >= 100 then
+        raise exception 'Inventory limit reached (Maximum 100 items allowed). Wait for the weekly reset.';
+    end if;
+    return new;
+end;
+$$;
+
+-- Bind the trigger to the factory_inventory table
+drop trigger if exists enforce_inventory_row_limit on public.factory_inventory;
+
+create trigger enforce_inventory_row_limit
+    before insert on public.factory_inventory
+    for each row
+    execute function public.check_inventory_row_limit();
+

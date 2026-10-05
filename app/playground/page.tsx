@@ -416,6 +416,38 @@ export default function Playground() {
     }
   };
 
+  {/* Add Item States */}
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemStock, setNewItemStock] = useState(10);
+  const [isAddingItem, setIsAddingItem] = useState(false);
+
+  const handleAddItemSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newItemName.trim()) return;
+    setIsAddingItem(true);
+    try {
+      const res = await fetch(`${backendUrl}/api/inventory/add-smart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item_name: newItemName.trim(), stock_number: Number(newItemStock) })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setIsAddModalOpen(false);
+        setNewItemName('');
+        setNewItemStock(10);
+        fetchInventoryData(inventorySearch);
+      } else {
+        alert(data.detail || "Failed to add item.");
+      }
+    } catch (err: any) {
+      alert("Storage limit reached (Max 100 items).");
+    } finally {
+      setIsAddingItem(false);
+    }
+  };
+
   // Multi-Persona Debater States
   const [debateTopic, setDebateTopic] = useState("Engineers VS Technicians?");
   const [debateLoading, setDebateLoading] = useState(false);
@@ -1422,26 +1454,35 @@ export default function Playground() {
                   </div>
                 </div>
 
-                {/* Section 3 & 4: Inventory & Live Letter-by-Letter Search Input */}
+                {/* Section 3 & 4: Inventory & Live Letter-by-Letter Search Input with Add Item Button */}
                 <div className="bg-white border border-slate-200 rounded-xl p-5 flex flex-col gap-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-3">
                     <h4 className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
                       <Wrench size={16} className="text-orange-500" />
                       <span>Inventory & ERP Live Stock Management</span>
                     </h4>
-                    {/* Section 3: Keyword Item Name Search Input */}
-                    <div className="w-full sm:w-72">
-                      <input 
-                        type="text"
-                        value={inventorySearch}
-                        onChange={(e) => setInventorySearch(e.target.value)}
-                        placeholder="Search item name letter by letter..."
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                    
+                    {/* Add Item Button & Search Bar grouped on the right */}
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button 
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 shrink-0"
+                      >
+                        <span>+ Add Item</span>
+                      </button>
+                      <div className="w-full sm:w-64">
+                        <input 
+                          type="text"
+                          value={inventorySearch}
+                          onChange={(e) => setInventorySearch(e.target.value)}
+                          placeholder="Search item name letter by letter..."
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Section 4: Inventory List Table with Update Buttons */}
+                  {/* Inventory List Table */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
@@ -1480,6 +1521,52 @@ export default function Playground() {
                     </table>
                   </div>
                 </div>
+
+                {/* ADD ITEM SMART POPUP MODAL */}
+                {isAddModalOpen && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200">
+                      <div className="flex items-center justify-between mb-4 border-b pb-3">
+                        <h3 className="font-bold text-slate-800 text-sm">Add New Inventory Item</h3>
+                        <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+                      </div>
+                      <form onSubmit={handleAddItemSubmit} className="flex flex-col gap-4 text-xs">
+                        <div>
+                          <label className="font-medium text-slate-600 block mb-1">Item Name:</label>
+                          <input 
+                            type="text" 
+                            required 
+                            placeholder="e.g. Hydraulic Seal Kit A-20"
+                            value={newItemName} 
+                            onChange={(e) => setNewItemName(e.target.value)}
+                            className="w-full p-2.5 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-800" 
+                          />
+                        </div>
+                        <div>
+                          <label className="font-medium text-slate-600 block mb-1">Number of Stock:</label>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            required 
+                            value={newItemStock} 
+                            onChange={(e) => setNewItemStock(Number(e.target.value))}
+                            className="w-full p-2.5 border rounded-lg font-mono font-bold outline-none focus:ring-2 focus:ring-blue-500" 
+                          />
+                        </div>
+                        <div className="p-3 bg-blue-50 text-blue-700 rounded-lg text-[11px] leading-relaxed">
+                          ✨ <b>Agentic AI Feature:</b> Spare part type and location/department will be automatically classified by the LLM using factory manual knowledge upon submission.
+                        </div>
+                        <div className="flex gap-2 mt-2">
+                          <button type="submit" disabled={isAddingItem} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2">
+                            {isAddingItem && <Loader2 size={14} className="animate-spin" />}
+                            <span>{isAddingItem ? 'Classifying with RAG...' : 'OK (Submit)'}</span>
+                          </button>
+                          <button type="button" onClick={() => setIsAddModalOpen(false)} className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
 
                 {/* UPDATE STOCK MODAL POPUP */}
                 {selectedItemForUpdate && (

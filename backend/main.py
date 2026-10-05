@@ -1,6 +1,7 @@
 import re
 import os
 import cv2
+import json
 import httpx
 import joblib
 import resend
@@ -535,17 +536,17 @@ async def debate_endpoint(request: DebateRequest):
             print(f"Running Multi-Persona Debate on {model_name}")
             Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
             
-            # 1. Pragmatic Architect Argument
+            # Pragmatic Architect Argument
             arch_messages = [ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Argue from the perspective of The Pragmatic Architect (favoring simplicity, low overhead, and speed of delivery). Keep it short (maximum 2 sentences). Do not include any prefix labels like 'assistant:' or 'Architect:'.")]
             arch_res = await Settings.llm.achat(arch_messages)
             
-            # 2. Scalability Evangelist Rebuttal
+            # Scalability Evangelist Rebuttal
             evang_messages = [
                 ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. The Architect argued: '{str(arch_res)}'. Rebut from the perspective of The Scalability Evangelist (favoring robust scaling and decoupled systems). Keep it short (maximum 2 sentences). Do not include any prefix labels like 'assistant:' or 'Evangelist:'.")
             ]
             evang_res = await Settings.llm.achat(evang_messages)
             
-            # 3. Moderator Summary
+            # Moderator Summary
             mod_messages = [
                 ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Architect said: '{str(arch_res)}'. Evangelist said: '{str(evang_res)}'. Provide a concise moderator verdict and summary in maximum 2 sentences. Do not include any prefix labels like 'assistant:' or 'Moderator Verdict:' in your response.")
             ]
@@ -631,6 +632,12 @@ async def update_inventory_stock(request: InventoryUpdateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def clean_agent_response(response_obj):
+    text = str(response_obj).strip()
+    text = re.sub(r'^(?:\*\*)?(?:assistant|model|user|system|agent|moderator verdict)(?:\*\*)?:\s*', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'^(?:assistant|model|user|system)\b\s*', '', text, flags=re.IGNORECASE)
+    return text.strip()
+
 class AgenticDispatchRequest(BaseModel):
     issue: str
 
@@ -707,6 +714,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         rag_result = await agentic_chat_with_fallback(issue)
         repair_guidance = rag_result["reply"]
         
+        # MCP
         inventory_items = []
         if supabase:
             inv_res = supabase.table("factory_inventory").select("*").execute()
@@ -716,19 +724,119 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
             f"You are an Autonomous Maintenance Dispatch Agent. \n"
             f"Reported Issue: '{issue}'\n"
             f"RAG Manual Guidance Retrieved: '{repair_guidance}'\n"
-            f"Live Inventory Database (MCP): {inventory_items}\n\n"
+            f"Live Inventory Database : {inventory_items}\n\n"
             f"Task: Synthesize a maintenance ticket. Identify the exact spare part needed, check if it is in stock from the inventory list, and outline the repair steps. Keep it professional and concise."
         )
         
-        Settings.llm = GoogleGenAI(model="gemini-3.6-flash", api_key=os.getenv("GOOGLE_API_KEY"))
-        agent_response = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=agent_prompt)])
+        agent_response_text = ""
+        used_model = rag_result["model_used"]
+        for model_name in FALLBACK_MODELS:
+            try:
+                Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
+                agent_res = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=agent_prompt)])
+                agent_response_text = clean_agent_response(agent_res)
+                used_model = model_name
+                break
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                    continue
+                else:
+                    raise e
+                    
+        return {
+            "status": "success",
+            "model_used": used_model,
+            "ticket_summary": agent_response_text,
+            "rag_sources": rag_result["source_nodes_details"],
+            "inventory_checked": len(inventory_items)
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SmartInventoryAddRequest(BaseModel):
+    item_name: str
+    stock_number: int
+
+@app.post("/api/inventory/add-smart")
+async def add_smart_inventory_item(request: SmartInventoryAddRequest):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured.")
+    
+    # Check current total row count
+    try:
+        count_res = supabase.table("factory_inventory").select("id", count="exact").execute()
+        total_rows = count_res.count if hasattr(count_res, 'count') else len(count_res.data or [])
+        
+        if total_rows >= 100:
+            raise HTTPException(
+                status_code=400, 
+                detail="Storage limit reached (Maximum 100 items allowed). Please wait for the weekly reset."
+            )
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Row count check warning: {e}")
+
+    item_name = request.item_name.strip()
+    stock_number = request.stock_number
+    
+    # Use RAG agentic_knowledge to infer spare part type and location/department
+    temp_agentic_vector_store = QdrantVectorStore(client=client, aclient=aclient, collection_name="agentic_knowledge")
+    temp_agentic_index = VectorStoreIndex.from_vector_store(vector_store=temp_agentic_vector_store)
+    
+    inferred_type = "Mechanical"
+    inferred_place = "Main Warehouse"
+    inferred_dept = "General Maintenance"
+    
+    for model_name in FALLBACK_MODELS:
+        try:
+            Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
+            query_engine = temp_agentic_index.as_query_engine()
+            rag_query = f"Find spare part type, storage location/shelf, and department for '{item_name}'."
+            rag_res = query_engine.query(rag_query)
+            rag_text = str(rag_res)
+            
+            meta_prompt = (
+                f"Based on this factory manual context: '{rag_text}', "
+                f"and the item name '{item_name}', extract or infer JSON with exactly these 3 keys: "
+                f"'spare_part_type' (e.g. Hydraulic, Pneumatic, Mechanical, Electrical, Thermal), "
+                f"'item_place' (e.g. Shelf 3B, Rack 4C, Cabinet 2), and "
+                f"'department' (e.g. Assembly Line 1, Extrusion Press, Packaging Unit). "
+                f"Output ONLY valid JSON."
+            )
+            meta_res = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=meta_prompt)])
+            meta_clean = clean_agent_response(meta_res)
+            
+            json_match = re.search(r'\{.*?\}', meta_clean, re.DOTALL)
+            if json_match:
+                parsed = json.loads(json_match.group(0))
+                inferred_type = parsed.get("spare_part_type", inferred_type)
+                inferred_place = parsed.get("item_place", inferred_place)
+                inferred_dept = parsed.get("department", inferred_dept)
+            break
+        except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                continue
+            else:
+                print(f"Smart add LLM warning on {model_name}: {e}")
+        
+    # Insert into Supabase factory_inventory table
+    try:
+        insert_res = supabase.table("factory_inventory").insert({
+            "item_name": item_name,
+            "spare_part_type": inferred_type,
+            "stock_number": stock_number,
+            "item_place": inferred_place,
+            "department": inferred_dept
+        }).execute()
         
         return {
             "status": "success",
-            "model_used": rag_result["model_used"],
-            "ticket_summary": str(agent_response),
-            "rag_sources": rag_result["source_nodes_details"],
-            "inventory_checked": len(inventory_items)
+            "message": "Smart inventory item added successfully",
+            "data": insert_res.data
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
