@@ -1627,12 +1627,12 @@ export default function Playground() {
                           />
                         </div>
                         <div className="p-3 bg-blue-50 text-blue-700 rounded-lg text-[11px] leading-relaxed">
-                          ✨ <b>Agentic AI Feature:</b> Spare part type and location/department will be automatically classified by the LLM using factory manual knowledge upon submission.
+                          ✨ <b>Smart Ingestion (RAG-Powered):</b> Spare part type and location/department will be automatically classified by the LLM using factory manual knowledge upon submission.
                         </div>
                         <div className="flex gap-2 mt-2">
                           <button type="submit" disabled={isAddingItem} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2">
                             {isAddingItem && <Loader2 size={14} className="animate-spin" />}
-                            <span>{isAddingItem ? 'Classifying with RAG...' : 'OK (Submit)'}</span>
+                            <span>{isAddingItem ? 'Classifying with RAG...' : 'Submit'}</span>
                           </button>
                           <button type="button" onClick={() => setIsAddModalOpen(false)} className="py-2.5 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">Cancel</button>
                         </div>
