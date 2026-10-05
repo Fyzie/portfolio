@@ -634,8 +634,16 @@ async def update_inventory_stock(request: InventoryUpdateRequest):
 
 def clean_agent_response(response_obj):
     text = str(response_obj).strip()
+    
+    # 1. Remove role prefixes like assistant:, model:, agent:, etc. (with or without markdown bolding)
     text = re.sub(r'^(?:\*\*)?(?:assistant|model|user|system|agent|moderator verdict)(?:\*\*)?:\s*', '', text, flags=re.IGNORECASE)
     text = re.sub(r'^(?:assistant|model|user|system)\b\s*', '', text, flags=re.IGNORECASE)
+    
+    # 2. Strip out markdown bolding and header symbols (** and ###)
+    text = text.replace('**', '')
+    text = text.replace('### ', '')
+    text = text.replace('###', '')
+    
     return text.strip()
 
 class AgenticDispatchRequest(BaseModel):
