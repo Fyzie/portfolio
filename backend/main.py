@@ -639,7 +639,7 @@ vector_store_agentic = QdrantVectorStore(
     aclient=aclient,
     collection_name="agentic_knowledge"
 )
-agentic_index = VectorStoreIndex.as_retriever(vector_store=vector_store_agentic)
+agentic_index = VectorStoreIndex.from_vector_store(vector_store=vector_store_agentic)
 
 async def agentic_chat_with_fallback(chat_request_message):
     agentic_prompt = (
