@@ -422,6 +422,21 @@ export default function Playground() {
   const [newItemStock, setNewItemStock] = useState(10);
   const [isAddingItem, setIsAddingItem] = useState(false);
 
+  // Pagination States for Inventory Table
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Reset to page 1 whenever search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [inventorySearch]);
+
+  // Calculate sliced items for current page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInventoryItems = inventoryItems.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(inventoryItems.length / itemsPerPage) || 1;
+
   const handleAddItemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim()) return;
@@ -1462,7 +1477,6 @@ export default function Playground() {
                       <span>Inventory & ERP Live Stock Management</span>
                     </h4>
                     
-                    {/* Add Item Button & Search Bar grouped on the right */}
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <button 
                         onClick={() => setIsAddModalOpen(true)}
@@ -1482,7 +1496,7 @@ export default function Playground() {
                     </div>
                   </div>
 
-                  {/* Inventory List Table */}
+                  {/* Inventory List Table (Slicing to 5 items per page) */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead>
@@ -1497,8 +1511,8 @@ export default function Playground() {
                       <tbody className="divide-y divide-slate-100">
                         {inventoryLoading ? (
                           <tr><td colSpan={5} className="py-6 text-center text-slate-400">Loading inventory ERP database...</td></tr>
-                        ) : inventoryItems.length > 0 ? (
-                          inventoryItems.map((item) => (
+                        ) : currentInventoryItems.length > 0 ? (
+                          currentInventoryItems.map((item) => (
                             <tr key={item.id} className="hover:bg-slate-50/60">
                               <td className="py-3 px-3 font-semibold text-slate-800">{item.item_name}</td>
                               <td className="py-3 px-3 text-slate-600">{item.spare_part_type}</td>
@@ -1519,6 +1533,32 @@ export default function Playground() {
                         )}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Pagination Footer Counter & Buttons */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-600">
+                    <span>
+                      Showing {inventoryItems.length > 0 ? indexOfFirstItem + 1 : 0} - {Math.min(indexOfLastItem, inventoryItems.length)} of {inventoryItems.length} items
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50 font-medium transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <span className="px-3 py-1.5 font-mono font-bold text-slate-700">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg disabled:opacity-40 hover:bg-slate-50 font-medium transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
                 </div>
 
