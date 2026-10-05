@@ -855,10 +855,10 @@ async def reset_factory_inventory_endpoint():
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured.")
     try:
-        # 1. Delete user-added items beyond ID 5
+        # Delete user-added items beyond ID 5
         supabase.table("factory_inventory").delete().gt("id", 5).execute()
         
-        # 2. Reset the original 5 items back to default stock counts
+        # Reset the original 5 items back to default stock counts
         original_defaults = [
             {"id": 1, "item_name": "Hydraulic Seal Kit A-20", "spare_part_type": "Hydraulic", "stock_number": 14, "item_place": "Shelf 3B", "department": "Assembly Line 1"},
             {"id": 2, "item_name": "Pneumatic Valve Solenoid 24V", "spare_part_type": "Pneumatic", "stock_number": 8, "item_place": "Bin 12A", "department": "Packaging Unit"},
