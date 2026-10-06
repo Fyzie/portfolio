@@ -9,11 +9,11 @@ import uvicorn
 import smtplib
 import numpy as np
 import qdrant_client
-from fastmcp import Client
+from fastmcp import Client as MCPClient
 from typing import Dict, Any
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
-from supabase import create_client, Client
+from supabase import create_client, Client as SupabaseClient
 from qdrant_client import QdrantClient, AsyncQdrantClient
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, UploadFile, File
@@ -354,7 +354,7 @@ async def send_contact_email(form: ContactForm):
 
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
-supabase: Client = None
+supabase: SupabaseClient = None
 if supabase_url and supabase_key:
     supabase = create_client(supabase_url, supabase_key)
 else:
@@ -729,7 +729,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         inventory_items = []
         mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001/sse")
         
-        async with Client(mcp_server_url) as mcp_client:
+        async with MCPClient(mcp_server_url) as mcp_client:
             tool_res = await mcp_client.call_tool("search_factory_inventory", {"item_query": issue})
             inventory_items = tool_res.content if hasattr(tool_res, "content") else []
 
