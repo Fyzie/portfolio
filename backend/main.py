@@ -731,20 +731,23 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         selected_tool = "None"
         mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001/sse")
         
-        # 2. DYNAMIC MCP DISCOVERY & STRING-BASED LLM ROUTING
+        # 2. DYNAMIC MCP DISCOVERY & ENTITY EXTRACTION ROUTING
         async with MCPClient(mcp_server_url) as mcp_client:
             discovered_tools = await mcp_client.list_tools()
             tools_catalog = {t.name: t.description for t in discovered_tools}
             print("Discovered MCP Tools Catalog:", tools_catalog)
             
-            # Simplified prompt asking for ONLY the exact string name
+            # Prompt asking for Tool Name AND clean search keyword separated by '|'
             router_prompt = (
-                f"You are an intelligent MCP Tool Router. \n"
+                f"You are an intelligent MCP Tool Router and Entity Extractor. \n"
                 f"User Request / Issue: '{issue}'\n"
                 f"Available Tools Catalog (Name: Description):\n{json.dumps(tools_catalog, indent=2)}\n\n"
-                f"Task: Select the single most appropriate tool name from the catalog. "
-                f"Output ONLY the exact string name of the tool (e.g., 'search_inventory_stock' or 'get_average_inventory_stock'). "
-                f"If no tool is relevant, output exact 'NO TOOL NEEDED'. Do not include quotes, markdown, or extra text."
+                f"Task: \n"
+                f"1. Select the single most appropriate tool name from the catalog.\n"
+                f"2. Extract or infer the specific spare part name or search keyword (e.g., 'heater', 'bearing', 'seal', 'sensor', 'valve').\n"
+                f"Output format strictly as: TOOL_NAME | SEARCH_QUERY\n"
+                f"Example output: search_inventory_stock | heater\n"
+                f"If no tool is relevant, output: NO TOOL NEEDED | none"
             )
             
             router_response_text = ""
@@ -758,7 +761,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         router_response_text = str(router_res).strip()
                         
-                    print(f"Router response (Tool Name): {router_response_text}")
+                    print(f"Router response (Tool | Query): {router_response_text}")
                     break
                 except Exception as e:
                     err_str = str(e)
@@ -767,23 +770,30 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         raise e
 
-            selected_tool = router_response_text
+            # Parse the plain-text split response
+            selected_tool = "None"
+            search_query = issue
+            
+            if "NO TOOL NEEDED" not in router_response_text.upper():
+                parts = router_response_text.split("|")
+                if len(parts) >= 1:
+                    selected_tool = parts[0].strip()
+                if len(parts) >= 2 and parts[1].strip().lower() != "none":
+                    search_query = parts[1].strip()
 
-            # Execute the tool dynamically based on the returned string name
-            if "NO TOOL NEEDED" not in selected_tool.upper() and selected_tool in tools_catalog:
-                # Programmatically assign arguments based on the chosen tool
-                if selected_tool == "search_inventory_stock":
-                    tool_args = {"item_query": issue}
-                elif selected_tool == "get_average_inventory_stock":
-                    tool_args = {}
+                if selected_tool in tools_catalog:
+                    if selected_tool == "search_inventory_stock":
+                        tool_args = {"item_query": search_query}
+                    elif selected_tool == "get_average_inventory_stock":
+                        tool_args = {}
+                    else:
+                        tool_args = {"item_query": search_query}
+                    
+                    print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
+                    tool_res = await mcp_client.call_tool(selected_tool, tool_args)
+                    inventory_data = tool_res.content if hasattr(tool_res, "content") else []
                 else:
-                    tool_args = {"item_query": issue}
-                
-                print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
-                tool_res = await mcp_client.call_tool(selected_tool, tool_args)
-                inventory_data = tool_res.content if hasattr(tool_res, "content") else []
-            else:
-                selected_tool = "None"
+                    selected_tool = "None"
 
         # 3. Autonomous Agent Synthesis
         agent_prompt = (
@@ -791,8 +801,9 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
             f"Reported Issue: '{issue}'\n"
             f"RAG Manual Guidance Retrieved: '{repair_guidance}'\n"
             f"Dynamic MCP Tool Used: {selected_tool}\n"
-            f"Tool Result: {inventory_data}\n\n"
-            f"Task: Synthesize a professional maintenance ticket or response. Identify the spare part needed, check inventory status, and outline repair steps."
+            f"Extracted Search Keyword: {search_query}\n"
+            f"Tool Result (Stock Data Found): {inventory_data}\n\n"
+            f"Task: Synthesize a professional maintenance response. State clearly whether the required spare part is in stock based on the Tool Result, check quantities, and outline repair steps."
         )
         
         agent_response_text = ""
