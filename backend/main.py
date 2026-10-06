@@ -735,8 +735,8 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         async with MCPClient(mcp_server_url) as mcp_client:
             # Fetch catalog of available tools from the MCP server
             discovered_tools = await mcp_client.list_tools()
-            tools_catalog = {t.name: t.description for t in discovered_tools.tools}
-            print("🤖 Discovered MCP Tools Catalog:", tools_catalog)
+            tools_catalog = {t.name: t.description for t in discovered_tools}  # 👈 Fixed: iterate directly over the list
+            print("Discovered MCP Tools Catalog:", tools_catalog)
             
             # Ask the LLM to autonomously select the tool based on the issue and catalog
             router_prompt = (
