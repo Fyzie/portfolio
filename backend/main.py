@@ -756,6 +756,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
                     router_res = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=router_prompt)])
                     router_response_text = clean_agent_response(router_res)
+                    print(f"Router response: {router_response_text}")
                     break
                 except Exception as e:
                     err_str = str(e)
