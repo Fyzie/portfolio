@@ -1,7 +1,7 @@
 import os
 import re
 import json
-from database import supabase
+from routers.database import supabase
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException

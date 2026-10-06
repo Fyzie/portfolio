@@ -2,7 +2,7 @@ import os
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
-from database import qdrant_aclient, qdrant_client, FALLBACK_MODELS
+from routers.database import qdrant_aclient, qdrant_client, FALLBACK_MODELS
 
 from llama_index.llms.google_genai import GoogleGenAI
 from llama_index.core import VectorStoreIndex, Settings

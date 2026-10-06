@@ -5,7 +5,7 @@ import joblib
 import numpy as np
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from database import supabase, FALLBACK_MODELS
+from routers.database import supabase, FALLBACK_MODELS
 from supabase import create_client, Client as SupabaseClient
 from fastapi import APIRouter, HTTPException, UploadFile, File
 
