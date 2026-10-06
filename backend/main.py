@@ -768,16 +768,26 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
 
             # Parse the LLM's decision and execute the tool dynamically
             if "NO TOOL NEEDED" not in router_response_text.upper():
-                json_match = re.search(r'\{.*?\}', router_response_text, re.DOTALL)
-                if json_match:
-                    parsed_decision = json.loads(json_match.group(0))
-                    selected_tool = parsed_decision.get("tool_name")
-                    tool_args = parsed_decision.get("arguments", {})
+                try:
+                    # Clean up markdown code blocks if the LLM wrapped the JSON in ```json ... ```
+                    cleaned_json_str = re.sub(r'```(?:json)?\s*([\s\S]*?)\s*```', r'\1', router_response_text).strip()
                     
-                    if selected_tool in tools_catalog:
-                        print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
-                        tool_res = await mcp_client.call_tool(selected_tool, tool_args)
-                        inventory_data = tool_res.content if hasattr(tool_res, "content") else []
+                    json_match = re.search(r'\{.*?\}', cleaned_json_str, re.DOTALL)
+                    if json_match:
+                        parsed_decision = json.loads(json_match.group(0))
+                        selected_tool = parsed_decision.get("tool_name")
+                        tool_args = parsed_decision.get("arguments", {})
+                        
+                        if selected_tool in tools_catalog:
+                            print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
+                            tool_res = await mcp_client.call_tool(selected_tool, tool_args)
+                            inventory_data = tool_res.content if hasattr(tool_res, "content") else []
+                except Exception as parse_err:
+                    print(f"JSON parsing warning (falling back to default search): {parse_err}")
+                    # Fallback default keyword search if parsing fails
+                    tool_res = await mcp_client.call_tool("search_inventory_stock", {"item_query": issue})
+                    inventory_data = tool_res.content if hasattr(tool_res, "content") else []
+                    selected_tool = "search_inventory_stock"
 
         # Autonomous Agent Synthesis
         agent_prompt = (
