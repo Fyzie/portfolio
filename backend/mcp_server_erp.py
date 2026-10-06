@@ -26,4 +26,5 @@ def search_factory_inventory(item_query: str) -> list:
         return [{"error": str(e)}]
 
 if __name__ == "__main__":
-    mcp.run(transport="sse", port=8001)
+    port = int(os.environ.get("PORT", 8001))
+    mcp.run(transport="sse", host="0.0.0.0", port=port)
