@@ -723,7 +723,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         raise HTTPException(status_code=400, detail="Issue description is required.")
     
     try:
-        # RAG Manual Retrieval
+        # 1. RAG Manual Retrieval
         rag_result = await agentic_chat_with_fallback(issue)
         repair_guidance = rag_result["reply"]
         
@@ -731,23 +731,20 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         selected_tool = "None"
         mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001/sse")
         
-        # DYNAMIC MCP DISCOVERY & LLM TOOL ROUTING
+        # 2. DYNAMIC MCP DISCOVERY & STRING-BASED LLM ROUTING
         async with MCPClient(mcp_server_url) as mcp_client:
-            # Fetch catalog of available tools from the MCP server
             discovered_tools = await mcp_client.list_tools()
-            tools_catalog = {t.name: t.description for t in discovered_tools}  # 👈 Fixed: iterate directly over the list
+            tools_catalog = {t.name: t.description for t in discovered_tools}
             print("Discovered MCP Tools Catalog:", tools_catalog)
             
-            # Ask the LLM to autonomously select the tool based on the issue and catalog
+            # Simplified prompt asking for ONLY the exact string name
             router_prompt = (
                 f"You are an intelligent MCP Tool Router. \n"
                 f"User Request / Issue: '{issue}'\n"
                 f"Available Tools Catalog (Name: Description):\n{json.dumps(tools_catalog, indent=2)}\n\n"
-                f"Task: Select the single most appropriate tool from the catalog to handle this request. "
-                f"If no tool is relevant, output exact 'NO TOOL NEEDED'. "
-                f"If a tool is needed, output ONLY raw valid JSON (DO NOT wrap in markdown code blocks like ```json) with keys: 'tool_name' and 'arguments' (a dictionary of argument values required by the tool, such as 'item_query'). "
-                f"Example JSON output:\n"
-                f'{{"tool_name": "search_inventory_stock", "arguments": {{"item_query": "hydraulic seal"}}}}'
+                f"Task: Select the single most appropriate tool name from the catalog. "
+                f"Output ONLY the exact string name of the tool (e.g., 'search_inventory_stock' or 'get_average_inventory_stock'). "
+                f"If no tool is relevant, output exact 'NO TOOL NEEDED'. Do not include quotes, markdown, or extra text."
             )
             
             router_response_text = ""
@@ -761,7 +758,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         router_response_text = str(router_res).strip()
                         
-                    print(f"Router response: {router_response_text}")
+                    print(f"Router response (Tool Name): {router_response_text}")
                     break
                 except Exception as e:
                     err_str = str(e)
@@ -770,32 +767,25 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         raise e
 
-            print("LLM Router Decision:", router_response_text)
+            selected_tool = router_response_text
 
-            # Parse the LLM's decision and execute the tool dynamically
-            if "NO TOOL NEEDED" not in router_response_text.upper():
-                try:
-                    # Clean up markdown code blocks if the LLM wrapped the JSON in ```json ... ```
-                    cleaned_json_str = re.sub(r'```(?:json)?\s*([\s\S]*?)\s*```', r'\1', router_response_text).strip()
-                    
-                    json_match = re.search(r'\{.*?\}', cleaned_json_str, re.DOTALL)
-                    if json_match:
-                        parsed_decision = json.loads(json_match.group(0))
-                        selected_tool = parsed_decision.get("tool_name")
-                        tool_args = parsed_decision.get("arguments", {})
-                        
-                        if selected_tool in tools_catalog:
-                            print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
-                            tool_res = await mcp_client.call_tool(selected_tool, tool_args)
-                            inventory_data = tool_res.content if hasattr(tool_res, "content") else []
-                except Exception as parse_err:
-                    print(f"JSON parsing warning (falling back to default search): {parse_err}")
-                    # Fallback default keyword search if parsing fails
-                    tool_res = await mcp_client.call_tool("search_inventory_stock", {"item_query": issue})
-                    inventory_data = tool_res.content if hasattr(tool_res, "content") else []
-                    selected_tool = "search_inventory_stock"
+            # Execute the tool dynamically based on the returned string name
+            if "NO TOOL NEEDED" not in selected_tool.upper() and selected_tool in tools_catalog:
+                # Programmatically assign arguments based on the chosen tool
+                if selected_tool == "search_inventory_stock":
+                    tool_args = {"item_query": issue}
+                elif selected_tool == "get_average_inventory_stock":
+                    tool_args = {}
+                else:
+                    tool_args = {"item_query": issue}
+                
+                print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
+                tool_res = await mcp_client.call_tool(selected_tool, tool_args)
+                inventory_data = tool_res.content if hasattr(tool_res, "content") else []
+            else:
+                selected_tool = "None"
 
-        # Autonomous Agent Synthesis
+        # 3. Autonomous Agent Synthesis
         agent_prompt = (
             f"You are an Autonomous Maintenance Dispatch Agent. \n"
             f"Reported Issue: '{issue}'\n"
