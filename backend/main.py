@@ -745,7 +745,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                 f"Available Tools Catalog (Name: Description):\n{json.dumps(tools_catalog, indent=2)}\n\n"
                 f"Task: Select the single most appropriate tool from the catalog to handle this request. "
                 f"If no tool is relevant, output exact 'NO TOOL NEEDED'. "
-                f"If a tool is needed, output ONLY valid JSON with keys: 'tool_name' and 'arguments' (a dictionary of argument values required by the tool, such as 'item_query'). "
+                f"If a tool is needed, output ONLY raw valid JSON (DO NOT wrap in markdown code blocks like ```json) with keys: 'tool_name' and 'arguments' (a dictionary of argument values required by the tool, such as 'item_query'). "
                 f"Example JSON output:\n"
                 f'{{"tool_name": "search_inventory_stock", "arguments": {{"item_query": "hydraulic seal"}}}}'
             )
@@ -755,7 +755,12 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                 try:
                     Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
                     router_res = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=router_prompt)])
-                    router_response_text = str(router_res).strip()
+                    
+                    if hasattr(router_res, "message") and hasattr(router_res.message, "content"):
+                        router_response_text = router_res.message.content.strip()
+                    else:
+                        router_response_text = str(router_res).strip()
+                        
                     print(f"Router response: {router_response_text}")
                     break
                 except Exception as e:
