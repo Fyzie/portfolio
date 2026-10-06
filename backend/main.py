@@ -139,8 +139,9 @@ async def chat_with_fallback(chat_request_message):
             
         except Exception as e:
             err_str = str(e)
-            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
-                print(f"{model_name}: Resource exhausted or quota exceeded!")
+            print(f"Model error on {model_name}: {err_str}")
+            if any(code in err_str for code in ["429", "ResourceExhausted", "Quota exceeded", "503", "UNAVAILABLE", "ServerError"]):
+                print(f"Model {model_name} unavailable/rate-limited, trying next fallback model...")
                 continue
             else:
                 raise e
@@ -193,9 +194,9 @@ async def playground_chat_with_fallback(chat_request_message):
             
         except Exception as e:
             err_str = str(e)
-            print(f"Playground error on {model_name}: {err_str}")
-            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
-                print(f"Playground {model_name}: Resource exhausted or quota exceeded!")
+            print(f"Model error on {model_name}: {err_str}")
+            if any(code in err_str for code in ["429", "ResourceExhausted", "Quota exceeded", "503", "UNAVAILABLE", "ServerError"]):
+                print(f"Model {model_name} unavailable/rate-limited, trying next fallback model...")
                 continue
             else:
                 raise e
@@ -703,8 +704,9 @@ async def agentic_chat_with_fallback(chat_request_message):
             
         except Exception as e:
             err_str = str(e)
-            print(f"Agentic error on {model_name}: {err_str}")
-            if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+            print(f"Model error on {model_name}: {err_str}")
+            if any(code in err_str for code in ["429", "ResourceExhausted", "Quota exceeded", "503", "UNAVAILABLE", "ServerError"]):
+                print(f"Model {model_name} unavailable/rate-limited, trying next fallback model...")
                 continue
             else:
                 raise e
@@ -751,7 +753,9 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                 break
             except Exception as e:
                 err_str = str(e)
-                if "429" in err_str or "ResourceExhausted" in err_str or "Quota exceeded" in err_str:
+                print(f"Model error on {model_name}: {err_str}")
+                if any(code in err_str for code in ["429", "ResourceExhausted", "Quota exceeded", "503", "UNAVAILABLE", "ServerError"]):
+                    print(f"Model {model_name} unavailable/rate-limited, trying next fallback model...")
                     continue
                 else:
                     raise e
