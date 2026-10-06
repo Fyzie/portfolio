@@ -723,30 +723,35 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         raise HTTPException(status_code=400, detail="Issue description is required.")
     
     try:
-        # 1. RAG Manual Retrieval
+        # 1. RAG Manual Retrieval FIRST (to get procedure & spare part context)
         rag_result = await agentic_chat_with_fallback(issue)
         repair_guidance = rag_result["reply"]
         
+        # Combine retrieved source text so the router can see the exact spare part name
+        rag_sources_text = "\n".join([node["text"] for node in rag_result["source_nodes_details"]])
+        
         inventory_data = []
         selected_tool = "None"
+        search_query = issue
         mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001/sse")
         
-        # 2. DYNAMIC MCP DISCOVERY & ENTITY EXTRACTION ROUTING
+        # 2. DYNAMIC MCP DISCOVERY & EXACT SPARE PART EXTRACTION
         async with MCPClient(mcp_server_url) as mcp_client:
             discovered_tools = await mcp_client.list_tools()
             tools_catalog = {t.name: t.description for t in discovered_tools}
             print("Discovered MCP Tools Catalog:", tools_catalog)
             
-            # Prompt asking for Tool Name AND clean search keyword separated by '|'
+            # Router prompt leveraging RAG context to extract the precise spare part name
             router_prompt = (
-                f"You are an intelligent MCP Tool Router and Entity Extractor. \n"
-                f"User Request / Issue: '{issue}'\n"
+                f"You are an intelligent MCP Tool Router and Spare Part Extractor. \n"
+                f"User Reported Issue: '{issue}'\n"
+                f"RAG Manual Guidance & Source Context Retrieved:\n{rag_sources_text}\n\n"
                 f"Available Tools Catalog (Name: Description):\n{json.dumps(tools_catalog, indent=2)}\n\n"
                 f"Task: \n"
-                f"1. Select the single most appropriate tool name from the catalog.\n"
-                f"2. Extract or infer the specific spare part name or search keyword (e.g., 'heater', 'bearing', 'seal', 'sensor', 'valve').\n"
-                f"Output format strictly as: TOOL_NAME | SEARCH_QUERY\n"
-                f"Example output: search_inventory_stock | heater\n"
+                f"1. Select the single most appropriate tool name from the catalog to check stock or statistics.\n"
+                f"2. Identify the exact spare part name involved from the RAG manual guidance above (e.g., 'Extrusion Die Heater Band 500W', 'Hydraulic Seal Kit A-20', 'Magnetic Navigation Sensor Hall-Effect').\n"
+                f"Output format strictly as: TOOL_NAME | EXACT_SPARE_PART_NAME\n"
+                f"Example output: search_inventory_stock | Extrusion Die Heater Band 500W\n"
                 f"If no tool is relevant, output: NO TOOL NEEDED | none"
             )
             
@@ -761,7 +766,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         router_response_text = str(router_res).strip()
                         
-                    print(f"Router response (Tool | Query): {router_response_text}")
+                    print(f"Router response (Tool | Spare Part): {router_response_text}")
                     break
                 except Exception as e:
                     err_str = str(e)
@@ -770,10 +775,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         raise e
 
-            # Parse the plain-text split response
-            selected_tool = "None"
-            search_query = issue
-            
+            # Parse the response
             if "NO TOOL NEEDED" not in router_response_text.upper():
                 parts = router_response_text.split("|")
                 if len(parts) >= 1:
@@ -789,7 +791,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                     else:
                         tool_args = {"item_query": search_query}
                     
-                    print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
+                    print(f"Executing dynamic MCP tool '{selected_tool}' with exact query: {tool_args}")
                     tool_res = await mcp_client.call_tool(selected_tool, tool_args)
                     inventory_data = tool_res.content if hasattr(tool_res, "content") else []
                 else:
@@ -801,9 +803,9 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
             f"Reported Issue: '{issue}'\n"
             f"RAG Manual Guidance Retrieved: '{repair_guidance}'\n"
             f"Dynamic MCP Tool Used: {selected_tool}\n"
-            f"Extracted Search Keyword: {search_query}\n"
-            f"Tool Result (Stock Data Found): {inventory_data}\n\n"
-            f"Task: Synthesize a professional maintenance response. State clearly whether the required spare part is in stock based on the Tool Result, check quantities, and outline repair steps."
+            f"Exact Spare Part Queried: {search_query}\n"
+            f"ERP Tool Result (Live Stock Data): {inventory_data}\n\n"
+            f"Task: Synthesize a professional maintenance response. State clearly whether the required spare part is in stock based on the Tool Result, check exact quantities, and outline repair steps."
         )
         
         agent_response_text = ""
