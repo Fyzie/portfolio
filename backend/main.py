@@ -769,6 +769,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         }
     
     except Exception as e:
+        print(f"Agentic Dispatch Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class SmartInventoryAddRequest(BaseModel):
