@@ -458,7 +458,7 @@ export default function Playground() {
         alert(data.detail || "Failed to add item.");
       }
     } catch (err: any) {
-      alert("Storage limit reached (Max 100 items).");
+      alert("Storage limit reached (Max 50 items).");
     } finally {
       setIsAddingItem(false);
     }

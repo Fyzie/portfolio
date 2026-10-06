@@ -9,6 +9,7 @@ import uvicorn
 import smtplib
 import numpy as np
 import qdrant_client
+from fastmcp import Client
 from typing import Dict, Any
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr
@@ -723,18 +724,20 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         rag_result = await agentic_chat_with_fallback(issue)
         repair_guidance = rag_result["reply"]
         
-        # MCP
         inventory_items = []
-        if supabase:
-            inv_res = supabase.table("factory_inventory").select("*").execute()
-            inventory_items = inv_res.data or []
-            
+        mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001/sse")
+        
+        async with Client(mcp_server_url) as mcp_client:
+            tool_res = await mcp_client.call_tool("search_factory_inventory", {"item_query": issue})
+            inventory_items = tool_res.content if hasattr(tool_res, "content") else []
+
+        # Autonomous Agent Synthesis
         agent_prompt = (
             f"You are an Autonomous Maintenance Dispatch Agent. \n"
             f"Reported Issue: '{issue}'\n"
             f"RAG Manual Guidance Retrieved: '{repair_guidance}'\n"
-            f"Live Inventory Database : {inventory_items}\n\n"
-            f"Task: Synthesize a maintenance ticket. Identify the exact spare part needed, check if it is in stock from the inventory list, and outline the repair steps. Keep it professional and concise."
+            f"Live Inventory Tool Result (MCP): {inventory_items}\n\n"
+            f"Task: Synthesize a maintenance ticket. Identify the exact spare part needed, check if it is in stock, and outline repair steps."
         )
         
         agent_response_text = ""
@@ -778,10 +781,10 @@ async def add_smart_inventory_item(request: SmartInventoryAddRequest):
         count_res = supabase.table("factory_inventory").select("id", count="exact").execute()
         total_rows = count_res.count if hasattr(count_res, 'count') else len(count_res.data or [])
         
-        if total_rows >= 100:
+        if total_rows >= 50:
             raise HTTPException(
                 status_code=400, 
-                detail="Storage limit reached (Maximum 100 items allowed). Please wait for the weekly reset."
+                detail="Storage limit reached (Maximum 50 items allowed). Please wait for the weekly reset."
             )
     except HTTPException as he:
         raise he
