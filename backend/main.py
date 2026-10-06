@@ -723,23 +723,70 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
         raise HTTPException(status_code=400, detail="Issue description is required.")
     
     try:
+        # RAG Manual Retrieval
         rag_result = await agentic_chat_with_fallback(issue)
         repair_guidance = rag_result["reply"]
         
-        inventory_items = []
+        inventory_data = []
+        selected_tool = "None"
         mcp_server_url = os.getenv("MCP_SERVER_URL", "http://localhost:8001/sse")
         
+        # DYNAMIC MCP DISCOVERY & LLM TOOL ROUTING
         async with MCPClient(mcp_server_url) as mcp_client:
-            tool_res = await mcp_client.call_tool("search_factory_inventory", {"item_query": issue})
-            inventory_items = tool_res.content if hasattr(tool_res, "content") else []
+            # Fetch catalog of available tools from the MCP server
+            discovered_tools = await mcp_client.list_tools()
+            tools_catalog = {t.name: t.description for t in discovered_tools.tools}
+            print("🤖 Discovered MCP Tools Catalog:", tools_catalog)
+            
+            # Ask the LLM to autonomously select the tool based on the issue and catalog
+            router_prompt = (
+                f"You are an intelligent MCP Tool Router. \n"
+                f"User Request / Issue: '{issue}'\n"
+                f"Available Tools Catalog (Name: Description):\n{json.dumps(tools_catalog, indent=2)}\n\n"
+                f"Task: Select the single most appropriate tool from the catalog to handle this request. "
+                f"If no tool is relevant, output exact 'NO TOOL NEEDED'. "
+                f"If a tool is needed, output ONLY valid JSON with keys: 'tool_name' and 'arguments' (a dictionary of argument values required by the tool, such as 'item_query'). "
+                f"Example JSON output:\n"
+                f'{{"tool_name": "search_inventory_stock", "arguments": {{"item_query": "hydraulic seal"}}}}'
+            )
+            
+            router_response_text = ""
+            for model_name in FALLBACK_MODELS:
+                try:
+                    Settings.llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
+                    router_res = await Settings.llm.achat([ChatMessage(role=MessageRole.USER, content=router_prompt)])
+                    router_response_text = clean_agent_response(router_res)
+                    break
+                except Exception as e:
+                    err_str = str(e)
+                    if any(code in err_str for code in ["429", "ResourceExhausted", "Quota exceeded", "503", "UNAVAILABLE", "ServerError"]):
+                        continue
+                    else:
+                        raise e
+
+            print("LLM Router Decision:", router_response_text)
+
+            # Parse the LLM's decision and execute the tool dynamically
+            if "NO TOOL NEEDED" not in router_response_text.upper():
+                json_match = re.search(r'\{.*?\}', router_response_text, re.DOTALL)
+                if json_match:
+                    parsed_decision = json.loads(json_match.group(0))
+                    selected_tool = parsed_decision.get("tool_name")
+                    tool_args = parsed_decision.get("arguments", {})
+                    
+                    if selected_tool in tools_catalog:
+                        print(f"Executing dynamic MCP tool '{selected_tool}' with args: {tool_args}")
+                        tool_res = await mcp_client.call_tool(selected_tool, tool_args)
+                        inventory_data = tool_res.content if hasattr(tool_res, "content") else []
 
         # Autonomous Agent Synthesis
         agent_prompt = (
             f"You are an Autonomous Maintenance Dispatch Agent. \n"
             f"Reported Issue: '{issue}'\n"
             f"RAG Manual Guidance Retrieved: '{repair_guidance}'\n"
-            f"Live Inventory Tool Result (MCP): {inventory_items}\n\n"
-            f"Task: Synthesize a maintenance ticket. Identify the exact spare part needed, check if it is in stock, and outline repair steps."
+            f"Dynamic MCP Tool Used: {selected_tool}\n"
+            f"Tool Result: {inventory_data}\n\n"
+            f"Task: Synthesize a professional maintenance ticket or response. Identify the spare part needed, check inventory status, and outline repair steps."
         )
         
         agent_response_text = ""
@@ -753,9 +800,7 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
                 break
             except Exception as e:
                 err_str = str(e)
-                print(f"Model error on {model_name}: {err_str}")
                 if any(code in err_str for code in ["429", "ResourceExhausted", "Quota exceeded", "503", "UNAVAILABLE", "ServerError"]):
-                    print(f"Model {model_name} unavailable/rate-limited, trying next fallback model...")
                     continue
                 else:
                     raise e
@@ -765,13 +810,14 @@ async def agentic_dispatch_endpoint(request: AgenticDispatchRequest):
             "model_used": used_model,
             "ticket_summary": agent_response_text,
             "rag_sources": rag_result["source_nodes_details"],
-            "inventory_checked": len(inventory_items)
+            "tool_selected": selected_tool,
+            "inventory_checked": inventory_data
         }
     
     except Exception as e:
         print(f"Agentic Dispatch Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 class SmartInventoryAddRequest(BaseModel):
     item_name: str
     stock_number: int
