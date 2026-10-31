@@ -1,117 +1,414 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ExternalLink, Copy, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ExternalLink,
+  Copy,
+  Check,
+  X,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+  Mail,
+  Phone,
+  Gamepad2,
+  Sparkles,
+  ArrowUpRight,
+  Eye,
+  ChevronRight
+} from "lucide-react";
+import Toolbox from "@/components/toolbox";
 
+// Categorized Skills Data
 const skillCategories = [
-  { category: "Programming", skills: ["Python", "C++", "SQL"] },
-  { category: "AI & MLOps", skills: ["PyTorch", "TensorFlow", "HuggingFace", "MLflow"] },
+  { category: "Programming", skills: ["Python", "C++", "SQL", "TypeScript"] },
+  { category: "AI & MLOps", skills: ["PyTorch", "TensorFlow", "HuggingFace", "MLflow", "Docker"] },
   { category: "Machine Vision", skills: ["Area Scan", "Line Scan", "Visible Light", "SWIR Imaging"] },
   { category: "Industrial Cameras", skills: ["Basler", "Allied Vision", "Baumer"] },
-  { category: "NLP", skills: ["LangChain", "LlamaIndex", "Qdrant"] },
-  { category: "Hardware & Deployment", skills: ["NVIDIA Jetson", "Raspberry Pi", "Arduino", "Docker"] },
-  { category: "Data Visualization", skills: ["Power BI", "Streamlit"] },
-  { category: "Cloud AI & Version Control", skills: ["Microsoft Azure", "Google AI Studio", "GitHub"] },
-  { category: "UI Development", skills: ["PySide6", "Next.js"] },
-  { category: "3D Design", skills: ["SolidWorks"] },
-  { category: "Languages", skills: ["Malay", "English"] }
+  { category: "NLP & GenAI", skills: ["LangChain", "LlamaIndex", "Qdrant"] },
+  { category: "Hardware & Edge", skills: ["NVIDIA Jetson", "Raspberry Pi", "Arduino", "Industrial PCs"] },
+  { category: "Analytics & UI", skills: ["Power BI", "Streamlit", "Next.js", "PySide6", "SolidWorks"] },
+  { category: "Cloud & Dev", skills: ["Microsoft Azure", "Google AI Studio", "GitHub", "TCP/UDP", "MQTT"] },
+];
+
+// Flat Skills for Aahil-Khan style minimal badge cloud
+const allSkills = [
+  "Python", "C++", "PyTorch", "TensorFlow", "NVIDIA Jetson", "Machine Vision", 
+  "Basler Cameras", "SWIR Imaging", "HuggingFace", "MLflow", "Docker", 
+  "LangChain", "LlamaIndex", "Qdrant", "Raspberry Pi", "Arduino", "SQL", 
+  "Streamlit", "Next.js", "Microsoft Azure", "Google AI Studio", "Power BI", 
+  "PySide6", "SolidWorks", "TCP/UDP", "MQTT"
+];
+
+// Projects Data
+interface ProjectItem {
+  id: string;
+  title: string;
+  dates: string;
+  category: string;
+  description: string;
+  shortDescription?: string;
+  images: string[];
+  tags: string[];
+  link?: string;
+  linkLabel?: string;
+}
+
+const projectsData: ProjectItem[] = [
+  {
+    id: "lens-inspection",
+    title: "Automated Lens Inspection",
+    dates: "2024",
+    category: "Machine Vision",
+    description: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
+    shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
+    images: ["/lens_image.png"],
+    tags: ["NVIDIA Jetson", "Basler", "TCP/UDP"],
+  },
+  {
+    id: "cell-growth",
+    title: "Cell Growth Monitoring",
+    dates: "2023",
+    category: "AIoT & Robotics",
+    description: "A closed-loop robotic handler for automated cell culturing. The architecture utilizes UNet-based confluency segmentation optimized with OpenVINO on a Raspberry Pi for real-time feedback with Firebase mobile authorization.",
+    shortDescription: "A closed-loop robotic handler for automated cell culturing. The architecture utilizes UNet-based confluency segmentation optimized with OpenVINO on a Raspberry Pi for real-time",
+    images: ["/cell_image.png", "/cell_image_2.png", "/cell_image_3.png"],
+    tags: ["UNet", "OpenVINO", "Raspberry Pi", "Firebase", "Android Studio"],
+    link: "https://www.tandfonline.com/doi/full/10.1080/23311916.2023.2240087",
+    linkLabel: "Read Paper"
+  },
+  {
+    id: "geofencing-tracker",
+    title: "Wearable Geofencing Tracker",
+    dates: "2022",
+    category: "IoT",
+    description: "A GPS-enabled wearable device for geofencing, enabling location monitoring and boundary violation reporting through a LoRa-based server.",
+    shortDescription: "A GPS-enabled wearable device for geofencing, enabling location monitoring and boundary violation reporting through",
+    images: ["/tracker.png"],
+    tags: ["LoRa", "GPS", "Embedded C++", "ESP32"],
+  },
+  {
+    id: "driving-cycle",
+    title: "Driving Cycle Analysis",
+    dates: "2021",
+    category: "Machine Learning",
+    description: "A localized driving cycle within Gombak district for electric motorcycles to analyze battery usage patterns using K-Means and Markov Chain methods.",
+    shortDescription: "A localized driving cycle within Gombak district for electric motorcycles to analyze battery usage patterns using",
+    images: ["/dc.png"],
+    tags: ["K-Means", "Markov Chain", "GPS", "Matlab"],
+    link: "https://link.springer.com/chapter/10.1007/978-981-99-9833-3_9",
+    linkLabel: "Springer Chapter"
+  },
+];
+
+// Awards Data
+interface AwardItem {
+  date: string;
+  title: string;
+  organization: string;
+  imageSrc: string;
+  badge?: string;
+}
+
+const awardsData: AwardItem[] = [
+  {
+    date: 'Dec 2022',
+    title: 'Second Runner Up in ZTE IoT Innovation Challenge 2022',
+    organization: 'ZTE and Multimedia University (MMU)',
+    imageSrc: '/zte_certificate.jpg',
+    badge: '2nd Runner Up',
+  },
+  {
+    date: 'Nov 2022',
+    title: 'First Place in Intel Industry-University Challenge 2022',
+    organization: 'Intel PG7, Collaborative Research in Engineering, Science and Technology (CREST)',
+    imageSrc: '/cell_certificate_1.jpeg',
+    badge: '1st Place Winner',
+  },
+  {
+    date: 'Nov 2022',
+    title: 'Best Technical in Intel Industry-University Challenge 2022',
+    organization: 'Intel PG7, Collaborative Research in Engineering, Science and Technology (CREST)',
+    imageSrc: '/cell_certificate_2.jpeg',
+    badge: 'Best Technical',
+  },
+  {
+    date: 'Mar 2022',
+    title: 'Special Prize Winner in MRANTI Biomimicry Engineering Challenge',
+    organization: 'Malaysian Research Accelerator for Technology and Innovation (MRANTI)',
+    imageSrc: '/mranti_certificate.jpg',
+    badge: 'Special Prize',
+  },
+  {
+    date: 'Dec 2021',
+    title: 'First Place in Petrosains RBTX Innovation Varsity 2021',
+    organization: 'Petrosains Sdn. Bhd.',
+    imageSrc: '/rbtx_certificate.jpg',
+    badge: '1st Place Winner',
+  },
+  {
+    date: 'Oct 2021',
+    title: 'Consolation in R10 HTC IEEE Bangalore Section Product Demo 2021',
+    organization: 'IEEE Bangalore Section',
+    imageSrc: '/bangalore_certificate.jpg',
+    badge: 'Consolation',
+  },
+  {
+    date: 'Sep 2021',
+    title: 'Second Runner Up in IEEE Malaysia Section FYP Competition 2021',
+    organization: 'IEEE Malaysia Section',
+    imageSrc: '/dc_certificate.jpeg',
+    badge: '2nd Runner Up',
+  },
+  {
+    date: 'Aug 2021',
+    title: 'Third Place in Innovate Malaysia Design Competition (IMDC 2021)',
+    organization: 'DreamCatcher',
+    imageSrc: '/imdc_certificate.jpeg',
+    badge: '3rd Place',
+  },
+  {
+    date: 'Jun 2021',
+    title: 'Gold Award in Malaysia Technology Expo (MTE 2021)',
+    organization: 'MTE 2021 COVID-19 International Innovation Awards II',
+    imageSrc: '/mte_certificate.jpg',
+    badge: 'Gold Award',
+  },
 ];
 
 export default function Home() {
-  const [showIEEEPopup, setShowIEEEPopup] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [showMorePubs, setShowMorePubs] = useState(false);
-  const [showMoreEducation, setShowMoreEducation] = useState(false);
-  
+  // Modal states
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedTitle, setSelectedTitle] = useState<string>('');
+  const [selectedTitle, setSelectedTitle] = useState<string>("");
+  const [showIEEEPopup, setShowIEEEPopup] = useState(false);
+  const [copiedIEEE, setCopiedIEEE] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [showMoreEducation, setShowMoreEducation] = useState(false);
+  const [activePopupId, setActivePopupId] = useState<string | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActivePopupId(null);
+      }
+    };
+    const handleClickOutside = () => {
+      setActivePopupId(null);
+    };
+
+    function adjustPopup() {
+      if (!popupRef.current) return;
+      const el = popupRef.current;
+      el.style.transform = "";
+      const rect = el.getBoundingClientRect();
+      if (rect.left < 16) {
+        el.style.transform = `translateX(${16 - rect.left}px)`;
+      } else if (rect.right > window.innerWidth - 16) {
+        el.style.transform = `translateX(${window.innerWidth - 16 - rect.right}px)`;
+      }
+    }
+
+    if (activePopupId) {
+      window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("click", handleClickOutside);
+      // Run position check after DOM render
+      const frameId = requestAnimationFrame(adjustPopup);
+      window.addEventListener("resize", adjustPopup);
+      return () => {
+        cancelAnimationFrame(frameId);
+        window.removeEventListener("keydown", handleKeyDown);
+        window.removeEventListener("click", handleClickOutside);
+        window.removeEventListener("resize", adjustPopup);
+      };
+    }
+  }, [activePopupId]);
+
+  // Contact Form state
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
+  const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const ieeeLink = "https://ieeexplore.ieee.org/document/10239394";
+  const emailAddress = "hafizimalik1998@gmail.com";
 
-  const handleCopy = () => {
+  const handleCopyIEEE = () => {
     navigator.clipboard.writeText(ieeeLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedIEEE(true);
+    setTimeout(() => setCopiedIEEE(false), 2000);
+  };
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(emailAddress);
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
+
+  const handleOpenModal = (imageSrc: string, title: string) => {
+    setSelectedImage(imageSrc);
+    setSelectedTitle(title);
   };
 
   const handleCloseModal = () => {
     setSelectedImage(null);
-    setSelectedTitle('');
+    setSelectedTitle("");
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormStatus("loading");
+
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setFormStatus("success");
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      } else {
+        setFormStatus("error");
+      }
+    } catch {
+      setFormStatus("error");
+    }
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900 px-4 py-8 sm:px-8 md:p-15 font-sans overflow-x-hidden">
-      
-      {/* Summary Section */}
-      <section className="max-w-5xl mx-auto mb-12 sm:mb-18">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 tracking-tight leading-tight">
-          Artificial Intelligence Engineer
-        </h1>
-        <p className="text-base sm:text-lg md:text-xl text-left sm:text-justify mb-6 text-slate-600 max-w-5xl leading-relaxed">
-          AI and Mechatronics Engineer with 3+ years of experience specializing in manufacturing applications. 
-          Currently focused on developing machine vision solutions for product anomaly inspection, predictive 
-          maintenance analytics, and the integration of multi-device automation systems with data infrastructure. Have 
-          foundational experience in NLP and Generative AI and am actively expanding into full stack development to 
-          deliver comprehensive end-to-end AI applications. 
-        </p>
+    <div className="max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-8 py-10 sm:py-16 space-y-16 sm:space-y-24 font-sans text-[#372C2E]">
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-12 sm:mb-20">
-          <Link href="https://github.com/Fyzie" className="text-center px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-medium transition-colors">
-            GitHub Profile
-          </Link>
-          <Link href="/projects" className="text-center px-6 py-3 bg-white text-slate-900 border border-slate-300 rounded-lg hover:bg-slate-100 font-medium transition-colors">
-            View My Work
-          </Link>
+      {/* ================= HERO SECTION ================= */}
+      <section id="hero" className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-8 sm:gap-12 pt-2">
+        
+        {/* Left: Bio & Heading */}
+        <div className="flex-1 space-y-4">
+          
+          {/* Status Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FDF6E9] border border-[#DE9E48]/40 text-[#7A431D] text-xs font-semibold">
+            <span className="w-2 h-2 rounded-full bg-[#DE9E48] animate-pulse" />
+            <span>Industrial AI & Automation Specialist</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#372C2E] leading-tight">
+            Hi, I'm Hafizi Malik 👋
+          </h1>
+
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3 pt-3">
+            <Link
+              href="#contact"
+              className="px-5 py-2.5 bg-[#372C2E] text-white rounded-lg text-sm font-semibold hover:bg-[#563727] transition-colors shadow-xs"
+            >
+              Get in Touch
+            </Link>
+
+            <a
+              href="https://github.com/Fyzie"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-white text-[#563727] border border-[#EBDED2] rounded-lg text-sm font-medium hover:bg-[#F5EFEB] transition-colors"
+            >
+              <span>GitHub</span>
+              <ArrowUpRight size={14} className="text-[#7A431D]" />
+            </a>
+          </div>
         </div>
 
-        {/* Chat Bubble / Informal Intro */}
-        <div className="max-w-5xl">
-          <h2 className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-widest mb-2">
-            How I Describe Myself
-          </h2>
-          
-          <div className="bg-blue-50 border border-blue-100 p-5 sm:p-6 md:p-8 rounded-3xl rounded-tl-sm shadow-sm relative">
-            <p className="text-sm sm:text-base md:text-xl text-left sm:text-justify text-blue-900 leading-relaxed italic">
-              "They say mechatronics engineers are the ultimate 'jacks of all trades', and I definitely fit the bill. 
-              I thrive on complex challenges and love engineering the right solutions from the ground up. 
-              Whether it means leveraging the systems I already know, or diving headfirst into completely
-              new technology stacks, I adapt readily to get the job done."
-            </p>
+        {/* Right: Round Headshot Avatar */}
+        <div className="shrink-0 self-center sm:self-auto">
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-full overflow-hidden ring-4 ring-[#EBDED2] shadow-md bg-white">
+            <Image
+              src="/profile.png"
+              alt="Hafizi Malik"
+              fill
+              priority
+              className="object-cover"
+            />
           </div>
         </div>
       </section>
 
-      {/* Work Experience Section */}
-      <section id="work" className="max-w-5xl mx-auto mb-12 sm:mb-20">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Work Experience</h2>
+      {/* ================= ABOUT SECTION ================= */}
+      <section id="about" className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#372C2E]">
+          About
+        </h2>
         
-        <div className="flex flex-col gap-6">
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900">Machine Learning Engineer</h3>
-                <p className="text-sm sm:text-base text-slate-600 font-semibold mt-1">Specialization: Industrial Automation</p>
-                <Link href='https://www.irnow.com.my/'>
-                  <p className="text-sm sm:text-base text-slate-700 mt-1 hover:underline">IRnow Sdn. Bhd.</p>
-                </Link>
-              </div>
-              <div className="mt-3 md:mt-0 px-3 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold rounded-md shrink-0 border border-slate-200 self-start">
-                Jan 2024 - Present
-              </div>
-            </div>
+        <p className="text-[#563727] leading-relaxed text-sm sm:text-base text-justify">
+          I am an AI and Mechatronics Engineer with 3+ years of experience specializing in manufacturing applications. 
+          Currently focused on developing machine vision solutions for product anomaly inspection, predictive maintenance analytics, 
+          and the integration of multi-device automation systems with real-time data infrastructure. Expanding into full 
+          stack development and Agentic AI for end-to-end AI solutions from the factory floor to the cloud. 
+        </p>
 
-            <div className="mt-4 sm:mt-6 border-t border-slate-100 pt-4">
-              <ul className="text-left sm:text-justify list-disc ml-4 sm:ml-5 text-sm sm:text-base text-slate-700 font-medium leading-normal space-y-3">
+        {/* Quote Callout Card */}
+        <div className="p-5 sm:p-6 rounded-xl bg-[#F9F6F0] border-l-4 border-l-[#DE9E48] border-y border-r border-[#EBDED2] relative">
+          <p className="text-xs sm:text-sm text-[#563727] italic leading-relaxed">
+            "They say mechatronics engineers are the ultimate 'jacks of all trades', and I definitely fit the bill. 
+            I thrive on complex challenges and love engineering the right solutions from the ground up. 
+            Whether it means leveraging the systems I already know or diving headfirst into completely new technology stacks, 
+            I adapt readily to get the job done."
+          </p>
+        </div>
+      </section>
+
+      {/* ================= WORK EXPERIENCE SECTION ================= */}
+      <section id="experience" className="space-y-6">
+        <div className="space-y-1">
+          <div className="inline-block px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] text-xs font-semibold border border-[#DE9E48]/30">
+            Work Experience
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#372C2E]">
+            Where I've Worked
+          </h2>
+        </div>
+
+        {/* Experience Timeline */}
+        <div className="space-y-6 border-l-2 border-[#EBDED2] ml-3 sm:ml-4 pl-4 sm:pl-6">
+          
+          <div className="relative group">
+            {/* Timeline Dot */}
+            <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#DE9E48] ring-4 ring-[#FDFBF7]" />
+            
+            <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                    Machine Learning Engineer
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-[#6E5A52] mt-0.5">
+                    <Link 
+                      href="https://www.irnow.com.my/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-[#7A431D] hover:underline font-semibold inline-flex items-center gap-1"
+                    >
+                      IRnow Sdn. Bhd. <ExternalLink size={12} />
+                    </Link>
+                    <span>•</span>
+                    <span className="text-xs px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] font-medium border border-[#DE9E48]/30">
+                      Industrial AI
+                    </span>
+                  </div>
+                </div>
+                
+                <span className="text-xs sm:text-sm font-semibold text-[#6E5A52] self-start sm:self-auto">
+                  Jan 2024 – Present
+                </span>
+              </div>
+
+              <ul className="list-disc ml-4 space-y-2 text-xs sm:text-sm text-[#563727] leading-relaxed">
                 <li>
                   Developed scalable AI pipelines for automated inspection and analytics, integrating computer vision 
-                  and machine learning models on on-premises platforms, including NVIDIA Jetson devices and 
-                  industrial PCs.
+                  and machine learning models on on-premises platforms (NVIDIA Jetson & industrial PCs).
                 </li>
                 <li>
-                  Experienced in fine-tuning open-source vision and analytics models, including YOLO, YOLACT, Mask 
-                  R-CNN, RF-DETR, Torchvision, PatchCore, Random Forest, SVM, and LSTM, for production-ready pipelines.
+                  Fine-tuned open-source vision and analytics models (YOLO, YOLACT, Mask R-CNN, RF-DETR, Torchvision, 
+                  PatchCore, Random Forest, SVM, LSTM) for production-ready pipelines.
                 </li>
                 <li>
                   Designed Python-based custom HMIs to interface inspection systems with automated production 
@@ -122,366 +419,774 @@ export default function Home() {
                   models for production monitoring and process optimization.
                 </li>
               </ul>
+
+              {/* Skills Tags for this role */}
+              {/* <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#EBDED2]">
+                {["Python", "PyTorch", "NVIDIA Jetson", "Basler", "YOLO", "RF-DETR", "Docker", "MQTT", "Streamlit"].map((tag) => (
+                  <span 
+                    key={tag} 
+                    className="px-2.5 py-0.5 rounded-md bg-[#F5EFEB] text-[11px] font-medium text-[#563727] border border-[#EBDED2]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div> */}
             </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ================= EDUCATION SECTION ================= */}
+      <section id="education" className="space-y-6">
+        <div className="space-y-1">
+          <div className="inline-block px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] text-xs font-semibold border border-[#DE9E48]/30">
+            Education
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#372C2E]">
+            My Education
+          </h2>
+        </div>
+
+        {/* Education Timeline */}
+        <div className="space-y-8 border-l-2 border-[#EBDED2] ml-3 sm:ml-4 pl-4 sm:pl-6">
+          
+          {/* Master's Degree */}
+          <div className="relative group">
+            <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#7A431D] ring-4 ring-[#FDFBF7]" />
+            
+            <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                    Master of Science in Mechatronics Engineering (Research Mode)
+                  </h3>
+                  <p className="text-sm text-[#6E5A52]">
+                    International Islamic University Malaysia (IIUM) • <span className="font-semibold text-[#7A431D]">Specialization: Artificial Intelligence</span>
+                  </p>
+                </div>
+                <span className="text-xs sm:text-sm font-semibold text-[#6E5A52]">
+                  Oct 2021 – Dec 2023
+                </span>
+              </div>
+
+              {/* Research Publications Sublist */}
+              <div className="pt-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#7A431D] mb-2.5">
+                  Paper Publications:
+                </h4>
+                <div className="space-y-2.5">
+                  
+                  {/* Pub 1 */}
+                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#563727]">
+                    <Link
+                      href="https://pubmed.ncbi.nlm.nih.gov/37346656/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded bg-[#FDF6E9] text-[#7A431D] hover:bg-[#FAEAD1] shrink-0 mt-0.5 border border-[#DE9E48]/30"
+                      title="View PubMed"
+                    >
+                      <ExternalLink size={13} />
+                    </Link>
+                    <span>
+                      A review of open-source image analysis tools for mammalian cell culture: algorithms, features, and implementations.
+                    </span>
+                  </div>
+
+                  {/* Pub 2 (IEEE modal) */}
+                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#563727]">
+                    <button
+                      onClick={() => setShowIEEEPopup(true)}
+                      className="p-1 rounded bg-[#FDF6E9] text-[#7A431D] hover:bg-[#FAEAD1] shrink-0 mt-0.5 border border-[#DE9E48]/30"
+                      title="Copy IEEE Link"
+                    >
+                      <ExternalLink size={13} />
+                    </button>
+                    <span>
+                      Deploying patch-based segmentation pipeline for fibroblast cell images at varying magnifications. (IEEE)
+                    </span>
+                  </div>
+
+                  {/* Pub 3 */}
+                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#563727]">
+                    <Link
+                      href="https://www.tandfonline.com/doi/full/10.1080/23311916.2023.2240087"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded bg-[#FDF6E9] text-[#7A431D] hover:bg-[#FAEAD1] shrink-0 mt-0.5 border border-[#DE9E48]/30"
+                    >
+                      <ExternalLink size={13} />
+                    </Link>
+                    <span>
+                      An automated approach for fibroblast cell confluency characterisation and sample handling using AIoT for bio-research and bio-manufacturing.
+                    </span>
+                  </div>
+
+                  {/* Pub 4 */}
+                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#563727]">
+                    <Link
+                      href="https://link.springer.com/article/10.1007/s42452-025-07831-3"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded bg-[#FDF6E9] text-[#7A431D] hover:bg-[#FAEAD1] shrink-0 mt-0.5 border border-[#DE9E48]/30"
+                    >
+                      <ExternalLink size={13} />
+                    </Link>
+                    <span>
+                      Advancing coral reef monitoring: a deep learning perspective on automated segmentation and classification. (Springer)
+                    </span>
+                  </div>
+
+                  {/* Pub 5 */}
+                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#563727]">
+                    <Link
+                      href="https://link.springer.com/chapter/10.1007/978-981-99-9833-3_9"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded bg-[#FDF6E9] text-[#7A431D] hover:bg-[#FAEAD1] shrink-0 mt-0.5 border border-[#DE9E48]/30"
+                    >
+                      <ExternalLink size={13} />
+                    </Link>
+                    <span>
+                      IIUM Gombak driving cycle for motorcycle. (Springer)
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bachelor's Degree */}
+          <div className="relative group">
+            <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#7A431D] ring-4 ring-[#FDFBF7]" />
+            
+            <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                    Bachelor of Mechatronics Engineering (Honours)
+                  </h3>
+                  <p className="text-sm text-[#6E5A52]">
+                    International Islamic University Malaysia (IIUM) • <span className="font-semibold text-[#7A431D]">CGPA: 3.48</span>
+                  </p>
+                </div>
+                <span className="text-xs sm:text-sm font-semibold text-[#6E5A52]">
+                  Sep 2017 – July 2021
+                </span>
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#7A431D] mb-2">
+                  Key Subjects:
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Software Engineering", "Intelligent Control", "Real Time Systems", "Robotics", "Digital Signal Processing"].map((subj) => (
+                    <span 
+                      key={subj} 
+                      className="px-2.5 py-0.5 rounded-md bg-[#F5EFEB] text-[11px] font-medium text-[#563727] border border-[#EBDED2]"
+                    >
+                      {subj}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Expandable Foundation & High School */}
+          {!showMoreEducation ? (
+            <button
+              onClick={() => setShowMoreEducation(true)}
+              className="text-xs sm:text-sm font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors"
+            >
+              <span>Show earlier education</span>
+              <ChevronDown size={15} />
+            </button>
+          ) : (
+            <div className="space-y-4 pt-2 border-t border-[#EBDED2]">
+              <div className="bg-white border border-[#EBDED2] p-4 rounded-xl space-y-1">
+                <div className="flex justify-between items-baseline">
+                  <h4 className="text-sm font-bold text-[#372C2E]">
+                    Engineering Programmes (Foundation)
+                  </h4>
+                  <span className="text-xs text-[#6E5A52]">2016 – 2017</span>
+                </div>
+                <p className="text-xs text-[#563727]">
+                  Centre for Foundation Studies (IIUM) • <span className="font-semibold text-[#7A431D]">CGPA: 3.93</span>
+                </p>
+              </div>
+
+              <div className="bg-white border border-[#EBDED2] p-4 rounded-xl space-y-1">
+                <div className="flex justify-between items-baseline">
+                  <h4 className="text-sm font-bold text-[#372C2E]">
+                    Sijil Pelajaran Malaysia (Aliran Sains Tulen)
+                  </h4>
+                  <span className="text-xs text-[#6E5A52]">2014 – 2015</span>
+                </div>
+                <p className="text-xs text-[#563727]">
+                  Maktab Mahmud Alor Setar (MMAS) • <span className="font-semibold text-[#7A431D]">Result: 9A's 2B's</span>
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowMoreEducation(false)}
+                className="text-xs font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors"
+              >
+                <span>Hide</span>
+                <ChevronUp size={15} />
+              </button>
+            </div>
+          )}
+
+        </div>
+      </section>
+
+      {/* ================= SKILLS SECTION (TOOLBOX) ================= */}
+      <Toolbox />
+
+      {/* ================= PROJECTS SECTION ================= */}
+      <section id="projects" className="space-y-6">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <div className="inline-block px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] text-xs font-semibold border border-[#DE9E48]/30">
+            My Projects
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#372C2E]">
+            Check out my work
+          </h2>
+          <p className="text-sm sm:text-base text-[#6E5A52]">
+            I've built end-to-end industrial machine vision inspection systems, AIoT robotics, edge intelligence devices, and data modeling pipelines.
+          </p>
+        </div>
+
+        {/* 2-Column Responsive Card Grid (Magic UI Style) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          {projectsData.map((project, index) => {
+            const isLeftColumn = index % 2 === 0;
+            return (
+              <div
+                key={project.id}
+                className={`group relative flex flex-col rounded-2xl border border-[#EBDED2] bg-white hover:shadow-lg hover:border-[#DE9E48] transition-all duration-300 ${
+                  activePopupId === project.id ? "z-30" : "z-0"
+                }`}
+              >
+                {/* Image Preview Banner */}
+                <div 
+                  className="relative aspect-video w-full bg-[#F5EFEB] overflow-hidden rounded-t-2xl cursor-pointer"
+                  onClick={() => handleOpenModal(project.images[0], project.title)}
+                >
+                  <Image
+                    src={project.images[0]}
+                    alt={project.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 550px"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-[#372C2E]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="px-3.5 py-1.5 rounded-full bg-[#372C2E]/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs">
+                      <Eye size={13} /> View Image
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-[#6E5A52]">
+                      <span className="font-bold text-[#DE9E48] uppercase tracking-wider">{project.category}</span>
+                      <span className="font-medium">{project.dates}</span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-[#372C2E] group-hover:text-[#7A431D] transition-colors">
+                      {project.title}
+                    </h3>
+
+                    {/* Truncated Sentence with "Show More" Button */}
+                    <p className="text-xs sm:text-sm text-[#563727] leading-relaxed">
+                      {project.shortDescription ? (
+                        <>
+                          <span>{project.shortDescription}... </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePopupId(activePopupId === project.id ? null : project.id);
+                            }}
+                            className="text-[#DE9E48] hover:text-[#7A431D] font-bold text-xs underline underline-offset-2 transition-colors cursor-pointer inline-flex items-center gap-0.5 ml-0.5"
+                          >
+                            Show More
+                          </button>
+                        </>
+                      ) : (
+                        project.description
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Tech Stack Badges */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Direction-Aware Full Paragraph Flyout Popup */}
+                {activePopupId === project.id && (
+                  <div
+                    ref={popupRef}
+                    onClick={(e) => e.stopPropagation()}
+                    className={`absolute z-50 p-5 sm:p-6 rounded-2xl bg-white/95 backdrop-blur-md border-2 border-[#DE9E48]/70 shadow-2xl transition-all duration-300 text-left animate-in fade-in zoom-in-95 ${
+                      isLeftColumn
+                        ? "xl:left-auto xl:right-[calc(100%+16px)] xl:top-0 xl:w-80 2xl:w-96 inset-x-2 top-2"
+                        : "xl:left-[calc(100%+16px)] xl:right-auto xl:top-0 xl:w-80 2xl:w-96 inset-x-2 top-2"
+                    }`}
+                  >
+                    {/* Directional Arrow Notch on Wide Screens */}
+                    {isLeftColumn ? (
+                      <div className="hidden xl:block absolute top-12 -right-3 w-0 h-0 border-y-8 border-y-transparent border-l-10 border-l-[#DE9E48]" />
+                    ) : (
+                      <div className="hidden xl:block absolute top-12 -left-3 w-0 h-0 border-y-8 border-y-transparent border-r-10 border-r-[#DE9E48]" />
+                    )}
+
+                    {/* Popup Header */}
+                    <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#EBDED2]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-[#DE9E48] uppercase tracking-wider">
+                          {project.category}
+                        </span>
+                        <span className="text-xs text-[#6E5A52]">• {project.dates}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActivePopupId(null)}
+                        className="p-1 rounded-md text-[#7A431D] hover:text-[#372C2E] hover:bg-[#F5EFEB] transition-colors"
+                        title="Close popup"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    {/* Project Title */}
+                    <h4 className="font-bold text-base sm:text-lg text-[#372C2E] mb-2 leading-snug">
+                      {project.title}
+                    </h4>
+
+                    {/* Full Paragraph */}
+                    <p className="text-xs sm:text-sm text-[#563727] leading-relaxed">
+                      {project.description}
+                    </p>
+
+                    {/* Tech Badges */}
+                    <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#EBDED2]">
+                      {project.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Footer Close / Details Button */}
+                    <div className="flex items-center justify-between mt-4 pt-2 border-t border-[#EBDED2]">
+                      <button
+                        type="button"
+                        onClick={() => setActivePopupId(null)}
+                        className="text-xs font-bold text-[#7A431D] hover:text-[#372C2E] underline underline-offset-2 transition-colors"
+                      >
+                        Show less
+                      </button>
+                      {project.link && (
+                        <Link
+                          href={project.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1 text-xs font-semibold rounded-md bg-[#372C2E] text-white hover:bg-[#563727] transition-colors flex items-center gap-1"
+                        >
+                          <span>{project.linkLabel || "Details"}</span>
+                          <ExternalLink size={11} />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ================= INTERACTIVE PLAYGROUND SPOTLIGHT ================= */}
+      <section className="relative overflow-hidden rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-[#372C2E] via-[#563727] to-[#7A431D] text-white shadow-xl">
+        <div className="relative z-10 space-y-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#DE9E48]/20 text-[#DE9E48] border border-[#DE9E48]/40 text-xs font-semibold backdrop-blur-xs">
+            <Sparkles size={13} />
+            <span>Interactive Industrial Sandbox</span>
+          </div>
+
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+            Explore My AI Playground & Live Models
+          </h2>
+
+          <p className="text-sm sm:text-base text-[#F5EFEB] max-w-2xl leading-relaxed">
+            Test various AI tools right in the browser
+          </p>
+
+          <div className="pt-2">
+            <Link
+              href="/playground"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#DE9E48] text-[#372C2E] font-extrabold rounded-xl text-sm hover:bg-[#ecc07b] transition-all duration-200 shadow-md group"
+            >
+              <Gamepad2 size={18} className="group-hover:rotate-12 transition-transform" />
+              <span>Launch Playground Page</span>
+              <ArrowUpRight size={16} className="text-[#372C2E] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Skills Section */}
-      <section id="skills" className="max-w-5xl mx-auto mb-12 sm:mb-20">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Experienced Skills</h2>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {skillCategories.map((group, index) => (
-            <div key={index} className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
-              <h3 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">{group.category}</h3>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                {group.skills.map((skill, skillIndex) => (
-                  <div 
-                    key={skillIndex} 
-                    className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-medium rounded-md border border-slate-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-colors"
-                  >
-                    {skill}
-                  </div>
-                ))}
+      {/* ================= HACKATHONS & AWARDS SECTION ================= */}
+      <section id="awards" className="space-y-6">
+        <div className="space-y-1">
+          <div className="inline-block px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] text-xs font-semibold border border-[#DE9E48]/30">
+            Hackathons & Awards
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#372C2E]">
+            I like building & competing
+          </h2>
+          <p className="text-xs sm:text-sm text-[#6E5A52]">
+            Recognition from national and international engineering challenges, hackathons, and symposiums.
+          </p>
+        </div>
+
+        {/* Awards Timeline List */}
+        <div className="space-y-3 pt-2">
+          {awardsData.map((award, index) => (
+            <div
+              key={index}
+              onClick={() => handleOpenModal(award.imageSrc, award.title)}
+              className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-xl border border-[#EBDED2] bg-white hover:border-[#DE9E48] hover:shadow-xs transition-all cursor-pointer gap-2 sm:gap-4"
+            >
+              {/* Left Date / Badge */}
+              <div className="flex items-center gap-2 sm:w-36 shrink-0">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]">
+                  {award.date}
+                </span>
+                {award.badge && (
+                  <span className="sm:hidden text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] border border-[#DE9E48]/30">
+                    {award.badge}
+                  </span>
+                )}
+              </div>
+
+              {/* Title & Organization */}
+              <div className="flex-1">
+                <h3 className="text-xs sm:text-sm font-bold text-[#372C2E] group-hover:text-[#7A431D] transition-colors leading-snug">
+                  {award.title}
+                </h3>
+                <p className="text-[11px] sm:text-xs text-[#6E5A52] mt-0.5">
+                  {award.organization}
+                </p>
+              </div>
+
+              {/* Certificate Action */}
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#7A431D] font-medium group-hover:text-[#DE9E48] shrink-0">
+                <span>View Certificate</span>
+                <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Education Section */}
-      <section id="education" className="max-w-5xl mx-auto mb-12 sm:mb-20">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">My Education</h2>
-        
-        <div className="flex flex-col gap-6">
-          
-          {/* Master's Degree Card */}
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900">Master of Science in Mechatronics Engineering (Research Mode)</h3>
-                <p className="text-sm sm:text-base text-slate-600 font-semibold mt-1">Specialization: Artificial Intelligence</p>
-                <p className="text-sm sm:text-base text-slate-700 mt-1">International Islamic University Malaysia (IIUM)</p>
-              </div>
-              <div className="mt-3 md:mt-0 px-3 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold rounded-md shrink-0 border border-slate-200 self-start">
-                Oct 2021 - Dec 2023
-              </div>
-            </div>
-            
-            <div className="mt-4 sm:mt-6 border-t border-slate-100 pt-4">
-              <h4 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">Paper Publications:</h4>
-              <div className="flex flex-col gap-3">
-                
-                {/* Publication 1 */}
-                <div className="flex items-start sm:items-center gap-3">
-                  <Link 
-                    href="https://pubmed.ncbi.nlm.nih.gov/37346656/" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm mt-0.5 sm:mt-0"
-                  >
-                    <ExternalLink size={18} />
-                  </Link>
-                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                    A review of open-source image analysis tools for mammalian cell culture: algorithms, features, and implementations.
-                  </p>
-                </div>
-
-                {/* Publication 2 */}
-                <div className="flex items-start sm:items-center gap-3">
-                  <button
-                    onClick={() => setShowIEEEPopup(true)}
-                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm mt-0.5 sm:mt-0"
-                  >
-                    <ExternalLink size={18} />
-                  </button>
-                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                    Deploying patch-based segmentation pipeline for fibroblast cell images at varying magnifications.
-                  </p>
-                </div>
-
-                <div className="flex items-start sm:items-center gap-3">
-                  <Link 
-                    href="https://www.tandfonline.com/doi/full/10.1080/23311916.2023.2240087" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
-                  >
-                    <ExternalLink size={18} />
-                  </Link>
-                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                    An automated approach for fibroblast cell confluency characterisation and sample handling using AIoT for bio-research and bio-manufacturing
-                  </p>
-                </div>
-
-                <div className="flex items-start sm:items-center gap-3">
-                  <Link 
-                    href="https://link.springer.com/article/10.1007/s42452-025-07831-3" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
-                  >
-                    <ExternalLink size={18} />
-                  </Link>
-                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                    Advancing coral reef monitoring: a deep learning perspective on automated segmentation and classification
-                  </p>
-                </div>
-
-                <div className="flex items-start sm:items-center gap-3">
-                  <Link 
-                    href="https://link.springer.com/chapter/10.1007/978-981-99-9833-3_9" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="p-1.5 bg-white text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-md transition-colors shrink-0 shadow-sm"
-                  >
-                    <ExternalLink size={18} />
-                  </Link>
-                  <p className="text-sm sm:text-base text-slate-700 font-medium leading-snug">
-                    IIUM Gombak driving cycle for motorcycle
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* ================= CERTIFICATIONS SECTION ================= */}
+      <section id="certifications" className="space-y-6">
+        <div className="space-y-1">
+          <div className="inline-block px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] text-xs font-semibold border border-[#DE9E48]/30">
+            Certifications
           </div>
-
-          {/* IEEE Popup Modal */}
-          {showIEEEPopup && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-              <div className="bg-white p-6 rounded-xl shadow-lg max-w-lg w-full border border-slate-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-lg text-slate-900">IEEE Xplore Publication</h3>
-                  <button 
-                    onClick={() => setShowIEEEPopup(false)}
-                    className="p-1 bg-red-100 text-red-600 hover:bg-red-200 rounded-md transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <p className="text-sm text-slate-600 mb-4">
-                  Due to strict firewall restrictions on IEEE Xplore, direct linking is occasionally blocked. Please copy the URL below to view the publication.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <input 
-                    type="text" 
-                    readOnly 
-                    value={ieeeLink}
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-700 outline-none truncate"
-                  />
-                  <button 
-                    onClick={handleCopy}
-                    className="flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium shrink-0"
-                  >
-                    {copied ? "Copied!" : (
-                      <>
-                        <Copy size={16} /> Copy
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Bachelor's Degree Card */}
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900">Bachelor of Mechatronics Engineering (Honours)</h3>
-                <p className="text-sm sm:text-base text-slate-600 font-semibold mt-1">CGPA: 3.48</p>
-                <p className="text-sm sm:text-base text-slate-700 mt-1">International Islamic University Malaysia (IIUM)</p>
-              </div>
-              <div className="mt-3 md:mt-0 px-3 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold rounded-md shrink-0 border border-slate-200 self-start">
-                Sep 2017 - July 2021
-              </div>
-            </div>
-            
-            <div className="mt-4 sm:mt-6 border-t border-slate-100 pt-4">
-              <h4 className="font-bold text-slate-800 mb-3 text-sm sm:text-base">Subjects Taken:</h4>
-              <div className="flex flex-wrap gap-2">
-                {["Software Engineering", "Intelligent Control", "Real Time Systems", "Digital Signal Processing", "Robotics"].map((subject, idx) => (
-                  <div key={idx} className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-medium rounded-md border border-slate-200">
-                    {subject}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Centered Box Button that disappears once clicked */}
-          {!showMoreEducation && (
-            <div className="flex justify-center">
-              <button 
-                onClick={() => setShowMoreEducation(true)}
-                className="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-2"
-              >
-                More.. <ChevronDown size={16} />
-              </button>
-            </div>
-          )}
-
-          {showMoreEducation && (
-            <>
-              <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">Engineering Programmes (Foundation)</h3>
-                    <p className="text-sm sm:text-base text-slate-600 font-semibold mt-1">CGPA : 3.93</p>
-                    <p className="text-sm sm:text-base text-slate-700 mt-1">Centre for Foundation Studies (IIUM) • Petaling Jaya & Gambang</p>
-                  </div>
-                  <div className="mt-3 md:mt-0 px-3 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold rounded-md shrink-0 border border-slate-200 self-start">
-                    Jun 2016 - May 2017
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">Sijil Pelajaran Malaysia (Aliran Sains Tulen)</h3>
-                    <p className="text-sm sm:text-base text-slate-600 font-semibold mt-1">Result : 9A's 2B's</p>
-                    <p className="text-sm sm:text-base text-slate-700 mt-1">Maktab Mahmud Alor Setar (MMAS) • Alor Setar</p>
-                  </div>
-                  <div className="mt-3 md:mt-0 px-3 py-1 bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold rounded-md shrink-0 border border-slate-200 self-start">
-                    Jan 2014 - Dec 2015
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#372C2E]">
+            Professional Credentials
+          </h2>
         </div>
-      </section>
 
-      {/* Training & Certifications Section */}
-      <section id="certifications" className="max-w-5xl mx-auto mb-12 sm:mb-20">
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Training & Certifications</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           
-          {/* Cert 1 */}
+          {/* Azure AI Engineer */}
           <Link
             href="https://learn.microsoft.com/en-us/users/hafizimalik-4920/credentials/fa9a011f5ecf0c39?ref=https%3A%2F%2Fwww.linkedin.com%2F"
             target="_blank"
             rel="noopener noreferrer"
-            className="group h-full flex flex-col"
+            className="p-5 rounded-xl border border-[#EBDED2] bg-white hover:border-[#DE9E48] hover:shadow-xs transition-all flex flex-col justify-between group"
           >
-            <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow h-full flex flex-col">
-              <div className="flex justify-between items-start mb-1 gap-4">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">Azure AI Engineer Associate (AI-102)</h3>
-                <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
+            <div>
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-sm font-bold text-[#372C2E] group-hover:text-[#7A431D]">
+                  Azure AI Engineer Associate (AI-102)
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] shrink-0 border border-[#DE9E48]/30">2024</span>
               </div>
-              <p className="text-sm sm:text-base text-slate-700 font-medium mb-4">Microsoft</p>
-              <div className="mt-auto border-t border-slate-100 pt-3">
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  <span className="font-bold text-slate-800">Focus Areas:</span> API-Based AI Integration and Cloud AI Workflows
-                </p>
-              </div>
+              <p className="text-xs text-[#7A431D] font-semibold mt-1">Microsoft</p>
+              <p className="text-xs text-[#563727] mt-2">
+                API-Based AI Integration and Cloud AI Workflows
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#EBDED2] flex items-center justify-between text-xs text-[#7A431D] font-semibold group-hover:text-[#DE9E48]">
+              <span>Verify Credential</span>
+              <ExternalLink size={12} />
             </div>
           </Link>
 
-          {/* Cert 2 */}
+          {/* Azure AI Fundamentals */}
           <Link
             href="https://learn.microsoft.com/en-us/users/hafizimalik-4920/credentials/3fb7b32295dc8d1b?ref=https%3A%2F%2Fwww.linkedin.com%2F"
             target="_blank"
             rel="noopener noreferrer"
-            className="group h-full flex flex-col"
+            className="p-5 rounded-xl border border-[#EBDED2] bg-white hover:border-[#DE9E48] hover:shadow-xs transition-all flex flex-col justify-between group"
           >
-            <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-shadow h-full flex flex-col">
-              <div className="flex justify-between items-start mb-1 gap-4">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">Azure AI Fundamentals (AI-900)</h3>
-                <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
+            <div>
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-sm font-bold text-[#372C2E] group-hover:text-[#7A431D]">
+                  Azure AI Fundamentals (AI-900)
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] shrink-0 border border-[#DE9E48]/30">2024</span>
               </div>
-              <p className="text-sm sm:text-base text-slate-700 font-medium mb-4">Microsoft</p>
-              <div className="mt-auto border-t border-slate-100 pt-3">
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                  <span className="font-bold text-slate-800">Focus Areas:</span> Conceptual Knowledge of AI Solutions
-                </p>
-              </div>
+              <p className="text-xs text-[#7A431D] font-semibold mt-1">Microsoft</p>
+              <p className="text-xs text-[#563727] mt-2">
+                Conceptual Knowledge of AI Solutions & Cloud Architecture
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#EBDED2] flex items-center justify-between text-xs text-[#7A431D] font-semibold group-hover:text-[#DE9E48]">
+              <span>Verify Credential</span>
+              <ExternalLink size={12} />
             </div>
           </Link>
 
-          {/* Cert 3 */}
-          <div className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl flex flex-col">
-            <div className="flex justify-between items-start mb-1 gap-4">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">Peneraju Teknologi PLUS AI and Machine Learning</h3>
-              <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2024</span>
-            </div>
-            <p className="text-sm sm:text-base text-slate-700 font-medium mb-4">YPPB-KISMEC</p>
-            <div className="mt-auto border-t border-slate-100 pt-3">
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                <span className="font-bold text-slate-800">Focus Areas:</span> Python, SQL, Azure AI Services, and Power BI
+          {/* Peneraju Teknologi PLUS */}
+          <div className="p-5 rounded-xl border border-[#EBDED2] bg-white flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-sm font-bold text-[#372C2E]">
+                  Peneraju Teknologi PLUS AI & Machine Learning
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] shrink-0 border border-[#DE9E48]/30">2024</span>
+              </div>
+              <p className="text-xs text-[#7A431D] font-semibold mt-1">YPPB - KISMEC</p>
+              <p className="text-xs text-[#563727] mt-2">
+                Python, SQL, Azure AI Services, and Power BI
               </p>
             </div>
           </div>
 
-          {/* Cert 4 */}
-          <div 
-            onClick={() => {
-              setSelectedImage('/cute_certificate.jpg');
-              setSelectedTitle('Deep Learning in Intelligent Video Analytics and Computer Vision');
-            }}
-            className="p-4 sm:p-6 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition-all flex flex-col cursor-pointer group"
+          {/* CUTe IIUM Deep Learning */}
+          <div
+            onClick={() => handleOpenModal('/cute_certificate.jpg', 'Deep Learning in Intelligent Video Analytics and Computer Vision')}
+            className="p-5 rounded-xl border border-[#EBDED2] bg-white hover:border-[#DE9E48] hover:shadow-xs transition-all flex flex-col justify-between cursor-pointer group"
           >
-            <div className="flex justify-between items-start mb-1 gap-4">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
-                Deep Learning in Intelligent Video Analytics and Computer Vision
-              </h3>
-              <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-md shrink-0 border border-slate-200">2023</span>
-            </div>
-            <p className="text-sm sm:text-base text-slate-700 font-medium mb-4">CUTe IIUM</p>
-            <div className="mt-auto border-t border-slate-100 pt-3 flex items-center justify-between">
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                <span className="font-bold text-slate-800">Focus Areas:</span> PyTorch and NVIDIA Jetson
+            <div>
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="text-sm font-bold text-[#372C2E] group-hover:text-[#7A431D]">
+                  Deep Learning in Video Analytics & Computer Vision
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] shrink-0 border border-[#DE9E48]/30">2023</span>
+              </div>
+              <p className="text-xs text-[#7A431D] font-semibold mt-1">CUTe IIUM</p>
+              <p className="text-xs text-[#563727] mt-2">
+                PyTorch and NVIDIA Jetson Deployment
               </p>
-              <span className="text-xs font-semibold text-slate-500 group-hover:underline shrink-0">View Certificate &rarr;</span>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#EBDED2] flex items-center justify-between text-xs text-[#7A431D] font-semibold group-hover:text-[#DE9E48]">
+              <span>View Certificate</span>
+              <ChevronRight size={12} />
             </div>
           </div>
 
         </div>
       </section>
 
-      {/* Certificate Image Modal Viewer */}
-      {selectedImage && (
-        <div 
-          onClick={handleCloseModal}
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()} 
-            className="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl relative flex flex-col max-h-[90vh]"
+      {/* ================= CONTACT SECTION ================= */}
+      <section id="contact" className="space-y-8 pt-4">
+        <div className="text-center space-y-2 max-w-xl mx-auto">
+          <div className="inline-block px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] text-xs font-semibold border border-[#DE9E48]/30">
+            Contact
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#372C2E]">
+            Get in Touch
+          </h2>
+          <p className="text-sm sm:text-base text-[#6E5A52]">
+            Want to discuss an industrial AI project, machine vision opportunity, or collaboration? Reach out directly.
+          </p>
+        </div>
+
+        {/* Quick Contact Links / Badges */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+          
+          {/* Email */}
+          <div className="p-4 rounded-xl border border-[#EBDED2] bg-white flex flex-col justify-between gap-2 shadow-xs">
+            <div className="flex items-center gap-2 text-[#7A431D]">
+              <Mail size={16} className="text-[#DE9E48]" />
+              <span className="text-xs font-bold text-[#372C2E]">Email</span>
+            </div>
+            <button
+              onClick={handleCopyEmail}
+              className="text-left text-xs text-[#563727] truncate hover:text-[#DE9E48] flex items-center justify-between gap-1"
+            >
+              <span className="truncate">{emailAddress}</span>
+              {copiedEmail ? <Check size={13} className="text-[#DE9E48] shrink-0" /> : <Copy size={13} className="shrink-0 text-[#7A431D]" />}
+            </button>
+          </div>
+
+          {/* WhatsApp */}
+          <a
+            href="https://wa.me/60108175109"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-4 rounded-xl border border-[#EBDED2] bg-white hover:border-[#DE9E48] transition-colors flex flex-col justify-between gap-2 shadow-xs"
           >
-            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
-              <h3 className="text-base sm:text-lg font-bold text-slate-800 pr-8 line-clamp-1">
+            <div className="flex items-center gap-2 text-[#7A431D]">
+              <Phone size={16} className="text-[#DE9E48]" />
+              <span className="text-xs font-bold text-[#372C2E]">WhatsApp</span>
+            </div>
+            <span className="text-xs text-[#563727]">+60 10-817 5109</span>
+          </a>
+
+          {/* LinkedIn */}
+          <a
+            href="https://www.linkedin.com/in/hafizi-malik/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-4 rounded-xl border border-[#EBDED2] bg-white hover:border-[#DE9E48] transition-colors flex flex-col justify-between gap-2 shadow-xs"
+          >
+            <div className="flex items-center gap-2 text-[#7A431D]">
+              <svg className="w-4 h-4 fill-[#DE9E48]" viewBox="0 0 24 24">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+              </svg>
+              <span className="text-xs font-bold text-[#372C2E]">LinkedIn</span>
+            </div>
+            <span className="text-xs text-[#563727] truncate">hafizi-malik</span>
+          </a>
+
+          {/* Location */}
+          <div className="p-4 rounded-xl border border-[#EBDED2] bg-white flex flex-col justify-between gap-2 shadow-xs">
+            <div className="flex items-center gap-2 text-[#7A431D]">
+              <MapPin size={16} className="text-[#DE9E48]" />
+              <span className="text-xs font-bold text-[#372C2E]">Location</span>
+            </div>
+            <span className="text-xs text-[#563727]">Selangor, Malaysia</span>
+          </div>
+
+        </div>
+
+        {/* Minimal Clean Contact Form */}
+        <div className="p-6 sm:p-8 rounded-2xl border border-[#EBDED2] bg-[#F9F6F0]">
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Your Name"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-3 rounded-lg border border-[#EBDED2] bg-white text-xs sm:text-sm text-[#372C2E] placeholder-[#A08E87] outline-none focus:ring-2 focus:ring-[#DE9E48] focus:border-[#DE9E48]"
+              />
+              <input
+                type="email"
+                placeholder="Your Email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full px-4 py-3 rounded-lg border border-[#EBDED2] bg-white text-xs sm:text-sm text-[#372C2E] placeholder-[#A08E87] outline-none focus:ring-2 focus:ring-[#DE9E48] focus:border-[#DE9E48]"
+              />
+            </div>
+
+            <input
+              type="tel"
+              placeholder="Your Phone / WhatsApp (Optional)"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full px-4 py-3 rounded-lg border border-[#EBDED2] bg-white text-xs sm:text-sm text-[#372C2E] placeholder-[#A08E87] outline-none focus:ring-2 focus:ring-[#DE9E48] focus:border-[#DE9E48]"
+            />
+
+            <textarea
+              placeholder="Your Message..."
+              rows={4}
+              required
+              value={formData.message}
+              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              className="w-full px-4 py-3 rounded-lg border border-[#EBDED2] bg-white text-xs sm:text-sm text-[#372C2E] placeholder-[#A08E87] outline-none focus:ring-2 focus:ring-[#DE9E48] focus:border-[#DE9E48] resize-none"
+            />
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={formStatus === "loading"}
+                className="w-full sm:w-auto px-7 py-3 rounded-lg bg-[#372C2E] text-white font-bold text-xs sm:text-sm hover:bg-[#563727] transition-colors disabled:opacity-50 shadow-xs"
+              >
+                {formStatus === "loading" ? "Sending..." : "Send Message"}
+              </button>
+
+              {formStatus === "success" && (
+                <p className="text-xs text-[#7A431D] font-bold">
+                  Message sent successfully! I'll reply soon.
+                </p>
+              )}
+              {formStatus === "error" && (
+                <p className="text-xs text-red-600 font-medium">
+                  Failed to send. Please email me at {emailAddress}
+                </p>
+              )}
+            </div>
+          </form>
+        </div>
+      </section>
+
+      {/* ================= LIGHTBOX / IMAGE MODAL ================= */}
+      {selectedImage && (
+        <div
+          onClick={handleCloseModal}
+          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-6 shadow-2xl relative flex flex-col max-h-[90vh] border border-[#EBDED2]"
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-[#EBDED2]">
+              <h3 className="text-sm sm:text-base font-bold text-[#372C2E] truncate pr-6">
                 {selectedTitle}
               </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors"
+                className="p-1.5 text-[#7A431D] hover:text-[#372C2E] rounded-full hover:bg-[#F5EFEB] transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X size={18} />
               </button>
             </div>
 
-            <div className="relative my-4 flex-grow flex items-center justify-center min-h-[250px] sm:min-h-[300px] bg-slate-100 rounded-xl overflow-hidden">
-              <div className="relative w-full h-[300px] sm:h-[400px]">
+            <div className="relative my-4 flex-grow flex items-center justify-center min-h-[250px] sm:min-h-[350px] bg-[#F5EFEB] rounded-xl overflow-hidden">
+              <div className="relative w-full h-[300px] sm:h-[450px]">
                 <Image
                   src={selectedImage}
                   alt={selectedTitle}
                   fill
                   className="object-contain"
-                  sizes="(max-width: 768px) 100vw, 700px"
+                  sizes="(max-width: 1024px) 100vw, 800px"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-1">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors"
+                className="px-5 py-2 bg-[#372C2E] text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-[#563727] transition-colors"
               >
                 Close
               </button>
@@ -490,6 +1195,50 @@ export default function Home() {
         </div>
       )}
 
-    </main>
+      {/* ================= IEEE POPUP MODAL ================= */}
+      {showIEEEPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full border border-[#EBDED2]">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-base text-[#372C2E]">IEEE Xplore Publication</h3>
+              <button
+                onClick={() => setShowIEEEPopup(false)}
+                className="p-1 text-[#7A431D] hover:text-[#372C2E] rounded-md transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <p className="text-xs text-[#563727] mb-4 leading-relaxed">
+              Due to institutional firewall restrictions on IEEE Xplore, direct linking can occasionally be blocked. 
+              Please copy the URL below to view the paper directly:
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                readOnly
+                value={ieeeLink}
+                className="flex-1 bg-[#F5EFEB] border border-[#EBDED2] rounded-lg px-3 py-2 text-xs text-[#372C2E] outline-none truncate"
+              />
+              <button
+                onClick={handleCopyIEEE}
+                className="flex items-center justify-center gap-1.5 bg-[#372C2E] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#563727] transition-colors shrink-0"
+              >
+                {copiedIEEE ? <Check size={14} className="text-[#DE9E48]" /> : <Copy size={14} />}
+                <span>{copiedIEEE ? "Copied" : "Copy"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= FOOTER ================= */}
+      <footer className="pt-12 border-t border-[#EBDED2] text-center text-xs text-[#6E5A52] space-y-1">
+        <p>© {new Date().getFullYear()} Hafizi Malik. Built with Next.js & Tailwind CSS.</p>
+        <p className="text-[11px] text-[#A08E87]">Hafizi Malik Portfolio</p>
+      </footer>
+
+    </div>
   );
 }

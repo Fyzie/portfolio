@@ -1,85 +1,66 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Gamepad2, Sparkles, ArrowLeft } from "lucide-react";
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const isPlayground = pathname === "/playground";
 
   return (
-    <nav className="w-full bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#FDFBF7]/85 border-b border-[#EBDED2] transition-colors">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8 h-14 flex items-center justify-between">
         
-        {/* Logo and Name Container */}
+        {/* Left: Branding & Back Button */}
         <div className="flex items-center gap-3">
-          <img 
-            src="/logo.png" 
-            alt="Logo" 
-            className="h-10 w-10 sm:h-12 sm:w-12 object-contain" 
-          />
-          <div className="text-slate-900 font-bold text-lg sm:text-2xl tracking-tight">Hafizi Malik</div>
+          {isPlayground ? (
+            <Link 
+              href="/" 
+              className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#563727] hover:text-[#DE9E48] transition-colors"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Portfolio</span>
+            </Link>
+          ) : (
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <Image
+                src="/logo.png"
+                alt="HM Logo"
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-full object-cover shadow-xs border border-[#EBDED2] group-hover:border-[#DE9E48] transition-all"
+                priority
+              />
+              <span className="font-bold text-sm sm:text-base tracking-tight text-[#372C2E] group-hover:text-[#DE9E48] transition-colors">
+                Hafizi Malik
+              </span>
+            </Link>
+          )}
         </div>
 
-        {/* Desktop Navigation Links */}
-        <div className="hidden md:flex gap-6 font-medium text-sm text-slate-600">
-          <Link href="/" className="hover:text-blue-600 transition-colors">About Me</Link>
-          <Link href="/projects" className="hover:text-blue-600 transition-colors">Projects</Link>
-          <Link href="/awards" className="hover:text-blue-600 transition-colors">Awards</Link>
-          <Link href="/playground" className="hover:text-blue-600 transition-colors">Playground</Link>
-          <Link href="/contact" className="hover:text-blue-600 transition-colors">Contact Me</Link>
+        {/* Right: Quick Links / Status / Playground CTA */}
+        <div className="flex items-center gap-2 sm:gap-3">
+
+          {/* Playground Shortcut Button */}
+          {!isPlayground ? (
+            <Link
+              href="/playground"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#372C2E] text-white hover:bg-[#DE9E48] hover:text-[#372C2E] text-xs font-semibold shadow-xs transition-all duration-200 group"
+            >
+              <Gamepad2 size={14} className="group-hover:rotate-12 transition-transform" />
+              <span>Playground</span>
+            </Link>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FDF6E9] border border-[#DE9E48]/50 text-xs font-semibold text-[#7A431D]">
+              <Sparkles size={13} className="text-[#DE9E48]" />
+              <span>Interactive Mode</span>
+            </div>
+          )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 text-slate-700 hover:text-blue-600 transition-colors focus:outline-none"
-          aria-label="Toggle Menu"
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
-
-      {/* Mobile Dropdown Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white border-b border-slate-200 px-6 py-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top duration-200">
-          <Link 
-            href="/" 
-            onClick={() => setIsOpen(false)}
-            className="font-medium text-slate-700 hover:text-blue-600 transition-colors py-1"
-          >
-            About Me
-          </Link>
-          <Link 
-            href="/projects" 
-            onClick={() => setIsOpen(false)}
-            className="font-medium text-slate-700 hover:text-blue-600 transition-colors py-1"
-          >
-            Projects
-          </Link>
-          <Link 
-            href="/awards" 
-            onClick={() => setIsOpen(false)}
-            className="font-medium text-slate-700 hover:text-blue-600 transition-colors py-1"
-          >
-            Awards
-          </Link>
-          <Link 
-            href="/playground" 
-            onClick={() => setIsOpen(false)}
-            className="font-medium text-slate-700 hover:text-blue-600 transition-colors py-1"
-          >
-            Playground
-          </Link>
-          <Link 
-            href="/contact" 
-            onClick={() => setIsOpen(false)}
-            className="font-medium text-slate-700 hover:text-blue-600 transition-colors py-1"
-          >
-            Contact Me
-          </Link>
-        </div>
-      )}
-    </nav>
+    </header>
   );
 }

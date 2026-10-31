@@ -4,12 +4,13 @@ import './globals.css';
 import ChatWidget from '@/components/chatwidget';
 import NotificationBanner from '@/components/notificationbanner';
 import Navbar from '@/components/navbar';
+import Dock from '@/components/dock';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Hafizi Malik',
-  description: 'My portfolio',
+  title: 'Hafizi Malik | AI & Mechatronics Engineer',
+  description: 'Portfolio of Hafizi Malik — Artificial Intelligence Engineer & Mechatronics Specialist focusing on industrial machine vision, edge AI deployment, and automated systems.',
 };
 
 export default function RootLayout({
@@ -18,28 +19,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-slate-50 text-slate-900`}>
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.className} min-h-screen bg-[#FDFBF7] text-[#372C2E] antialiased selection:bg-[#FDF6E9] selection:text-[#7A431D]`}>
         
-        {/* CLIENT BANNER COMPONENT */}
-        {/* <NotificationBanner /> */}
-
         {/* RESPONSIVE NAVIGATION BAR */}
         <Navbar />
 
         {/* PAGE CONTENT */}
-        <main>
+        <main className="pb-24 sm:pb-32">
           {children}
         </main>
 
+        {/* FLOATING NAVIGATION DOCK */}
+        <Dock />
+
+        {/* AI CHAT WIDGET */}
         <ChatWidget />
 
       </body>
-
-      {/* GLOBAL FOOTER */}
-      {/* <footer className="w-full bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <p>This portfolio is a personal showcase. Contact form data is used solely for professional communication.</p>
-      </footer> */}
     </html>
   );
 }
