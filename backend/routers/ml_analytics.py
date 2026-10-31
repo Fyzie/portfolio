@@ -117,7 +117,10 @@ async def cv_detect(file: UploadFile = File(...)):
             raise HTTPException(status_code=503, detail=f"Model is waking up from sleep. Please wait ~{int(est_time)}s and try again!")
 
         if response.status_code != 200:
-            raise HTTPException(status_code=500, detail=f"Hugging Face error: {response.text}")
+            if "no remaining credits" in response.text:
+                raise HTTPException(status_code=500, detail=f"Sorry :) I dont have any remaining credits for this playground anymore.")
+            else:
+                raise HTTPException(status_code=500, detail=f"Hugging Face error: {response.text}")
             
         raw_preds = response.json()
         detections = []
