@@ -118,7 +118,7 @@ async def cv_detect(file: UploadFile = File(...)):
 
         if response.status_code != 200:
             if "no remaining credits" in response.text:
-                raise HTTPException(status_code=500, detail=f"Sorry :) I dont have any remaining credits for this playground anymore.")
+                raise HTTPException(status_code=500, detail=f"Sorry :) I dont have any remaining credits for this playground anymore. Please try others. Thanks.")
             else:
                 raise HTTPException(status_code=500, detail=f"Hugging Face error: {response.text}")
             
