@@ -42,6 +42,7 @@ class GarmentRegressRequest(BaseModel):
 
 class DebateRequest(BaseModel):
     topic: str
+    style: str = "Casual"
 
 @router.post("/api/forecast")
 async def generate_forecast(data: ForecastRequest):
@@ -148,19 +149,47 @@ async def debate_endpoint(request: DebateRequest):
     if not topic:
         raise HTTPException(status_code=400, detail="Topic is required.")
         
+    style = (request.style or "Casual").strip().capitalize()
+    if style not in ["Intellectual", "Casual", "Emotional"]:
+        style = "Casual"
+
+    if style == "Intellectual":
+        prompt = (
+            f"Debate topic: '{topic}'\n\n"
+            f"Tone & Style: Intellectual, rigorous, and analytical. Use formal first-principles reasoning, precise engineering/philosophical concepts, and empirical trade-offs. 2-3 sentences each.\n\n"
+            f"Return ONLY a raw JSON object (no markdown fences):\n"
+            f'{{\n'
+            f'  "architect": "Pragmatic Architect analyzing empirical reality, bounded efficiency constraints, and formal systems feasibility.",\n'
+            f'  "evangelist": "Scalability Evangelist rebuttal arguing theoretical paradigm shifts, decoupled modularity, and exponential growth trajectories.",\n'
+            f'  "moderator": "Technical Moderator verdict synthesizing the epistemological trade-offs between empirical constraints and theoretical upside."\n'
+            f'}}'
+        )
+    elif style == "Emotional":
+        prompt = (
+            f"Debate topic: '{topic}'\n\n"
+            f"Tone & Style: Emotional, passionate, and human-centric. Emphasize real human feelings, ethical stakes, burnout, craft dignity, empathy, and psychological impact. 2-3 sentences each.\n\n"
+            f"Return ONLY a raw JSON object (no markdown fences):\n"
+            f'{{\n'
+            f'  "architect": "Pragmatic Architect passionately defending human sanity, craftsmanship, and protecting teams from exhausting complexity.",\n'
+            f'  "evangelist": "Scalability Evangelist fiercely arguing with visionary zeal about human potential, breaking barriers, and daring to build a bolder future.",\n'
+            f'  "moderator": "Technical Moderator empathetic verdict speaking to the heart, balancing human care with inspirational ambition."\n'
+            f'}}'
+        )
+    else:  # Casual
+        prompt = (
+            f"Debate topic: '{topic}'\n\n"
+            f"Tone & Style: Casual conversation in plain layman's terms (like two smart friends chatting over coffee). Use simple everyday analogies (e.g., cars, cooking, tools, sports). 2-3 sentences each.\n\n"
+            f"Return ONLY a raw JSON object (no markdown fences):\n"
+            f'{{\n'
+            f'  "architect": "Pragmatic Architect defending simple, cost-effective solutions for today with a practical everyday example.",\n'
+            f'  "evangelist": "Scalability Evangelist rebuttal pushing for future-proofing and growth with a vivid everyday analogy.",\n'
+            f'  "moderator": "Technical Moderator verdict balancing both sides into a common-sense takeaway."\n'
+            f'}}'
+        )
+
     for model_name in FALLBACK_MODELS:
         try:
             eval_llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
-            prompt = (
-                f"Debate topic: '{topic}'\n\n"
-                f"Tone: Casual conversation in plain layman's terms. Use simple everyday analogies (e.g., cars, cooking, tools). 2-3 sentences each.\n\n"
-                f"Return ONLY a raw JSON object (no markdown fences):\n"
-                f'{{\n'
-                f'  "architect": "Pragmatic Architect defending simple, cost-effective solutions for today with a practical example.",\n'
-                f'  "evangelist": "Scalability Evangelist rebuttal pushing for future-proofing and growth with a vivid analogy.",\n'
-                f'  "moderator": "Technical Moderator verdict balancing both sides into a common-sense takeaway."\n'
-                f'}}'
-            )
             response = await eval_llm.achat([ChatMessage(role=MessageRole.USER, content=prompt)])
             raw_text = str(response).strip()
             
@@ -190,6 +219,7 @@ async def debate_endpoint(request: DebateRequest):
                 return {
                     "status": "success",
                     "model_used": model_name,
+                    "style_used": style,
                     "architect": clean_prefix(architect),
                     "evangelist": clean_prefix(evangelist),
                     "moderator": clean_prefix(moderator)

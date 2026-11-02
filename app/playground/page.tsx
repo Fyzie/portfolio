@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X, Loader2, Send, Bot, User, Scale, Sparkles, Workflow } from 'lucide-react';
+import { Eye, MessageSquare, Database, BarChart3, Settings, Wrench, Activity, RefreshCw, AlertCircle, Cpu, Info, Upload, X, Loader2, Send, Bot, User, Scale, Sparkles, Workflow, ChevronDown } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts';
 import { createClient } from '@supabase/supabase-js';
 
@@ -486,8 +486,9 @@ export default function Playground() {
 
   // Multi-Persona Debater States
   const [debateTopic, setDebateTopic] = useState("Engineers VS Technicians?");
+  const [debateStyle, setDebateStyle] = useState<"Casual" | "Intellectual" | "Emotional">("Casual");
   const [debateLoading, setDebateLoading] = useState(false);
-  const [debateResult, setDebateResult] = useState<{ architect: string; evangelist: string; moderator: string; model_used: string } | null>(null);
+  const [debateResult, setDebateResult] = useState<{ architect: string; evangelist: string; moderator: string; model_used: string; style_used?: string } | null>(null);
   const [debateError, setDebateError] = useState('');
 
   const debatePresets = [
@@ -562,7 +563,7 @@ export default function Playground() {
       const res = await fetch(`${backendUrl}/api/debate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: debateTopic }),
+        body: JSON.stringify({ topic: debateTopic, style: debateStyle }),
       });
 
       if (!res.ok) {
@@ -575,7 +576,8 @@ export default function Playground() {
         architect: data.architect,
         evangelist: data.evangelist,
         moderator: data.moderator,
-        model_used: data.model_used
+        model_used: data.model_used,
+        style_used: data.style_used || debateStyle,
       });
     } catch (err: any) {
       setDebateError(err.message || "Error running AI debate simulation.");
@@ -1107,14 +1109,36 @@ export default function Playground() {
             {/* NLP / GEN AI TAB - MULTI-PERSONA AI DEBATER SIMULATOR */}
             {activeTab === 'nlp' && (
               <div className="flex-1 flex flex-col gap-6 animate-in fade-in duration-500">
-                <div className="bg-[#F9F6F0] p-4 sm:p-5 rounded-xl border border-[#EBDED2]">
-                  <h3 className="text-lg sm:text-xl font-bold text-[#372C2E] flex items-center gap-2">
-                    <MessageSquare size={20} className="text-[#DE9E48] shrink-0" />
-                    Multi-Persona AI Debater Simulator
-                  </h3>
-                  <p className="text-xs text-[#7A431D] mt-1">
-                    Select a suggested topic below or write your own custom motion. Two AI agents with opposing engineering philosophies will debate live.
-                  </p>
+                <div className="bg-[#F9F6F0] p-4 sm:p-5 rounded-xl border border-[#EBDED2] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-[#372C2E] flex items-center gap-2">
+                      <MessageSquare size={20} className="text-[#DE9E48] shrink-0" />
+                      Multi-Persona AI Debater Simulator
+                    </h3>
+                    <p className="text-xs text-[#7A431D] mt-1">
+                      Select a suggested topic below or write your own custom motion. Two AI agents with opposing engineering philosophies will debate live.
+                    </p>
+                  </div>
+
+                  {/* Debate Tone Mode Dropdown (Intellectual, Casual, Emotional) */}
+                  <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto bg-white px-3.5 py-2 rounded-xl border border-[#DE9E48]/50 shadow-2xs hover:border-[#DE9E48] transition-colors">
+                    <span className="text-xs font-bold text-[#6E5A52] whitespace-nowrap">
+                      Tone:
+                    </span>
+                    <div className="relative flex items-center">
+                      <select
+                        aria-label="Debate tone mode"
+                        value={debateStyle}
+                        onChange={(e) => setDebateStyle(e.target.value as "Casual" | "Intellectual" | "Emotional")}
+                        className="appearance-none bg-transparent text-[#372C2E] text-xs font-extrabold pr-6 py-0.5 focus:outline-hidden cursor-pointer"
+                      >
+                        <option value="Casual">Casual</option>
+                        <option value="Intellectual">Intellectual</option>
+                        <option value="Emotional">Emotional</option>
+                      </select>
+                      <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#7A431D] pointer-events-none" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Clickable Preset Topic Cards */}
@@ -1231,7 +1255,9 @@ export default function Playground() {
                           </div>
                           <div>
                             <h4 className="font-bold text-white text-xs sm:text-sm">Technical Moderator Verdict</h4>
-                            <p className="text-[10px] text-[#A08E87] font-mono">Model executed: {debateResult.model_used}</p>
+                            <p className="text-[10px] text-[#A08E87] font-mono">
+                              Model: {debateResult.model_used} • Tone: {debateResult.style_used || debateStyle}
+                            </p>
                           </div>
                         </div>
                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans pl-10">
