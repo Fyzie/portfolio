@@ -152,17 +152,13 @@ async def debate_endpoint(request: DebateRequest):
         try:
             eval_llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
             prompt = (
-                f"Simulate a lively, friendly debate on the topic: '{topic}'.\n\n"
-                f"CRITICAL STYLE GUIDELINES:\n"
-                f"- Speak in casual, conversational, and approachable everyday language (like two smart friends chatting over coffee).\n"
-                f"- Strictly use plain layman's terms. Avoid dry academic or dense technical jargon.\n"
-                f"- Anchor arguments with simple, relatable real-world examples or analogies (e.g., cooking in a kitchen, driving cars, shopping, sports, or building with Legos).\n"
-                f"- Keep each response punchy and natural (around 2 to 3 sentences).\n\n"
-                f"Return ONLY a valid JSON object matching this schema (do NOT use markdown fences or extra commentary):\n"
+                f"Debate topic: '{topic}'\n\n"
+                f"Tone: Casual conversation in plain layman's terms. Use simple everyday analogies (e.g., cars, cooking, tools). 2-3 sentences each.\n\n"
+                f"Return ONLY a raw JSON object (no markdown fences):\n"
                 f'{{\n'
-                f'  "architect": "Pragmatic Architect: Argue for practical simplicity and keeping things easy/cost-effective right now. Include a relatable everyday analogy or example. No role prefix.",\n'
-                f'  "evangelist": "Scalability Evangelist: Rebut arguing for future growth, flexibility, and thinking bigger. Include a punchy everyday example or analogy. No role prefix.",\n'
-                f'  "moderator": "Technical Moderator: Friendly, plain-English summary finding the common-sense middle ground with a clear takeaway. No role prefix."\n'
+                f'  "architect": "Pragmatic Architect defending simple, cost-effective solutions for today with a practical example.",\n'
+                f'  "evangelist": "Scalability Evangelist rebuttal pushing for future-proofing and growth with a vivid analogy.",\n'
+                f'  "moderator": "Technical Moderator verdict balancing both sides into a common-sense takeaway."\n'
                 f'}}'
             )
             response = await eval_llm.achat([ChatMessage(role=MessageRole.USER, content=prompt)])
