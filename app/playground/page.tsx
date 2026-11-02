@@ -1115,30 +1115,20 @@ export default function Playground() {
                       <MessageSquare size={20} className="text-[#DE9E48] shrink-0" />
                       Multi-Persona AI Debater Simulator
                     </h3>
-                    <p className="text-xs text-[#7A431D] mt-1">
+                    <p className="text-xs text-[#7A431D] mt-1 max-w-xl">
                       Select a suggested topic below or write your own custom motion. Two AI agents with opposing engineering philosophies will debate live.
                     </p>
                   </div>
-
-                  {/* Debate Tone Mode Dropdown (Intellectual, Casual, Emotional) */}
-                  <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto bg-white px-3.5 py-2 rounded-xl border border-[#DE9E48]/50 shadow-2xs hover:border-[#DE9E48] transition-colors">
-                    <span className="text-xs font-bold text-[#6E5A52] whitespace-nowrap">
-                      Tone:
-                    </span>
-                    <div className="relative flex items-center">
-                      <select
-                        aria-label="Debate tone mode"
-                        value={debateStyle}
-                        onChange={(e) => setDebateStyle(e.target.value as "Casual" | "Intellectual" | "Emotional")}
-                        className="appearance-none bg-transparent text-[#372C2E] text-xs font-extrabold pr-6 py-0.5 focus:outline-hidden cursor-pointer"
-                      >
-                        <option value="Casual">Casual</option>
-                        <option value="Intellectual">Intellectual</option>
-                        <option value="Emotional">Emotional</option>
-                      </select>
-                      <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#7A431D] pointer-events-none" />
-                    </div>
-                  </div>
+                    <select
+                      aria-label="Debate tone mode"
+                      value={debateStyle}
+                      onChange={(e) => setDebateStyle(e.target.value as "Casual" | "Intellectual" | "Emotional")}
+                      className="w-full md:w-auto px-4 py-2.5 sm:py-3 bg-white border border-[#EBDED2] rounded-lg outline-none focus:ring-2 focus:ring-[#DE9E48] text-[#372C2E] font-medium text-xs sm:text-sm cursor-pointer"
+                    >
+                      <option value="Casual">Casual</option>
+                      <option value="Intellectual">Intellectual</option>
+                      <option value="Emotional">Emotional</option>
+                    </select>
                 </div>
 
                 {/* Clickable Preset Topic Cards */}
