@@ -1,5 +1,7 @@
 import os
+import re
 import cv2
+import json
 import httpx
 import joblib
 import numpy as np
@@ -149,19 +151,52 @@ async def debate_endpoint(request: DebateRequest):
     for model_name in FALLBACK_MODELS:
         try:
             eval_llm = GoogleGenAI(model=model_name, api_key=os.getenv("GOOGLE_API_KEY"))
-            arch_res = await eval_llm.achat([ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Argue from the perspective of The Pragmatic Architect. Keep short (max 2 sentences). No prefixes.")])
-            evang_res = await eval_llm.achat([ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. The Architect argued: '{str(arch_res)}'. Rebut from the perspective of The Scalability Evangelist. Keep short. No prefixes.")])
-            mod_res = await eval_llm.achat([ChatMessage(role=MessageRole.USER, content=f"Topic: '{topic}'. Architect: '{str(arch_res)}'. Evangelist: '{str(evang_res)}'. Provide a concise moderator summary in max 2 sentences. No prefixes.")])
+            prompt = (
+                f"Simulate a concise technical debate on the topic: '{topic}'.\n\n"
+                f"Provide 3 perspectives and return ONLY a valid JSON object matching this schema (do NOT use markdown fences or extra commentary):\n"
+                f'{{\n'
+                f'  "architect": "Pragmatic Architect perspective (practical, realistic engineering trade-offs). Max 2 sentences. No prefix.",\n'
+                f'  "evangelist": "Scalability Evangelist rebuttal (future-proofing, high scale, decoupling). Max 2 sentences. No prefix.",\n'
+                f'  "moderator": "Technical Moderator verdict balancing both sides. Max 2 sentences. No prefix."\n'
+                f'}}'
+            )
+            response = await eval_llm.achat([ChatMessage(role=MessageRole.USER, content=prompt)])
+            raw_text = str(response).strip()
             
-            def clean(obj):
-                return re.sub(r'^(assistant|model|user|system):\s*', '', str(obj).strip(), flags=re.IGNORECASE).strip()
+            # Clean possible markdown block markers
+            clean_text = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.MULTILINE)
+            clean_text = re.sub(r"\s*```$", "", clean_text, flags=re.MULTILINE).strip()
+            
+            architect, evangelist, moderator = "", "", ""
+            try:
+                data = json.loads(clean_text)
+                architect = data.get("architect", "").strip()
+                evangelist = data.get("evangelist", "").strip()
+                moderator = data.get("moderator", "").strip()
+            except Exception:
+                arch_match = re.search(r'"architect"\s*:\s*"([^"]+)"', raw_text)
+                evang_match = re.search(r'"evangelist"\s*:\s*"([^"]+)"', raw_text)
+                mod_match = re.search(r'"moderator"\s*:\s*"([^"]+)"', raw_text)
+                if arch_match and evang_match and mod_match:
+                    architect = arch_match.group(1).strip()
+                    evangelist = evang_match.group(1).strip()
+                    moderator = mod_match.group(1).strip()
 
-            return {
-                "status": "success", "model_used": model_name,
-                "architect": clean(arch_res), "evangelist": clean(evang_res), "moderator": clean(mod_res)
-            }
-        except Exception:
+            def clean_prefix(s):
+                return re.sub(r'^(architect|evangelist|moderator|assistant|model|user|system):\s*', '', s.strip(), flags=re.IGNORECASE).strip()
+
+            if architect and evangelist and moderator:
+                return {
+                    "status": "success",
+                    "model_used": model_name,
+                    "architect": clean_prefix(architect),
+                    "evangelist": clean_prefix(evangelist),
+                    "moderator": clean_prefix(moderator)
+                }
+        except Exception as e:
+            print(f"Debate attempt on {model_name} failed: {e}")
             continue
+            
     raise HTTPException(status_code=429, detail="Debate model quotas exhausted.")
 
 @router.get("/api/get-history")
