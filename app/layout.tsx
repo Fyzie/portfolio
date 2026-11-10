@@ -11,6 +11,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Hafizi Malik | AI & Mechatronics Engineer',
   description: 'Portfolio of Hafizi Malik — Artificial Intelligence Engineer & Mechatronics Specialist focusing on industrial machine vision, edge AI deployment, and automated systems.',
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
