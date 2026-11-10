@@ -74,7 +74,18 @@ const projectsData: ProjectItem[] = [
     description: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
     shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
     images: ["/lens_image.png"],
-    tags: ["NVIDIA Jetson", "Basler", "TCP/UDP"],
+    tags: ["NVIDIA Jetson", "Basler", "PyTorch", "PySide6", "TCP/UDP", "Defect Detection"],
+  },
+  {
+    id: "powercable-inspection",
+    title: "Automated Power Cable Inspection",
+    dates: "2026",
+    category: "Machine Vision",
+    projectType: "Professional",
+    description: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store the corresponding timestamp and overlap-width data for quality monitoring, historical tracking, and process analysis.",
+    shortDescription: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store",
+    images: ["/powercable_image.jpg"],
+    tags: ["NVIDIA Jetson", "Basler", "PyTorch", "PySide6", "Dimension Measurement"],
   },
   {
     id: "cell-growth",
@@ -121,8 +132,8 @@ const projectsData: ProjectItem[] = [
     projectType: "Personal",
     description: "An intelligent Retrieval-Augmented Generation (RAG) assistant designed for industrial shop floors. It indexes standard operating procedures (SOPs) and equipment manuals, allowing maintenance crews to instantly query technical documentation, verify fault codes, and retrieve step-by-step resolution procedures.",
     shortDescription: "An AI assistant that helps factory personnel quickly query and retrieve guidance from equipment SOPs and technical manuals using vector",
-    images: ["/rag_system.svg"],
-    tags: ["RAG", "Vector Search", "Gemini 2.5", "Supabase Storage", "FastAPI"],
+    images: ["/rag_system.png"],
+    tags: ["RAG", "Qdrant", "Google AI Studio"],
     playgroundTab: "rag",
     link: "/playground?tab=rag",
     linkLabel: "Try Me ->",
@@ -136,8 +147,8 @@ const projectsData: ProjectItem[] = [
     projectType: "Personal",
     description: "Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP). Diagnoses machinery breakdowns, verifies spare parts availability, updates stock, and generates automated work order dispatches.",
     shortDescription: "Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP) to troubleshoot faults and dispatch",
-    images: ["/agentic_ai.svg"],
-    tags: ["Agentic AI", "MCP Tools", "Function Calling", "Supabase ERP", "Gemini AI"],
+    images: ["/agentic_ai.png"],
+    tags: ["Agentic AI", "Qdrant", "Google AI Studio", "Supabase ERP"],
     playgroundTab: "agentic",
     link: "/playground?tab=agentic",
     linkLabel: "Try Me ->",
@@ -705,9 +716,9 @@ export default function Home() {
           <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#372C2E]">
             Check out my work
           </h2>
-          <p className="text-sm sm:text-base text-[#6E5A52]">
+          {/* <p className="text-sm sm:text-base text-[#6E5A52]">
             I've built end-to-end industrial machine vision inspection systems, AIoT robotics, edge intelligence devices, and data modeling pipelines.
-          </p>
+          </p> */}
         </div>
 
         {/* Project Type Filter Tabs (Professional, Academic, Personal) */}
@@ -884,16 +895,6 @@ export default function Home() {
                               </Link>
                             ) : null}
 
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActivePopupId(activePopupId === project.id ? null : project.id);
-                              }}
-                              className="text-[#7A431D] hover:text-[#372C2E] text-xs font-semibold underline underline-offset-2 transition-colors cursor-pointer ml-auto"
-                            >
-                              Full Details
-                            </button>
                           </div>
                         )}
                       </div>
