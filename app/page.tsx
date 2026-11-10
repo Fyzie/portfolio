@@ -17,7 +17,10 @@ import {
   Sparkles,
   ArrowUpRight,
   Eye,
-  ChevronRight
+  ChevronRight,
+  Briefcase,
+  GraduationCap,
+  ArrowRight
 } from "lucide-react";
 import Toolbox from "@/components/toolbox";
 
@@ -43,17 +46,22 @@ const allSkills = [
 ];
 
 // Projects Data
+type ProjectType = "Professional" | "Academic" | "Personal";
+
 interface ProjectItem {
   id: string;
   title: string;
   dates: string;
   category: string;
+  projectType: ProjectType;
   description: string;
   shortDescription?: string;
   images: string[];
   tags: string[];
   link?: string;
   linkLabel?: string;
+  playgroundTab?: string;
+  highlight?: boolean;
 }
 
 const projectsData: ProjectItem[] = [
@@ -62,6 +70,7 @@ const projectsData: ProjectItem[] = [
     title: "Automated Lens Inspection",
     dates: "2024",
     category: "Machine Vision",
+    projectType: "Professional",
     description: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
     shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
     images: ["/lens_image.png"],
@@ -72,6 +81,7 @@ const projectsData: ProjectItem[] = [
     title: "Cell Growth Monitoring",
     dates: "2023",
     category: "AIoT & Robotics",
+    projectType: "Academic",
     description: "A closed-loop robotic handler for automated cell culturing. The architecture utilizes UNet-based confluency segmentation optimized with OpenVINO on a Raspberry Pi for real-time feedback with Firebase mobile authorization.",
     shortDescription: "A closed-loop robotic handler for automated cell culturing. The architecture utilizes UNet-based confluency segmentation optimized with OpenVINO on a Raspberry Pi for real-time",
     images: ["/cell_image.png", "/cell_image_2.png", "/cell_image_3.png"],
@@ -84,6 +94,7 @@ const projectsData: ProjectItem[] = [
     title: "Wearable Geofencing Tracker",
     dates: "2022",
     category: "IoT",
+    projectType: "Academic",
     description: "A GPS-enabled wearable device for geofencing, enabling location monitoring and boundary violation reporting through a LoRa-based server.",
     shortDescription: "A GPS-enabled wearable device for geofencing, enabling location monitoring and boundary violation reporting through",
     images: ["/tracker.png"],
@@ -94,12 +105,43 @@ const projectsData: ProjectItem[] = [
     title: "Driving Cycle Analysis",
     dates: "2021",
     category: "Machine Learning",
+    projectType: "Academic",
     description: "A localized driving cycle within Gombak district for electric motorcycles to analyze battery usage patterns using K-Means and Markov Chain methods.",
     shortDescription: "A localized driving cycle within Gombak district for electric motorcycles to analyze battery usage patterns using",
     images: ["/dc.png"],
     tags: ["K-Means", "Markov Chain", "GPS", "Matlab"],
     link: "https://link.springer.com/chapter/10.1007/978-981-99-9833-3_9",
     linkLabel: "Springer Chapter"
+  },
+  {
+    id: "rag-factory-assistant",
+    title: "Factory SOP & Manual Assistant",
+    dates: "2025",
+    category: "RAG Systems",
+    projectType: "Personal",
+    description: "An intelligent Retrieval-Augmented Generation (RAG) assistant designed for industrial shop floors. It indexes standard operating procedures (SOPs) and equipment manuals, allowing maintenance crews to instantly query technical documentation, verify fault codes, and retrieve step-by-step resolution procedures.",
+    shortDescription: "An AI assistant that helps factory personnel quickly query and retrieve guidance from equipment SOPs and technical manuals using vector",
+    images: ["/rag_system.svg"],
+    tags: ["RAG", "Vector Search", "Gemini 2.5", "Supabase Storage", "FastAPI"],
+    playgroundTab: "rag",
+    link: "/playground?tab=rag",
+    linkLabel: "Try Me ->",
+    highlight: true
+  },
+  {
+    id: "agentic-maintenance-dispatcher",
+    title: "Autonomous Maintenance Dispatch Agent",
+    dates: "2025",
+    category: "Agentic AI",
+    projectType: "Personal",
+    description: "Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP). Diagnoses machinery breakdowns, verifies spare parts availability, updates stock, and generates automated work order dispatches.",
+    shortDescription: "Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP) to troubleshoot faults and dispatch",
+    images: ["/agentic_ai.svg"],
+    tags: ["Agentic AI", "MCP Tools", "Function Calling", "Supabase ERP", "Gemini AI"],
+    playgroundTab: "agentic",
+    link: "/playground?tab=agentic",
+    linkLabel: "Try Me ->",
+    highlight: true
   },
 ];
 
@@ -188,6 +230,15 @@ export default function Home() {
   const [showMoreEducation, setShowMoreEducation] = useState(false);
   const [activePopupId, setActivePopupId] = useState<string | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
+
+  // Project Type Tab Filter State ("Professional" | "Academic" | "Personal")
+  const [activeProjectTab, setActiveProjectTab] = useState<ProjectType>("Professional");
+
+  const projectTabs = [
+    { id: "Professional" as const, label: "Professional", icon: Briefcase, count: projectsData.filter(p => p.projectType === "Professional").length },
+    { id: "Academic" as const, label: "Academic", icon: GraduationCap, count: projectsData.filter(p => p.projectType === "Academic").length },
+    { id: "Personal" as const, label: "Personal", icon: Sparkles, count: projectsData.filter(p => p.projectType === "Personal").length },
+  ];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -659,170 +710,290 @@ export default function Home() {
           </p>
         </div>
 
-        {/* 2-Column Responsive Card Grid (Magic UI Style) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-          {projectsData.map((project, index) => {
-            const isLeftColumn = index % 2 === 0;
-            return (
-              <div
-                key={project.id}
-                className={`group relative flex flex-col rounded-2xl border border-[#EBDED2] bg-white hover:shadow-lg hover:border-[#DE9E48] transition-all duration-300 ${
-                  activePopupId === project.id ? "z-30" : "z-0"
-                }`}
-              >
-                {/* Image Preview Banner */}
-                <div 
-                  className="relative aspect-video w-full bg-[#F5EFEB] overflow-hidden rounded-t-2xl cursor-pointer"
-                  onClick={() => handleOpenModal(project.images[0], project.title)}
+        {/* Project Type Filter Tabs (Professional, Academic, Personal) */}
+        <div className="flex justify-center pt-1 pb-1">
+          <div 
+            role="tablist"
+            aria-label="Project Categories"
+            className="inline-flex items-center p-1.5 rounded-2xl bg-[#F5EFEB] border border-[#EBDED2] shadow-xs gap-1 sm:gap-1.5"
+          >
+            {projectTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeProjectTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => {
+                    setActiveProjectTab(tab.id);
+                    setActivePopupId(null);
+                  }}
+                  className={`relative flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-white text-[#372C2E] shadow-sm border border-[#EBDED2] font-bold"
+                      : "text-[#6E5A52] hover:text-[#372C2E] hover:bg-white/60"
+                  }`}
                 >
-                  <Image
-                    src={project.images[0]}
-                    alt={project.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 550px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-[#372C2E]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="px-3.5 py-1.5 rounded-full bg-[#372C2E]/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs">
-                      <Eye size={13} /> View Image
-                    </span>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs text-[#6E5A52]">
-                      <span className="font-bold text-[#DE9E48] uppercase tracking-wider">{project.category}</span>
-                      <span className="font-medium">{project.dates}</span>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-[#372C2E] group-hover:text-[#7A431D] transition-colors">
-                      {project.title}
-                    </h3>
-
-                    {/* Truncated Sentence with "Show More" Button */}
-                    <p className="text-xs sm:text-sm text-[#563727] leading-relaxed">
-                      {project.shortDescription ? (
-                        <>
-                          <span>{project.shortDescription}... </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActivePopupId(activePopupId === project.id ? null : project.id);
-                            }}
-                            className="text-[#DE9E48] hover:text-[#7A431D] font-bold text-xs underline underline-offset-2 transition-colors cursor-pointer inline-flex items-center gap-0.5 ml-0.5"
-                          >
-                            Show More
-                          </button>
-                        </>
-                      ) : (
-                        project.description
-                      )}
-                    </p>
-                  </div>
-
-                  {/* Tech Stack Badges */}
-                  <div className="space-y-3 pt-2">
-                    <div className="flex flex-wrap gap-1.5">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Direction-Aware Full Paragraph Flyout Popup */}
-                {activePopupId === project.id && (
-                  <div
-                    ref={popupRef}
-                    onClick={(e) => e.stopPropagation()}
-                    className={`absolute z-50 p-5 sm:p-6 rounded-2xl bg-white/95 backdrop-blur-md border-2 border-[#DE9E48]/70 shadow-2xl transition-all duration-300 text-left animate-in fade-in zoom-in-95 ${
-                      isLeftColumn
-                        ? "xl:left-auto xl:right-[calc(100%+16px)] xl:top-0 xl:w-80 2xl:w-96 inset-x-2 top-2"
-                        : "xl:left-[calc(100%+16px)] xl:right-auto xl:top-0 xl:w-80 2xl:w-96 inset-x-2 top-2"
+                  <Icon size={15} className={isActive ? "text-[#DE9E48]" : "text-[#A08E87]"} />
+                  <span>{tab.label}</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none transition-colors ${
+                      isActive
+                        ? "bg-[#FDF6E9] text-[#7A431D] border border-[#DE9E48]/40"
+                        : "bg-[#EBDED2]/60 text-[#6E5A52]"
                     }`}
                   >
-                    {/* Directional Arrow Notch on Wide Screens */}
-                    {isLeftColumn ? (
-                      <div className="hidden xl:block absolute top-12 -right-3 w-0 h-0 border-y-8 border-y-transparent border-l-10 border-l-[#DE9E48]" />
-                    ) : (
-                      <div className="hidden xl:block absolute top-12 -left-3 w-0 h-0 border-y-8 border-y-transparent border-r-10 border-r-[#DE9E48]" />
-                    )}
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-                    {/* Popup Header */}
-                    <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#EBDED2]">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-[#DE9E48] uppercase tracking-wider">
-                          {project.category}
-                        </span>
-                        <span className="text-xs text-[#6E5A52]">• {project.dates}</span>
+        {/* Responsive Card Grid */}
+        {(() => {
+          const filteredProjects = projectsData.filter((p) => p.projectType === activeProjectTab);
+          return (
+            <div
+              className={`grid gap-6 pt-2 animate-in fade-in duration-300 ${
+                filteredProjects.length === 1
+                  ? "grid-cols-1 md:max-w-xl md:mx-auto w-full"
+                  : "grid-cols-1 md:grid-cols-2"
+              }`}
+            >
+              {filteredProjects.map((project, index) => {
+                const isLeftColumn = filteredProjects.length === 1 ? false : index % 2 === 0;
+                return (
+                  <div
+                    key={project.id}
+                    className={`group relative flex flex-col rounded-2xl border transition-all duration-300 ${
+                      project.highlight
+                        ? "border-[#DE9E48]/60 bg-gradient-to-b from-white via-white to-[#FDFBF7] ring-1 ring-[#DE9E48]/30 shadow-md hover:shadow-xl hover:border-[#DE9E48]"
+                        : "border-[#EBDED2] bg-white hover:shadow-lg hover:border-[#DE9E48]"
+                    } ${
+                      activePopupId === project.id ? "z-30" : "z-0"
+                    }`}
+                  >
+                    {/* Image Preview Banner */}
+                    <div 
+                      className="relative aspect-video w-full bg-[#F5EFEB] overflow-hidden rounded-t-2xl cursor-pointer"
+                      onClick={() => handleOpenModal(project.images[0], project.title)}
+                    >
+                      <Image
+                        src={project.images[0]}
+                        alt={project.title}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 550px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-[#372C2E]/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {project.playgroundTab ? (
+                          <Link
+                            href={`/playground?tab=${project.playgroundTab}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-3.5 py-1.5 rounded-full bg-[#DE9E48] text-[#372C2E] text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-white transition-colors cursor-pointer"
+                          >
+                            <Gamepad2 size={13} /> Try in Playground &rarr;
+                          </Link>
+                        ) : (
+                          <span className="px-3.5 py-1.5 rounded-full bg-[#372C2E]/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs">
+                            <Eye size={13} /> View Image
+                          </span>
+                        )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setActivePopupId(null)}
-                        className="p-1 rounded-md text-[#7A431D] hover:text-[#372C2E] hover:bg-[#F5EFEB] transition-colors"
-                        title="Close popup"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
 
-                    {/* Project Title */}
-                    <h4 className="font-bold text-base sm:text-lg text-[#372C2E] mb-2 leading-snug">
-                      {project.title}
-                    </h4>
-
-                    {/* Full Paragraph */}
-                    <p className="text-xs sm:text-sm text-[#563727] leading-relaxed">
-                      {project.description}
-                    </p>
-
-                    {/* Tech Badges */}
-                    <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#EBDED2]">
-                      {project.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Footer Close / Details Button */}
-                    <div className="flex items-center justify-between mt-4 pt-2 border-t border-[#EBDED2]">
-                      <button
-                        type="button"
-                        onClick={() => setActivePopupId(null)}
-                        className="text-xs font-bold text-[#7A431D] hover:text-[#372C2E] underline underline-offset-2 transition-colors"
-                      >
-                        Show less
-                      </button>
-                      {project.link && (
-                        <Link
-                          href={project.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1 text-xs font-semibold rounded-md bg-[#372C2E] text-white hover:bg-[#563727] transition-colors flex items-center gap-1"
-                        >
-                          <span>{project.linkLabel || "Details"}</span>
-                          <ExternalLink size={11} />
-                        </Link>
+                      {/* Highlight Badge for Personal Projects */}
+                      {project.highlight && (
+                        <div className="absolute top-3 right-3 z-10 pointer-events-none">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#372C2E]/85 text-[#DE9E48] border border-[#DE9E48]/50 shadow-md backdrop-blur-xs flex items-center gap-1">
+                            <Sparkles size={11} className="text-[#DE9E48]" /> AI Playground
+                          </span>
+                        </div>
                       )}
                     </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs text-[#6E5A52]">
+                          <span className="font-bold text-[#DE9E48] uppercase tracking-wider">{project.category}</span>
+                          <span className="font-medium">{project.dates}</span>
+                        </div>
+
+                        <h3 className="text-lg font-bold text-[#372C2E] group-hover:text-[#7A431D] transition-colors">
+                          {project.title}
+                        </h3>
+
+                        {/* Truncated Sentence with "Show More" Button */}
+                        <p className="text-xs sm:text-sm text-[#563727] leading-relaxed">
+                          {project.shortDescription ? (
+                            <>
+                              <span>{project.shortDescription}... </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActivePopupId(activePopupId === project.id ? null : project.id);
+                                }}
+                                className="text-[#DE9E48] hover:text-[#7A431D] font-bold text-xs underline underline-offset-2 transition-colors cursor-pointer inline-flex items-center gap-0.5 ml-0.5"
+                              >
+                                Show More
+                              </button>
+                            </>
+                          ) : (
+                            project.description
+                          )}
+                        </p>
+                      </div>
+
+                      {/* Tech Stack Badges and Action Footer */}
+                      <div className="space-y-3 pt-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          {project.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Action Row */}
+                        {(project.playgroundTab || project.link) && (
+                          <div className="pt-2.5 border-t border-[#EBDED2] flex items-center justify-between">
+                            {project.playgroundTab ? (
+                              <Link
+                                href={`/playground?tab=${project.playgroundTab}`}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#DE9E48] text-[#372C2E] hover:bg-[#c88b3b] font-bold text-xs shadow-xs hover:shadow-md transition-all group/btn cursor-pointer"
+                              >
+                                <span>Try Me</span>
+                                <ArrowRight size={13} className="transition-transform group-hover/btn:translate-x-1" />
+                              </Link>
+                            ) : project.link ? (
+                              <Link
+                                href={project.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#372C2E] text-white hover:bg-[#563727] transition-colors"
+                              >
+                                <span>{project.linkLabel || "Details"}</span>
+                                <ExternalLink size={11} />
+                              </Link>
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActivePopupId(activePopupId === project.id ? null : project.id);
+                              }}
+                              className="text-[#7A431D] hover:text-[#372C2E] text-xs font-semibold underline underline-offset-2 transition-colors cursor-pointer ml-auto"
+                            >
+                              Full Details
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Direction-Aware Full Paragraph Flyout Popup */}
+                    {activePopupId === project.id && (
+                      <div
+                        ref={popupRef}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`absolute z-50 p-5 sm:p-6 rounded-2xl bg-white/95 backdrop-blur-md border-2 border-[#DE9E48]/70 shadow-2xl transition-all duration-300 text-left animate-in fade-in zoom-in-95 ${
+                          isLeftColumn
+                            ? "xl:left-auto xl:right-[calc(100%+16px)] xl:top-0 xl:w-80 2xl:w-96 inset-x-2 top-2"
+                            : "xl:left-[calc(100%+16px)] xl:right-auto xl:top-0 xl:w-80 2xl:w-96 inset-x-2 top-2"
+                        }`}
+                      >
+                        {/* Directional Arrow Notch on Wide Screens */}
+                        {isLeftColumn ? (
+                          <div className="hidden xl:block absolute top-12 -right-3 w-0 h-0 border-y-8 border-y-transparent border-l-10 border-l-[#DE9E48]" />
+                        ) : (
+                          <div className="hidden xl:block absolute top-12 -left-3 w-0 h-0 border-y-8 border-y-transparent border-r-10 border-r-[#DE9E48]" />
+                        )}
+
+                        {/* Popup Header */}
+                        <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#EBDED2]">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold text-[#DE9E48] uppercase tracking-wider">
+                              {project.category}
+                            </span>
+                            <span className="text-xs text-[#6E5A52]">• {project.dates}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setActivePopupId(null)}
+                            className="p-1 rounded-md text-[#7A431D] hover:text-[#372C2E] hover:bg-[#F5EFEB] transition-colors cursor-pointer"
+                            title="Close popup"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+
+                        {/* Project Title */}
+                        <h4 className="font-bold text-base sm:text-lg text-[#372C2E] mb-2 leading-snug">
+                          {project.title}
+                        </h4>
+
+                        {/* Full Paragraph */}
+                        <p className="text-xs sm:text-sm text-[#563727] leading-relaxed">
+                          {project.description}
+                        </p>
+
+                        {/* Tech Badges */}
+                        <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#EBDED2]">
+                          {project.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-[#F5EFEB] text-[#563727] border border-[#EBDED2]"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Footer Close / Details Button */}
+                        <div className="flex items-center justify-between mt-4 pt-2 border-t border-[#EBDED2]">
+                          <button
+                            type="button"
+                            onClick={() => setActivePopupId(null)}
+                            className="text-xs font-bold text-[#7A431D] hover:text-[#372C2E] underline underline-offset-2 transition-colors cursor-pointer"
+                          >
+                            Show less
+                          </button>
+                          {project.playgroundTab ? (
+                            <Link
+                              href={`/playground?tab=${project.playgroundTab}`}
+                              className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-[#DE9E48] text-[#372C2E] hover:bg-[#c88b3b] shadow-xs hover:shadow-md transition-all flex items-center gap-1.5 group/popbtn cursor-pointer"
+                            >
+                              <span>Try Me</span>
+                              <ArrowRight size={13} className="transition-transform group-hover/popbtn:translate-x-0.5" />
+                            </Link>
+                          ) : project.link ? (
+                            <Link
+                              href={project.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 text-xs font-semibold rounded-md bg-[#372C2E] text-white hover:bg-[#563727] transition-colors flex items-center gap-1"
+                            >
+                              <span>{project.linkLabel || "Details"}</span>
+                              <ExternalLink size={11} />
+                            </Link>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </section>
 
       {/* ================= INTERACTIVE PLAYGROUND SPOTLIGHT ================= */}

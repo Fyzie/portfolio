@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="agent-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#191B22" />
+      <stop offset="50%" stop-color="#242124" />
+      <stop offset="100%" stop-color="#161517" />
+    </linearGradient>
+
+    <!-- Amber Glow Gradient -->
+    <linearGradient id="agent-amber-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#DE9E48" />
+      <stop offset="100%" stop-color="#F5B041" />
+    </linearGradient>
+
+    <!-- Emerald Glow Gradient -->
+    <linearGradient id="agent-emerald-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#34D399" />
+    </linearGradient>
+
+    <!-- Card Background Gradient -->
+    <linearGradient id="agent-card-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#28262C" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#1D1C21" stop-opacity="0.95" />
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="agent-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#DE9E48" stroke-opacity="0.05" stroke-width="1" />
+      <circle cx="40" cy="40" r="1" fill="#DE9E48" fill-opacity="0.12" />
+    </pattern>
+
+    <!-- Filter for soft glow -->
+    <filter id="agent-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#agent-bg-grad)" />
+  <rect width="800" height="450" fill="url(#agent-grid)" />
+
+  <!-- Ambient Light Accents -->
+  <circle cx="180" cy="180" r="160" fill="#EF4444" fill-opacity="0.06" filter="url(#agent-glow)" />
+  <circle cx="400" cy="220" r="180" fill="#DE9E48" fill-opacity="0.08" filter="url(#agent-glow)" />
+  <circle cx="640" cy="200" r="160" fill="#10B981" fill-opacity="0.07" filter="url(#agent-glow)" />
+
+  <!-- Top Status Bar -->
+  <g id="top-bar">
+    <rect x="36" y="24" width="728" height="42" rx="10" fill="#242226" stroke="#DE9E48" stroke-opacity="0.25" stroke-width="1" />
+    
+    <!-- System Status Indicator -->
+    <circle cx="56" cy="45" r="4.5" fill="#DE9E48" />
+    <circle cx="56" cy="45" r="8" fill="#DE9E48" fill-opacity="0.25" />
+    <text x="72" y="49" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#FDF6E9" letter-spacing="1.5">AUTONOMOUS DISPATCH AGENT // ACTIVE</text>
+    
+    <!-- Right Tech Tags -->
+    <rect x="530" y="32" width="218" height="26" rx="6" fill="#DE9E48" fill-opacity="0.15" stroke="#DE9E48" stroke-opacity="0.4" stroke-width="1" />
+    <text x="639" y="49" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="600" fill="#DE9E48" text-anchor="middle">MCP TOOLS + SUPABASE ERP</text>
+  </g>
+
+  <!-- Node 1: Anomaly Trigger / Fault Ingest -->
+  <g id="node-1">
+    <rect x="44" y="90" width="200" height="260" rx="14" fill="url(#agent-card-grad)" stroke="#EF4444" stroke-opacity="0.4" stroke-width="1.5" />
+    
+    <!-- Header -->
+    <rect x="44" y="90" width="200" height="42" rx="14" fill="#3D2526" fill-opacity="0.7" />
+    <circle cx="62" cy="111" r="5" fill="#EF4444" />
+    <text x="74" y="115" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#FCA5A5">FAULT DETECTION</text>
+    
+    <!-- Sensor Data Alert -->
+    <rect x="56" y="144" width="176" height="60" rx="8" fill="#1C1819" stroke="#EF4444" stroke-opacity="0.3" />
+    <text x="68" y="162" font-family="system-ui, sans-serif" font-size="8.5" font-weight="700" fill="#EF4444">STATION 4: CONVEYOR MOTOR</text>
+    <text x="68" y="177" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">Vibration: 0.94 mm/s (High)</text>
+    <text x="68" y="191" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">Temp: 82.5°C • Code #M-201</text>
+
+    <!-- Natural Language Operator Request -->
+    <g transform="translate(56, 214)">
+      <rect width="176" height="74" rx="8" fill="#1C1819" stroke="#DE9E48" stroke-opacity="0.25" />
+      <text x="10" y="16" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#DE9E48">FAULT REPORT INGEST:</text>
+      <text x="10" y="32" font-family="system-ui, sans-serif" font-size="8" fill="#FDF6E9">"Motor is overheating with</text>
+      <text x="10" y="46" font-family="system-ui, sans-serif" font-size="8" fill="#FDF6E9">excessive bearing chatter.</text>
+      <text x="10" y="60" font-family="system-ui, sans-serif" font-size="8" fill="#FDF6E9">Check inventory and dispatch."</text>
+    </g>
+
+    <!-- Status badge -->
+    <rect x="56" y="298" width="176" height="36" rx="6" fill="#DE9E48" fill-opacity="0.1" stroke="#DE9E48" stroke-opacity="0.25" />
+    <text x="144" y="315" font-family="system-ui, sans-serif" font-size="8" font-weight="600" fill="#DE9E48" text-anchor="middle">TRIGGER DISPATCH LOOP</text>
+    <text x="144" y="326" font-family="system-ui, sans-serif" font-size="7.5" fill="#A08E87" text-anchor="middle">Autonomous Reasoning Init</text>
+  </g>
+
+  <!-- Flow Connector 1 to 2 -->
+  <path d="M 244 220 L 284 220" fill="none" stroke="#DE9E48" stroke-width="2.5" />
+  <polygon points="284,216 292,220 284,224" fill="#DE9E48" />
+
+  <!-- Node 2: Agent Brain & MCP Function Calling Engine -->
+  <g id="node-2">
+    <rect x="294" y="90" width="220" height="260" rx="14" fill="url(#agent-card-grad)" stroke="#DE9E48" stroke-width="1.8" />
+    
+    <!-- Header -->
+    <rect x="294" y="90" width="220" height="42" rx="14" fill="#3D3023" fill-opacity="0.7" />
+    <circle cx="314" cy="111" r="5" fill="#DE9E48" />
+    <text x="326" y="115" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#FDF6E9">AGENT REASONING (MCP)</text>
+
+    <!-- Step 1: Query SOP Manuals -->
+    <g transform="translate(308, 142)">
+      <rect width="192" height="46" rx="7" fill="#18171B" stroke="#DE9E48" stroke-opacity="0.3" />
+      <text x="10" y="16" font-family="monospace" font-size="8" font-weight="700" fill="#DE9E48">1. query_sop_manual()</text>
+      <text x="10" y="30" font-family="system-ui, sans-serif" font-size="7.5" fill="#10B981">✓ Found: Replace Bearing #6204</text>
+      <text x="10" y="40" font-family="system-ui, sans-serif" font-size="7" fill="#A08E87">Estimated repair time: 45 min</text>
+    </g>
+
+    <!-- Step 2: Live ERP MCP Tool Call -->
+    <g transform="translate(308, 196)">
+      <rect width="192" height="66" rx="7" fill="#18171B" stroke="#10B981" stroke-opacity="0.4" />
+      <text x="10" y="16" font-family="monospace" font-size="8" font-weight="700" fill="#10B981">2. check_erp_inventory()</text>
+      <text x="10" y="30" font-family="monospace" font-size="7" fill="#FDFBF7">Part: SKF Deep Groove 6204</text>
+      <text x="10" y="44" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#10B981">Stock: 8 units in Bin A-04</text>
+      <text x="10" y="58" font-family="system-ui, sans-serif" font-size="7.5" fill="#DE9E48">Auto-reserved 1 unit for work order</text>
+    </g>
+
+    <!-- Step 3: MCP Dispatch Execution -->
+    <g transform="translate(308, 270)">
+      <rect width="192" height="64" rx="7" fill="#18171B" stroke="#DE9E48" stroke-opacity="0.3" />
+      <text x="10" y="16" font-family="monospace" font-size="8" font-weight="700" fill="#DE9E48">3. execute_dispatch()</text>
+      <text x="10" y="32" font-family="system-ui, sans-serif" font-size="7.5" fill="#FDFBF7">Technician: On-Duty Mech Crew</text>
+      <text x="10" y="46" font-family="system-ui, sans-serif" font-size="7.5" fill="#FDFBF7">Urgency: HIGH • Line 4</text>
+      <text x="10" y="58" font-family="system-ui, sans-serif" font-size="7" font-weight="600" fill="#10B981">Status: DISPATCH NOTIFICATION SENT</text>
+    </g>
+  </g>
+
+  <!-- Flow Connector 2 to 3 -->
+  <path d="M 514 220 L 546 220" fill="none" stroke="#10B981" stroke-width="2.5" />
+  <polygon points="546,216 554,220 546,224" fill="#10B981" />
+
+  <!-- Node 3: Dispatch Ticket Output -->
+  <g id="node-3">
+    <rect x="556" y="90" width="200" height="260" rx="14" fill="url(#agent-card-grad)" stroke="#10B981" stroke-opacity="0.4" stroke-width="1.5" />
+    
+    <!-- Header -->
+    <rect x="556" y="90" width="200" height="42" rx="14" fill="#1C3529" fill-opacity="0.7" />
+    <circle cx="574" cy="111" r="5" fill="#10B981" />
+    <text x="586" y="115" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#A7F3D0">WORK ORDER #WO-891</text>
+
+    <!-- Ticket Summary Card -->
+    <g transform="translate(568, 142)">
+      <rect width="176" height="136" rx="8" fill="#18171B" stroke="#10B981" stroke-opacity="0.25" />
+      <text x="10" y="18" font-family="system-ui, sans-serif" font-size="8.5" font-weight="700" fill="#10B981">DISPATCH SUMMARY:</text>
+      <text x="10" y="36" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">• Target: Conveyor #4 Motor</text>
+      <text x="10" y="52" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">• Action: Bearing swap</text>
+      <text x="10" y="68" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">• Spare: SKF 6204 (Bin A-04)</text>
+      <text x="10" y="84" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">• Assigned: Tech Team Alpha</text>
+      <text x="10" y="100" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">• ERP Stock: 8 ➔ 7 remaining</text>
+      <text x="10" y="120" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#DE9E48">Resolution Target: &lt; 40 mins</text>
+    </g>
+
+    <!-- Supabase Realtime Sync Chip -->
+    <rect x="568" y="292" width="176" height="42" rx="6" fill="#10B981" fill-opacity="0.12" stroke="#10B981" stroke-opacity="0.3" stroke-width="1" />
+    <text x="656" y="310" font-family="system-ui, sans-serif" font-size="8.5" font-weight="700" fill="#10B981" text-anchor="middle">SUPABASE ERP SYNCED</text>
+    <text x="656" y="324" font-family="system-ui, sans-serif" font-size="7.5" fill="#A08E87" text-anchor="middle">Realtime Table: spare_parts_log</text>
+  </g>
+
+  <!-- Bottom Hero Banner Strip -->
+  <g id="bottom-strip">
+    <rect x="44" y="368" width="716" height="58" rx="12" fill="#201F24" stroke="#DE9E48" stroke-opacity="0.4" stroke-width="1.2" />
+    
+    <text x="64" y="402" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF">Autonomous Maintenance Dispatch Agent</text>
+    <text x="64" y="416" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#A08E87">Multi-Step Agentic Workflow: Anomaly Analysis ➔ SOP RAG ➔ MCP ERP Tool Calling</text>
+
+    <!-- Interactive Badge -->
+    <rect x="620" y="380" width="124" height="34" rx="8" fill="url(#agent-amber-glow)" />
+    <text x="682" y="402" font-family="system-ui, sans-serif" font-size="11.5" font-weight="800" fill="#372C2E" text-anchor="middle">LIVE DEMO ➔</text>
+  </g>
+</svg>

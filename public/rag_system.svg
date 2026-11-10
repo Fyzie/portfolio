@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F1A17" />
+      <stop offset="50%" stop-color="#2D241E" />
+      <stop offset="100%" stop-color="#181412" />
+    </linearGradient>
+
+    <!-- Amber Glow Gradient -->
+    <linearGradient id="amber-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#DE9E48" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#F3C379" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Card Background Gradient -->
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2D241E" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#221B17" stop-opacity="0.95" />
+    </linearGradient>
+
+    <!-- Grid Pattern -->
+    <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#DE9E48" stroke-opacity="0.06" stroke-width="1" />
+      <circle cx="40" cy="40" r="1" fill="#DE9E48" fill-opacity="0.15" />
+    </pattern>
+
+    <!-- Filter for soft glow -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bg-grad)" />
+  <rect width="800" height="450" fill="url(#grid-pattern)" />
+
+  <!-- Ambient Light Accents -->
+  <circle cx="200" cy="180" r="160" fill="#DE9E48" fill-opacity="0.08" filter="url(#glow)" />
+  <circle cx="620" cy="240" r="180" fill="#E67E22" fill-opacity="0.06" filter="url(#glow)" />
+
+  <!-- Top Status Bar -->
+  <g id="top-bar">
+    <rect x="36" y="24" width="728" height="42" rx="10" fill="#29211C" stroke="#DE9E48" stroke-opacity="0.25" stroke-width="1" />
+    
+    <!-- System Status Indicator -->
+    <circle cx="56" cy="45" r="4.5" fill="#10B981" />
+    <circle cx="56" cy="45" r="8" fill="#10B981" fill-opacity="0.25" />
+    <text x="72" y="49" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#FDF6E9" letter-spacing="1.5">RAG PIPELINE // INDUSTRIAL SOPs</text>
+    
+    <!-- Right Tech Tags -->
+    <rect x="580" y="32" width="168" height="26" rx="6" fill="#DE9E48" fill-opacity="0.15" stroke="#DE9E48" stroke-opacity="0.4" stroke-width="1" />
+    <text x="664" y="49" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="600" fill="#DE9E48" text-anchor="middle">SUPABASE + GEMINI 2.5</text>
+  </g>
+
+  <!-- Left: Industrial Documents Box -->
+  <g id="documents-card">
+    <rect x="44" y="90" width="220" height="260" rx="14" fill="url(#card-grad)" stroke="#DE9E48" stroke-opacity="0.3" stroke-width="1.5" />
+    
+    <!-- Header -->
+    <rect x="44" y="90" width="220" height="42" rx="14" fill="#382C24" fill-opacity="0.6" />
+    <text x="64" y="116" font-family="system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="700" fill="#FDF6E9" letter-spacing="0.5">SOP DOCUMENT STORE</text>
+    
+    <!-- Document 1 -->
+    <rect x="60" y="146" width="188" height="48" rx="8" fill="#1F1A17" stroke="#DE9E48" stroke-opacity="0.3" stroke-width="1" />
+    <rect x="72" y="160" width="20" height="20" rx="4" fill="#DE9E48" fill-opacity="0.2" />
+    <text x="82" y="174" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#DE9E48" text-anchor="middle">1</text>
+    <text x="102" y="167" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#FDF6E9">Hydraulic Press SOP</text>
+    <text x="102" y="182" font-family="system-ui, sans-serif" font-size="9" fill="#A08E87">manual1.json • 48 Chunks</text>
+
+    <!-- Document 2 -->
+    <rect x="60" y="206" width="188" height="48" rx="8" fill="#1F1A17" stroke="#DE9E48" stroke-opacity="0.2" stroke-width="1" />
+    <rect x="72" y="220" width="20" height="20" rx="4" fill="#10B981" fill-opacity="0.2" />
+    <text x="82" y="234" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#10B981" text-anchor="middle">2</text>
+    <text x="102" y="227" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#FDF6E9">Stamping Cell Manual</text>
+    <text x="102" y="242" font-family="system-ui, sans-serif" font-size="9" fill="#A08E87">manual2.json • 62 Chunks</text>
+
+    <!-- Document 3 -->
+    <rect x="60" y="266" width="188" height="48" rx="8" fill="#1F1A17" stroke="#DE9E48" stroke-opacity="0.2" stroke-width="1" />
+    <rect x="72" y="280" width="20" height="20" rx="4" fill="#3B82F6" fill-opacity="0.2" />
+    <text x="82" y="294" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#3B82F6" text-anchor="middle">3</text>
+    <text x="102" y="287" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#FDF6E9">Conveyor Safety Specs</text>
+    <text x="102" y="302" font-family="system-ui, sans-serif" font-size="9" fill="#A08E87">manual3.json • 35 Chunks</text>
+
+    <!-- Supabase Bucket Badge -->
+    <rect x="60" y="322" width="188" height="18" rx="4" fill="#DE9E48" fill-opacity="0.08" />
+    <text x="154" y="334" font-family="system-ui, sans-serif" font-size="8.5" font-weight="600" fill="#DE9E48" text-anchor="middle">STORAGE: factory-manuals</text>
+  </g>
+
+  <!-- Flow Arrows / Connectors from Docs to Embedding Engine -->
+  <path d="M 264 170 C 310 170, 310 205, 345 205" fill="none" stroke="#DE9E48" stroke-width="2" stroke-dasharray="4,4" />
+  <path d="M 264 230 C 300 230, 310 220, 345 220" fill="none" stroke="#DE9E48" stroke-width="2" />
+  <path d="M 264 290 C 310 290, 310 235, 345 235" fill="none" stroke="#DE9E48" stroke-width="2" stroke-dasharray="4,4" />
+
+  <!-- Center: Vector Embeddings & Semantic Search Node -->
+  <g id="vector-engine">
+    <rect x="345" y="125" width="160" height="190" rx="14" fill="#251D18" stroke="#DE9E48" stroke-width="1.8" />
+    
+    <!-- Top badge -->
+    <rect x="360" y="140" width="130" height="24" rx="6" fill="#DE9E48" fill-opacity="0.2" />
+    <text x="425" y="156" font-family="system-ui, sans-serif" font-size="9.5" font-weight="700" fill="#DE9E48" text-anchor="middle">VECTOR EMBEDDING</text>
+    
+    <!-- Mathematical representation / Vector matrix -->
+    <g transform="translate(365, 178)">
+      <rect width="120" height="58" rx="6" fill="#181412" stroke="#DE9E48" stroke-opacity="0.2" />
+      <text x="10" y="18" font-family="monospace" font-size="8.5" fill="#F3C379">[ 0.842, -0.312,</text>
+      <text x="10" y="32" font-family="monospace" font-size="8.5" fill="#F3C379">  0.518,  0.197,</text>
+      <text x="10" y="46" font-family="monospace" font-size="8.5" fill="#F3C379">  0.704, -0.622 ]</text>
+    </g>
+
+    <!-- Cosine Similarity Metric -->
+    <rect x="365" y="248" width="120" height="48" rx="6" fill="#181412" stroke="#10B981" stroke-opacity="0.4" />
+    <text x="425" y="265" font-family="system-ui, sans-serif" font-size="8.5" font-weight="600" fill="#A08E87" text-anchor="middle">Cosine Similarity</text>
+    <text x="425" y="284" font-family="system-ui, sans-serif" font-size="14" font-weight="800" fill="#10B981" text-anchor="middle">97.4% Match</text>
+  </g>
+
+  <!-- Flow Arrows from Vector Engine to AI Answer Card -->
+  <path d="M 505 220 L 536 220" fill="none" stroke="#DE9E48" stroke-width="2.5" />
+  <polygon points="536,216 544,220 536,224" fill="#DE9E48" />
+
+  <!-- Right: Synthesized AI Technical Output Card -->
+  <g id="ai-response-card">
+    <rect x="545" y="90" width="215" height="260" rx="14" fill="url(#card-grad)" stroke="#DE9E48" stroke-opacity="0.3" stroke-width="1.5" />
+    
+    <!-- Header -->
+    <rect x="545" y="90" width="215" height="42" rx="14" fill="#382C24" fill-opacity="0.6" />
+    <circle cx="565" cy="111" r="5" fill="#DE9E48" />
+    <text x="578" y="115" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#FDF6E9">GROUNDED ANSWER</text>
+    
+    <!-- User Query Bubble -->
+    <rect x="558" y="142" width="189" height="34" rx="8" fill="#181412" stroke="#DE9E48" stroke-opacity="0.2" />
+    <text x="568" y="156" font-family="system-ui, sans-serif" font-size="8.5" font-weight="700" fill="#DE9E48">QUERY:</text>
+    <text x="568" y="168" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">How to reset fault #E-402 on Press 3?</text>
+
+    <!-- Grounded Solution Steps -->
+    <g transform="translate(558, 186)">
+      <rect width="189" height="116" rx="8" fill="#1E1713" stroke="#DE9E48" stroke-opacity="0.25" />
+      <text x="10" y="18" font-family="system-ui, sans-serif" font-size="8.5" font-weight="700" fill="#10B981">✓ VERIFIED FROM MANUAL 1 (Sec 4.2):</text>
+      <text x="10" y="36" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">1. Shut down main 400V breaker.</text>
+      <text x="10" y="52" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">2. Inspect secondary relief valve.</text>
+      <text x="10" y="68" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">3. Replace seal ring (P/N: SR-442).</text>
+      <text x="10" y="84" font-family="system-ui, sans-serif" font-size="8" fill="#FDFBF7">4. Re-torque flange to 45 Nm.</text>
+      <text x="10" y="104" font-family="system-ui, sans-serif" font-size="8" font-weight="600" fill="#DE9E48">Ref: Hydraulic_Manual_Rev3.pdf</text>
+    </g>
+
+    <!-- Source Verified Chip -->
+    <rect x="558" y="312" width="189" height="26" rx="6" fill="#10B981" fill-opacity="0.12" stroke="#10B981" stroke-opacity="0.3" stroke-width="1" />
+    <text x="652" y="329" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#10B981" text-anchor="middle">100% Grounded • Zero Hallucination</text>
+  </g>
+
+  <!-- Bottom Hero Banner Strip -->
+  <g id="bottom-strip">
+    <rect x="44" y="368" width="716" height="58" rx="12" fill="#241C17" stroke="#DE9E48" stroke-opacity="0.4" stroke-width="1.2" />
+    
+    <text x="64" y="402" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF">Factory SOP &amp; Manual Assistant</text>
+    <text x="64" y="416" font-family="system-ui, -apple-system, sans-serif" font-size="10.5" font-weight="500" fill="#A08E87">Interactive Retrieval-Augmented Generation (RAG) for Industrial Technical Manuals</text>
+
+    <!-- Interactive Badge -->
+    <rect x="620" y="380" width="124" height="34" rx="8" fill="url(#amber-glow)" />
+    <text x="682" y="402" font-family="system-ui, sans-serif" font-size="11.5" font-weight="800" fill="#372C2E" text-anchor="middle">LIVE DEMO ➔</text>
+  </g>
+</svg>

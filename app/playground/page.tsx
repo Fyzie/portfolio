@@ -28,7 +28,17 @@ interface Detection {
 }
 
 export default function Playground() {
-  const [activeTab, setActiveTab] = useState('analytics');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const validTabs = ['analytics', 'cv', 'nlp', 'rag', 'agentic', 'reinforcement'];
+      if (tabParam && validTabs.includes(tabParam)) {
+        return tabParam;
+      }
+    }
+    return 'analytics';
+  });
   
   // Model Selection State ('forecast' | 'classification' | 'regression')
   const [analyticsType, setAnalyticsType] = useState('classification');
@@ -73,6 +83,31 @@ export default function Playground() {
     { id: 'agentic', label: 'Agentic AI', icon: <Workflow size={18} /> },
     { id: 'reinforcement', label: 'Reinforcement Learning', icon: <Workflow size={18} /> },
   ];
+
+  // Sync activeTab with URL parameter (?tab=...)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleTabFromUrl = () => {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam && tabs.some(t => t.id === tabParam)) {
+          setActiveTab(tabParam);
+        }
+      };
+      handleTabFromUrl();
+      window.addEventListener('popstate', handleTabFromUrl);
+      return () => window.removeEventListener('popstate', handleTabFromUrl);
+    }
+  }, []);
+
+  const handleSelectTab = (tabId: string) => {
+    setActiveTab(tabId);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tabId);
+      window.history.replaceState({}, '', url.toString());
+    }
+  };
 
   const fetchHistory = async () => {
     try {
@@ -603,7 +638,7 @@ export default function Playground() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleSelectTab(tab.id)}
               className={`flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all duration-200 ${
                 activeTab === tab.id
                   ? 'bg-white text-[#372C2E] shadow-sm border border-[#EBDED2]/50'
