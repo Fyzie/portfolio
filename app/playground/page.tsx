@@ -937,7 +937,7 @@ export default function Playground() {
             {/* COMPUTER VISION TAB */}
             {activeTab === 'cv' && (
               <div className="flex-1 flex flex-col gap-6 sm:gap-8 animate-in fade-in duration-500">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-[#F9F6F0] p-4 sm:p-5 rounded-xl border border-[#EBDED2] shadow-sm gap-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-[#F9F6F0] p-4 sm:p-5 rounded-xl border border-[#EBDED2] gap-4">
                   <div>
                     <h3 className="text-lg sm:text-xl font-bold text-[#372C2E] flex items-center gap-2">
                       <Eye size={20} className="text-[#DE9E48] shrink-0" />
