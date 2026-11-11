@@ -85,7 +85,7 @@ const projectsData: ProjectItem[] = [
     description: "An end-to-end 3-station inspection pipeline (bottom green light, top white light, bottom white light) for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
     shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
     images: ["/lens_image.png"],
-    tags: ["Jetson", "PyTorch", "PySide6", "TCP/UDP", "Defect Detection"],
+    tags: ["Jetson", "PyTorch", "PySide6", "TCP/UDP", "Multi-ROI Defect Detection"],
   },
   {
     id: "cell-growth",
@@ -241,6 +241,7 @@ export default function Home() {
   const [copiedIEEE, setCopiedIEEE] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [showMoreEducation, setShowMoreEducation] = useState(false);
+  const [showMoreExperience, setShowMoreExperience] = useState(false);
   const [activePopupId, setActivePopupId] = useState<string | null>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -497,6 +498,127 @@ export default function Home() {
               </div> */}
             </div>
           </div>
+
+          {/* Expandable Earlier Experience */}
+          {!showMoreExperience ? (
+            <button
+              type="button"
+              onClick={() => setShowMoreExperience(true)}
+              className="text-xs sm:text-sm font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors cursor-pointer pt-1"
+            >
+              <span>Show earlier experience</span>
+              <ChevronDown size={15} />
+            </button>
+          ) : (
+            <div className="space-y-6 pt-2">
+              {/* Graduate Research Assistant */}
+              <div className="relative group">
+                {/* Timeline Dot */}
+                <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#DE9E48] ring-4 ring-[#FDFBF7]" />
+                
+                <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                        Graduate Research Assistant
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-[#6E5A52] mt-0.5">
+                        <span className="text-[#7A431D] font-semibold">
+                          Research Management Centre (RMC), IIUM Gombak
+                        </span>
+                        <span>•</span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] font-medium border border-[#DE9E48]/30">
+                          Research &amp; Development
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <span className="text-xs sm:text-sm font-semibold text-[#6E5A52] self-start sm:self-auto">
+                      Dec 2021 – Sep 2023
+                    </span>
+                  </div>
+
+                  <ul className="list-disc ml-4 space-y-2 text-xs sm:text-sm text-[#563727] leading-relaxed">
+                    <li>
+                      Contributed to the complete life cycle of grant projects, from writing proposals, conceptual design, implementation to integration, and reporting.
+                    </li>
+                    <li>
+                      Prepared multimedia materials, including infographics, presentation slides, and demonstration videos, for project presentations and academic programs.
+                    </li>
+                  </ul>
+
+                  {/* Major Projects Involved */}
+                  <div className="pt-2 border-t border-[#EBDED2]/70">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#7A431D] mb-2">
+                      Major projects involved:
+                    </h4>
+                    <ul className="list-disc ml-4 space-y-1.5 text-xs sm:text-sm text-[#563727] leading-relaxed">
+                      <li>
+                        Automated 2D segmentation of coral species in the marine environment <span className="text-[#7A431D] font-medium">(Implementation)</span>
+                      </li>
+                      <li>
+                        Towards zero-carbon autonomous connecting electric vehicle for public transportation <span className="text-[#7A431D] font-medium">(Proposal writing, conceptual design)</span>
+                      </li>
+                      <li>
+                        Development of smart agrotech virtual and augmented reality system <span className="text-[#7A431D] font-medium">(Conceptual design)</span>
+                      </li>
+                      <li>
+                        Smart IoT energy optimization and localization monitoring for e-bike sharing <span className="text-[#7A431D] font-medium">(Writing proposal, conceptual design, implementation)</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Intern */}
+              <div className="relative group">
+                {/* Timeline Dot */}
+                <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#DE9E48] ring-4 ring-[#FDFBF7]" />
+                
+                <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                        Intern
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-[#6E5A52] mt-0.5">
+                        <span className="text-[#7A431D] font-semibold">
+                          Ingenious International Sdn. Bhd. (M), Petaling Jaya
+                        </span>
+                        <span>•</span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-md bg-[#FDF6E9] text-[#7A431D] font-medium border border-[#DE9E48]/30">
+                          M&amp;E Engineering
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <span className="text-xs sm:text-sm font-semibold text-[#6E5A52] self-start sm:self-auto">
+                      Aug 2020 – Oct 2020
+                    </span>
+                  </div>
+
+                  <ul className="list-disc ml-4 space-y-2 text-xs sm:text-sm text-[#563727] leading-relaxed">
+                    <li>
+                      Assisted in preparing bill of quantities and test reports for specific electrical and cable fittings using AutoCAD and Rivet (MRT Chan Sow Lin Station, Office Towers at TNB HQ Campus).
+                    </li>
+                    <li>
+                      Participated in site inspection focused on electrical wiring connections (Malaysia Steel Works (KL) Bhd).
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Hide Button */}
+              <button
+                type="button"
+                onClick={() => setShowMoreExperience(false)}
+                className="text-xs font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <span>Hide</span>
+                <ChevronUp size={15} />
+              </button>
+            </div>
+          )}
 
         </div>
       </section>
@@ -1028,9 +1150,9 @@ export default function Home() {
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#372C2E]">
             I like building & competing
           </h2>
-          <p className="text-xs sm:text-sm text-[#6E5A52]">
+          {/* <p className="text-xs sm:text-sm text-[#6E5A52]">
             Recognition from national and international engineering challenges, hackathons, and symposiums.
-          </p>
+          </p> */}
         </div>
 
         {/* Awards Timeline List */}
