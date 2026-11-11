@@ -74,7 +74,7 @@ const projectsData: ProjectItem[] = [
     description: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store the corresponding timestamp and overlap-width data for historical tracking, and process analysis.",
     shortDescription: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store",
     images: ["/powercable_image.jpg"],
-    tags: ["Jetson", "PyTorch", "PySide6", "Dimension Measurement"],
+    tags: ["Instance Segmentation", "Dimension Measurement"],
   },
   {
     id: "lens-inspection",
@@ -85,7 +85,18 @@ const projectsData: ProjectItem[] = [
     description: "An end-to-end 3-station inspection pipeline (bottom green light, top white light, bottom white light) for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
     shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
     images: ["/lens_image.png"],
-    tags: ["Jetson", "PyTorch", "PySide6", "TCP/UDP", "Multi-ROI Defect Detection"],
+    tags: ["TCP/UDP", "Bounding Boxes", "Multi-ROI Defect Detection"],
+  },
+  {
+    id: "coral-segmentation",
+    title: "Coral Reef Segmentation",
+    dates: "2023",
+    category: "Computer Vision",
+    projectType: "Academic",
+    description: "A deep learning model for segmenting coral reefs in underwater images, aiding in the assessment of reef health and biodiversity.",
+    shortDescription: "A deep learning model for segmenting coral reefs in underwater images, aiding in the assessment of reef health and biodiversity.",
+    images: ["/coral_image.png"],
+    tags: ["Tensorflow", "ResNet", "Multi-class Semantic Segmentation"],
   },
   {
     id: "cell-growth",
