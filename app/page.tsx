@@ -138,7 +138,7 @@ const projectsData: ProjectItem[] = [
     tags: ["RAG", "Qdrant", "Google AI Studio"],
     playgroundTab: "rag",
     link: "/playground?tab=rag",
-    linkLabel: "Try Me ->",
+    linkLabel: "Try Me",
     highlight: false
   },
   {
@@ -153,7 +153,7 @@ const projectsData: ProjectItem[] = [
     tags: ["Agentic AI", "Qdrant", "Google AI Studio", "Supabase ERP"],
     playgroundTab: "agentic",
     link: "/playground?tab=agentic",
-    linkLabel: "Try Me ->",
+    linkLabel: "Try Me",
     highlight: false
   },
 ];
@@ -806,7 +806,7 @@ export default function Home() {
                           <Link
                             href={`/playground?tab=${project.playgroundTab}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="px-3.5 py-1.5 rounded-full bg-[#DE9E48] text-[#372C2E] text-xs font-bold flex items-center gap-1.5 shadow-md hover:bg-white transition-colors cursor-pointer"
+                            className="px-3.5 py-1.5 rounded-full bg-[#372C2E]/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs"
                           >
                             <Gamepad2 size={13} /> Try in Playground &rarr;
                           </Link>
@@ -877,15 +877,7 @@ export default function Home() {
                         {/* Action Row */}
                         {(project.playgroundTab || project.link) && (
                           <div className="pt-2.5 border-t border-[#EBDED2] flex items-center justify-between">
-                            {project.playgroundTab ? (
-                              <Link
-                                href={`/playground?tab=${project.playgroundTab}`}
-                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#DE9E48] text-[#372C2E] hover:bg-[#c88b3b] font-bold text-xs shadow-xs hover:shadow-md transition-all group/btn cursor-pointer"
-                              >
-                                <span>Try Me</span>
-                                <ArrowRight size={13} className="transition-transform group-hover/btn:translate-x-1" />
-                              </Link>
-                            ) : project.link ? (
+                            {project.link ? (
                               <Link
                                 href={project.link}
                                 target="_blank"
@@ -896,7 +888,6 @@ export default function Home() {
                                 <ExternalLink size={11} />
                               </Link>
                             ) : null}
-
                           </div>
                         )}
                       </div>
