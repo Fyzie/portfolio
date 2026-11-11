@@ -783,41 +783,62 @@ export default function Home() {
           {/* Expandable Foundation & High School */}
           {!showMoreEducation ? (
             <button
+              type="button"
               onClick={() => setShowMoreEducation(true)}
-              className="text-xs sm:text-sm font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors"
+              className="text-xs sm:text-sm font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors cursor-pointer pt-1"
             >
               <span>Show earlier education</span>
               <ChevronDown size={15} />
             </button>
           ) : (
-            <div className="space-y-4 pt-2 border-t border-[#EBDED2]">
-              <div className="bg-white border border-[#EBDED2] p-4 rounded-xl space-y-1">
-                <div className="flex justify-between items-baseline">
-                  <h4 className="text-sm font-bold text-[#372C2E]">
-                    Engineering Programmes (Foundation)
-                  </h4>
-                  <span className="text-xs text-[#6E5A52]">2016 – 2017</span>
+            <div className="space-y-8">
+              {/* Foundation */}
+              <div className="relative group">
+                <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#7A431D] ring-4 ring-[#FDFBF7]" />
+                
+                <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                        Engineering Programmes (Foundation)
+                      </h3>
+                      <p className="text-sm text-[#6E5A52]">
+                        Centre for Foundation Studies (IIUM) • <span className="font-semibold text-[#7A431D]">CGPA: 3.93</span>
+                      </p>
+                    </div>
+                    <span className="text-xs sm:text-sm font-semibold text-[#6E5A52] self-start sm:self-auto">
+                      2016 – 2017
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xs text-[#563727]">
-                  Centre for Foundation Studies (IIUM) • <span className="font-semibold text-[#7A431D]">CGPA: 3.93</span>
-                </p>
               </div>
 
-              <div className="bg-white border border-[#EBDED2] p-4 rounded-xl space-y-1">
-                <div className="flex justify-between items-baseline">
-                  <h4 className="text-sm font-bold text-[#372C2E]">
-                    Sijil Pelajaran Malaysia (Aliran Sains Tulen)
-                  </h4>
-                  <span className="text-xs text-[#6E5A52]">2014 – 2015</span>
+              {/* High School (SPM) */}
+              <div className="relative group">
+                <div className="absolute -left-[23px] sm:-left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-[#7A431D] ring-4 ring-[#FDFBF7]" />
+                
+                <div className="space-y-3 bg-white border border-[#EBDED2] p-5 sm:p-6 rounded-2xl shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-[#372C2E]">
+                        Sijil Pelajaran Malaysia (Aliran Sains Tulen)
+                      </h3>
+                      <p className="text-sm text-[#6E5A52]">
+                        Maktab Mahmud Alor Setar (MMAS) • <span className="font-semibold text-[#7A431D]">Result: 9A&apos;s 2B&apos;s</span>
+                      </p>
+                    </div>
+                    <span className="text-xs sm:text-sm font-semibold text-[#6E5A52] self-start sm:self-auto">
+                      2014 – 2015
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xs text-[#563727]">
-                  Maktab Mahmud Alor Setar (MMAS) • <span className="font-semibold text-[#7A431D]">Result: 9A's 2B's</span>
-                </p>
               </div>
 
+              {/* Hide Button */}
               <button
+                type="button"
                 onClick={() => setShowMoreEducation(false)}
-                className="text-xs font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors"
+                className="text-xs font-semibold text-[#7A431D] hover:text-[#372C2E] flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <span>Hide</span>
                 <ChevronUp size={15} />
