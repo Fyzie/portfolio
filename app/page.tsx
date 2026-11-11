@@ -127,24 +127,9 @@ const projectsData: ProjectItem[] = [
     linkLabel: "Springer Chapter"
   },
   {
-    id: "rag-factory-assistant",
-    title: "Factory SOP & Manual Assistant",
-    dates: "2025",
-    category: "RAG Systems",
-    projectType: "Personal",
-    description: "An intelligent Retrieval-Augmented Generation (RAG) assistant designed for industrial shop floors. It indexes standard operating procedures (SOPs) and equipment manuals, allowing maintenance crews to instantly query technical documentation, verify fault codes, and retrieve step-by-step resolution procedures.",
-    shortDescription: "An AI assistant that helps factory personnel quickly query and retrieve guidance from equipment SOPs and technical manuals using vector",
-    images: ["/rag_system.png"],
-    tags: ["RAG", "Qdrant", "Google AI Studio"],
-    playgroundTab: "rag",
-    link: "/playground?tab=rag",
-    linkLabel: "Try Me",
-    highlight: false
-  },
-  {
     id: "agentic-maintenance-dispatcher",
     title: "Autonomous Maintenance Dispatch Agent",
-    dates: "2025",
+    dates: "2026",
     category: "Agentic AI",
     projectType: "Personal",
     description: "Autonomous dispatch agent executing RAG manual queries combined with live Supabase ERP inventory tool calls (MCP). Diagnoses machinery breakdowns, verifies spare parts availability, updates stock, and generates automated work order dispatches.",
@@ -153,6 +138,21 @@ const projectsData: ProjectItem[] = [
     tags: ["Agentic AI", "Qdrant", "Google AI Studio", "Supabase ERP"],
     playgroundTab: "agentic",
     link: "/playground?tab=agentic",
+    linkLabel: "Try Me",
+    highlight: false
+  },
+  {
+    id: "rag-factory-assistant",
+    title: "Factory SOP & Manual Assistant",
+    dates: "2026",
+    category: "RAG Systems",
+    projectType: "Personal",
+    description: "An intelligent Retrieval-Augmented Generation (RAG) assistant designed for industrial shop floors. It indexes standard operating procedures (SOPs) and equipment manuals, allowing maintenance crews to instantly query technical documentation, verify fault codes, and retrieve step-by-step resolution procedures.",
+    shortDescription: "An AI assistant that helps factory personnel quickly query and retrieve guidance from equipment SOPs and technical manuals using vector",
+    images: ["/rag_system.png"],
+    tags: ["RAG", "Qdrant", "Google AI Studio"],
+    playgroundTab: "rag",
+    link: "/playground?tab=rag",
     linkLabel: "Try Me",
     highlight: false
   },
@@ -808,7 +808,7 @@ export default function Home() {
                             onClick={(e) => e.stopPropagation()}
                             className="px-3.5 py-1.5 rounded-full bg-[#372C2E]/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs"
                           >
-                            <Gamepad2 size={13} /> Try in Playground &rarr;
+                            <Gamepad2 size={13} /> Try in Playground
                           </Link>
                         ) : (
                           <span className="px-3.5 py-1.5 rounded-full bg-[#372C2E]/80 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-xs">
