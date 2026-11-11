@@ -66,26 +66,26 @@ interface ProjectItem {
 
 const projectsData: ProjectItem[] = [
   {
-    id: "lens-inspection",
-    title: "Automated Lens Inspection",
-    dates: "2024",
-    category: "Machine Vision",
-    projectType: "Professional",
-    description: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
-    shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
-    images: ["/lens_image.png"],
-    tags: ["NVIDIA Jetson", "Basler", "PyTorch", "PySide6", "TCP/UDP", "Defect Detection"],
-  },
-  {
     id: "powercable-inspection",
     title: "Automated Power Cable Inspection",
     dates: "2026",
     category: "Machine Vision",
     projectType: "Professional",
-    description: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store the corresponding timestamp and overlap-width data for quality monitoring, historical tracking, and process analysis.",
+    description: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store the corresponding timestamp and overlap-width data for historical tracking, and process analysis.",
     shortDescription: "An inspection system to measure the overlapping width of the cable during continuous operation. The system shall automatically capture measurements every 10 seconds and store",
     images: ["/powercable_image.jpg"],
-    tags: ["NVIDIA Jetson", "Basler", "PyTorch", "PySide6", "Dimension Measurement"],
+    tags: ["Jetson", "PyTorch", "PySide6", "Dimension Measurement"],
+  },
+  {
+    id: "lens-inspection",
+    title: "Automated Lens Inspection",
+    dates: "2024",
+    category: "Machine Vision",
+    projectType: "Professional",
+    description: "An end-to-end 3-station inspection pipeline (bottom green light, top white light, bottom white light) for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by a custom centralized HMI and Raspberry Pi data server.",
+    shortDescription: "An end-to-end 3-station inspection pipeline for 360-unit lens frames. Synchronized vision processing across 3 NVIDIA Jetson devices with MDuino hardware controllers, unified by",
+    images: ["/lens_image.png"],
+    tags: ["Jetson", "PyTorch", "PySide6", "TCP/UDP", "Defect Detection"],
   },
   {
     id: "cell-growth",
@@ -110,6 +110,8 @@ const projectsData: ProjectItem[] = [
     shortDescription: "A GPS-enabled wearable device for geofencing, enabling location monitoring and boundary violation reporting through",
     images: ["/tracker.png"],
     tags: ["LoRa", "GPS", "Embedded C++", "ESP32"],
+    link: "https://github.com/Fyzie/geofencing_electronic_lora_tracker",
+    linkLabel: "View on GitHub"
   },
   {
     id: "driving-cycle",
@@ -137,7 +139,7 @@ const projectsData: ProjectItem[] = [
     playgroundTab: "rag",
     link: "/playground?tab=rag",
     linkLabel: "Try Me ->",
-    highlight: true
+    highlight: false
   },
   {
     id: "agentic-maintenance-dispatcher",
@@ -152,7 +154,7 @@ const projectsData: ProjectItem[] = [
     playgroundTab: "agentic",
     link: "/playground?tab=agentic",
     linkLabel: "Try Me ->",
-    highlight: true
+    highlight: false
   },
 ];
 
@@ -816,13 +818,13 @@ export default function Home() {
                       </div>
 
                       {/* Highlight Badge for Personal Projects */}
-                      {project.highlight && (
+                      {/* {project.highlight && (
                         <div className="absolute top-3 right-3 z-10 pointer-events-none">
                           <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#372C2E]/85 text-[#DE9E48] border border-[#DE9E48]/50 shadow-md backdrop-blur-xs flex items-center gap-1">
                             <Sparkles size={11} className="text-[#DE9E48]" /> AI Playground
                           </span>
                         </div>
-                      )}
+                      )} */}
                     </div>
 
                     {/* Card Body */}
