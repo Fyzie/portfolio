@@ -97,6 +97,8 @@ const projectsData: ProjectItem[] = [
     shortDescription: "A deep learning model to assist remote exploration and monitoring of coral reefs",
     images: ["/coral_image.png"],
     tags: ["Tensorflow", "ResNet", "Multi-class Semantic Segmentation"],
+    link: "https://link.springer.com/article/10.1007/s42452-025-07831-3",
+    linkLabel: "Read Paper"
   },
   {
     id: "cell-growth",
